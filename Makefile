@@ -4,6 +4,7 @@
 
 NAME = gentoo-functions
 VERSION = 0.4
+DISTFILE = $(NAME)-$(VERSION)
 GITREF = $(NAME)-$(VERSION)
 PKG = $(NAME)-$(VERSION)
 
@@ -30,7 +31,7 @@ clean:
 	rm -rf $(PROGRAMS)
 
 dist:
-	git archive --prefix=${PKG}/ ${PKG}
+	git archive --prefix=$(PKG)/ $(GITREF) | bzip2 > $(DISTFILE).tar.bz2
 
 consoletype: consoletype.c
 
