@@ -23,7 +23,7 @@ install: all
 	install -m 0755 -d $(DESTDIR)$(ROOTSBINDIR)
 	install -m 0755 consoletype $(DESTDIR)$(ROOTSBINDIR)
 	install -m 0755 -d $(DESTDIR)$(ROOTLIBEXECDIR)
-	install -m 0644 gentoo-functions.sh $(DESTDIR)$(ROOTLIBEXECDIR)
+	install -m 0644 functions.sh $(DESTDIR)$(ROOTLIBEXECDIR)
 	install -m 0755 -d $(DESTDIR)$(MANDIR)/man1
 	install -m 0644 consoletype.1 $(DESTDIR)$(MANDIR)/man1
 
