@@ -3,7 +3,7 @@
 # Distributed under the terms of the GNU General Public License v2
 
 NAME = gentoo-functions
-VERSION = 0.4
+VERSION = 0.5
 DISTFILE = $(NAME)-$(VERSION)
 GITREF = $(NAME)-$(VERSION)
 PKG = $(NAME)-$(VERSION)
