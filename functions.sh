@@ -118,7 +118,7 @@ ewarnn()
 	if yesno "${EINFO_QUIET}"; then
 		printf " $*"
 		else
-		if ! yesno "${RC_ENDCOL}" && [ ${LAST_E_CMD} = "ebegin" ]; then
+		if ! yesno "${RC_ENDCOL}" && [ "${LAST_E_CMD}" = "ebegin" ]; then
 			printf "\n"
 		fi
 		printf " ${WARN}*${NORMAL} ${RC_INDENTATION}$*"
@@ -140,7 +140,7 @@ ewarn()
 	if yesno "${EINFO_QUIET}"; then
 		printf " $*\n"
 		else
-		if ! yesno "${RC_ENDCOL}" && [ ${LAST_E_CMD} = "ebegin" ]; then
+		if ! yesno "${RC_ENDCOL}" && [ "${LAST_E_CMD}" = "ebegin" ]; then
 			printf "\n"
 		fi
 		printf " ${WARN}*${NORMAL} ${RC_INDENTATION}$*\n"
