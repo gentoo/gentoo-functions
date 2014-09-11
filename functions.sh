@@ -25,8 +25,9 @@ _esetdent()
 #
 eindent()
 {
-	local i="$1"
+	local i="${1-}"
 	[ -n "$i" ] && [ "$i" -gt 0 ] || i=$RC_DEFAULT_INDENT
+	: ${RC_INDENTATION=}
 	_esetdent $(( ${#RC_INDENTATION} + i ))
 }
 
@@ -35,8 +36,9 @@ eindent()
 #
 eoutdent()
 {
-	local i="$1"
+	local i="${1-}"
 	[ -n "$i" ] && [ "$i" -gt 0 ] || i=$RC_DEFAULT_INDENT
+	: ${RC_INDENTATION=}
 	_esetdent $(( ${#RC_INDENTATION} - i ))
 }
 
@@ -47,7 +49,7 @@ eoutdent()
 #
 yesno()
 {
-	[ -z "$1" ] && return 1
+	[ -z "${1-}" ] && return 1
 
 	case "$1" in
 		[Yy][Ee][Ss]|[Tt][Rr][Uu][Ee]|[Oo][Nn]|1) return 0;;
@@ -55,6 +57,8 @@ yesno()
 	esac
 
 	local value=
+	# debatable if "set -o nounset" should affect the following line or not
+	#  -- choosing "fail if var not set"
 	eval value=\$${1}
 	case "$value" in
 		[Yy][Ee][Ss]|[Tt][Rr][Uu][Ee]|[Oo][Nn]|1) return 0;;
@@ -71,11 +75,11 @@ esyslog()
 	local pri=
 	local tag=
 
-	if [ -n "$EINFO_LOG" ] && command -v logger > /dev/null 2>&1; then
+	if [ -n "${EINFO_LOG-}" ] && command -v logger > /dev/null 2>&1; then
 		pri="$1"
 		tag="$2"
 
-		shift 2
+		shift 2 || return
 		[ -z "$*" ] && return 0
 
 		logger -p "${pri}" -t "${tag}" -- "$*"
@@ -89,13 +93,13 @@ esyslog()
 #
 einfon()
 {
-	if yesno "${EINFO_QUIET}"; then
+	if yesno "${EINFO_QUIET-}"; then
 		return 0
 	fi
-	if ! yesno "${RC_ENDCOL}" && [ "${LAST_E_CMD}" = "ebegin" ]; then
+	if ! yesno "${RC_ENDCOL-}" && [ "${LAST_E_CMD-}" = "ebegin" ]; then
 		printf "\n"
 	fi
-	printf " ${GOOD}*${NORMAL} ${RC_INDENTATION}$*"
+	printf " ${GOOD}*${NORMAL} ${RC_INDENTATION-}$*"
 	LAST_E_CMD="einfon"
 	return 0
 }
@@ -115,13 +119,13 @@ einfo()
 #
 ewarnn()
 {
-	if yesno "${EINFO_QUIET}"; then
+	if yesno "${EINFO_QUIET-}"; then
 		printf " $*"
 		else
-		if ! yesno "${RC_ENDCOL}" && [ "${LAST_E_CMD}" = "ebegin" ]; then
+		if ! yesno "${RC_ENDCOL-}" && [ "${LAST_E_CMD-}" = "ebegin" ]; then
 			printf "\n"
 		fi
-		printf " ${WARN}*${NORMAL} ${RC_INDENTATION}$*"
+		printf " ${WARN}*${NORMAL} ${RC_INDENTATION-}$*"
 	fi
 
 	local name="${0##*/}"
@@ -137,13 +141,13 @@ ewarnn()
 #
 ewarn()
 {
-	if yesno "${EINFO_QUIET}"; then
+	if yesno "${EINFO_QUIET-}"; then
 		printf " $*\n"
 		else
-		if ! yesno "${RC_ENDCOL}" && [ "${LAST_E_CMD}" = "ebegin" ]; then
+		if ! yesno "${RC_ENDCOL-}" && [ "${LAST_E_CMD-}" = "ebegin" ]; then
 			printf "\n"
 		fi
-		printf " ${WARN}*${NORMAL} ${RC_INDENTATION}$*\n"
+		printf " ${WARN}*${NORMAL} ${RC_INDENTATION-}$*\n"
 	fi
 
 	local name="${0##*/}"
@@ -159,13 +163,13 @@ ewarn()
 #
 eerrorn()
 {
-	if yesno "${EINFO_QUIET}"; then
+	if yesno "${EINFO_QUIET-}"; then
 		printf " $*" >/dev/stderr
 	else
-		if ! yesno "${RC_ENDCOL}" && [ "${LAST_E_CMD}" = "ebegin" ]; then
+		if ! yesno "${RC_ENDCOL-}" && [ "${LAST_E_CMD-}" = "ebegin" ]; then
 			printf "\n"
 		fi
-		printf " ${BAD}*${NORMAL} ${RC_INDENTATION}$*"
+		printf " ${BAD}*${NORMAL} ${RC_INDENTATION-}$*"
 	fi
 
 	local name="${0##*/}"
@@ -181,13 +185,13 @@ eerrorn()
 #
 eerror()
 {
-	if yesno "${EINFO_QUIET}"; then
+	if yesno "${EINFO_QUIET-}"; then
 		printf " $*\n" >/dev/stderr
 	else
-		if ! yesno "${RC_ENDCOL}" && [ "${LAST_E_CMD}" = "ebegin" ]; then
+		if ! yesno "${RC_ENDCOL-}" && [ "${LAST_E_CMD-}" = "ebegin" ]; then
 			printf "\n"
 		fi
-		printf " ${BAD}*${NORMAL} ${RC_INDENTATION}$*\n"
+		printf " ${BAD}*${NORMAL} ${RC_INDENTATION-}$*\n"
 	fi
 
 	local name="${0##*/}"
@@ -204,16 +208,17 @@ eerror()
 ebegin()
 {
 	local msg="$*"
-	if yesno "${EINFO_QUIET}"; then
+	if yesno "${EINFO_QUIET-}"; then
 		return 0
 	fi
 
 	msg="${msg} ..."
 	einfon "${msg}"
-	if yesno "${RC_ENDCOL}"; then
+	if yesno "${RC_ENDCOL-}"; then
 		printf "\n"
 	fi
 
+	: ${RC_INDENTATION=}
 	LAST_E_LEN="$(( 3 + ${#RC_INDENTATION} + ${#msg} ))"
 	LAST_E_CMD="ebegin"
 	return 0
@@ -232,7 +237,7 @@ _eend()
 	shift 2
 
 	if [ "${retval}" = "0" ]; then
-		yesno "${EINFO_QUIET}" && return 0
+		yesno "${EINFO_QUIET-}" && return 0
 		msg="${BRACKET}[ ${GOOD}ok${BRACKET} ]${NORMAL}"
 	else
 		if [ -c /dev/null ] ; then
@@ -246,10 +251,10 @@ _eend()
 		msg="${BRACKET}[ ${BAD}!!${BRACKET} ]${NORMAL}"
 	fi
 
-	if yesno "${RC_ENDCOL}"; then
+	if yesno "${RC_ENDCOL-}"; then
 		printf "${ENDCOL}  ${msg}\n"
 	else
-		[ "${LAST_E_CMD}" = ebegin ] || LAST_E_LEN=0
+		[ "${LAST_E_CMD-}" = ebegin ] || LAST_E_LEN=0
 		printf "%$(( COLS - LAST_E_LEN - 6 ))s%b\n" '' "${msg}"
 	fi
 
@@ -263,7 +268,7 @@ _eend()
 eend()
 {
 	local retval="${1:-0}"
-	shift
+	[ $# -eq 0 ] || shift
 
 	_eend "${retval}" eerror "$*"
 
@@ -278,7 +283,7 @@ eend()
 ewend()
 {
 	local retval="${1:-0}"
-	shift
+	[ $# -eq 0 ] || shift
 
 	_eend "${retval}" ewarn "$*"
 
@@ -290,49 +295,49 @@ ewend()
 # The condition is negated so the return value will be zero.
 veinfo()
 {
-	yesno "${EINFO_VERBOSE}" && einfo "$@"
+	yesno "${EINFO_VERBOSE-}" && einfo "$@"
 }
 
 veinfon()
 {
-	yesno "${EINFO_VERBOSE}" && einfon "$@"
+	yesno "${EINFO_VERBOSE-}" && einfon "$@"
 }
 
 vewarn()
 {
-	yesno "${EINFO_VERBOSE}" && ewarn "$@"
+	yesno "${EINFO_VERBOSE-}" && ewarn "$@"
 }
 
 veerror()
 {
-	yesno "${EINFO_VERBOSE}" && eerror "$@"
+	yesno "${EINFO_VERBOSE-}" && eerror "$@"
 }
 
 vebegin()
 {
-	yesno "${EINFO_VERBOSE}" && ebegin "$@"
+	yesno "${EINFO_VERBOSE-}" && ebegin "$@"
 }
 
 veend()
 {
-	yesno "${EINFO_VERBOSE}" && { eend "$@"; return $?; }
+	yesno "${EINFO_VERBOSE-}" && { eend "$@"; return $?; }
 	return ${1:-0}
 }
 
 vewend()
 {
-	yesno "${EINFO_VERBOSE}" && { ewend "$@"; return $?; }
+	yesno "${EINFO_VERBOSE-}" && { ewend "$@"; return $?; }
 	return ${1:-0}
 }
 
 veindent()
 {
-	yesno "${EINFO_VERBOSE}" && eindent
+	yesno "${EINFO_VERBOSE-}" && eindent
 }
 
 veoutdent()
 {
-	yesno "${EINFO_VERBOSE}" && eoutdent
+	yesno "${EINFO_VERBOSE-}" && eoutdent
 }
 
 #
@@ -340,7 +345,7 @@ veoutdent()
 #
 get_libdir()
 {
-	if [ -n "${CONF_LIBDIR_OVERRIDE}" ] ; then
+	if [ -n "${CONF_LIBDIR_OVERRIDE-}" ] ; then
 		CONF_LIBDIR="${CONF_LIBDIR_OVERRIDE}"
 	elif type portageq > /dev/null 2>&1; then
 		CONF_LIBDIR="$(portageq envvar CONF_LIBDIR)"
@@ -420,7 +425,7 @@ RC_DOT_PATTERN=''
 # Cache the CONSOLETYPE - this is important as backgrounded shells don't
 # have a TTY. rc unsets it at the end of running so it shouldn't hang
 # around
-if [ -z "${CONSOLETYPE}" ] ; then
+if [ -z "${CONSOLETYPE-}" ] ; then
 	CONSOLETYPE="$(consoletype stdout 2>/dev/null )"; export CONSOLETYPE
 fi
 if [ "${CONSOLETYPE}" = "serial" ] ; then
@@ -452,7 +457,7 @@ fi
 
 # Setup the colors so our messages all look pretty
 if yesno "${RC_NOCOLOR}"; then
-	unset GOOD WARN BAD NORMAL HILITE BRACKET
+	unset -v GOOD WARN BAD NORMAL HILITE BRACKET
 elif (type tput && tput colors) >/dev/null 2>&1; then
 	GOOD="$(tput sgr0)$(tput bold)$(tput setaf 2)"
 	WARN="$(tput sgr0)$(tput bold)$(tput setaf 3)"
