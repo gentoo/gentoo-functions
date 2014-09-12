@@ -2,11 +2,9 @@
 # Copyright 2014 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
-NAME = gentoo-functions
 VERSION = 0.9
-DISTFILE = $(NAME)-$(VERSION)
-GITREF = $(NAME)-$(VERSION)
-PKG = $(NAME)-$(VERSION)
+GITREF ?= $(VERSION)
+PKG ?= gentoo-functions-$(VERSION)
 
 ROOTPREFIX ?=
 ROOTSBINDIR ?= $(ROOTPREFIX)/sbin
@@ -31,7 +29,7 @@ clean:
 	rm -rf $(PROGRAMS)
 
 dist:
-	git archive --prefix=$(PKG)/ $(GITREF) | bzip2 > $(DISTFILE).tar.bz2
+	git archive --prefix=$(PKG)/ $(GITREF) | bzip2 > $(PKG).tar.bz2
 
 consoletype: consoletype.c
 
