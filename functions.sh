@@ -421,7 +421,7 @@ RC_DOT_PATTERN=''
 # have a TTY. rc unsets it at the end of running so it shouldn't hang
 # around
 if [ -z "${CONSOLETYPE}" ] ; then
-	CONSOLETYPE="$(consoletype 2>/dev/null )"; export CONSOLETYPE
+	CONSOLETYPE="$(consoletype stdout 2>/dev/null )"; export CONSOLETYPE
 fi
 if [ "${CONSOLETYPE}" = "serial" ] ; then
 	RC_NOCOLOR="yes"
