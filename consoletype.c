@@ -19,6 +19,7 @@ int main(int argc, char *argv[])
 	unsigned char twelve = 12;
 	int maj;
 	struct stat sb;
+	int rc = 0;
 
 	fstat(0, &sb);
 	maj = major(sb.st_rdev);
@@ -26,13 +27,15 @@ int main(int argc, char *argv[])
 #if defined(__linux__)
 		if (ioctl (0, TIOCLINUX, &twelve) < 0) {
 			printf("serial\n");
-			return 1;
+			rc = 1;
 		}
 #endif
 		printf("vt\n");
-		return 0;
 	} else {
 		printf("pty\n");
-		return 2;
+		rc = 2;
 	}
+	if (argc > 1 && strcmp(argv[1], "stdout") == 0)
+		rc = 0;
+	return rc;
 }

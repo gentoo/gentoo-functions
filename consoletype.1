@@ -3,7 +3,7 @@
 .B consoletype
 \- print type of the console connected to standard input
 .SH SYNOPSIS
-.B consoletype
+.B consoletype [\fIstdout\fR]
 .SH DESCRIPTION
 .B consoletype
 prints the type of console connected to standard input. It prints
@@ -16,7 +16,7 @@ if standard input is a serial console (/dev/console or /dev/ttyS*) and
 if standard input is a pseudo terminal.
 .SH RETURN VALUE
 .B consoletype
-returns
+When passed no arguments returns
 .TP
 .I 0
 if on virtual terminal
@@ -26,3 +26,8 @@ if on serial console
 .TP
 .I 2
 if on a pseudo terminal.
+.TP
+When passed the \fIstdout\fR argument, returns
+.TP
+.I 0
+in all cases.
