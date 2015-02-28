@@ -263,7 +263,7 @@ _eend()
 eend()
 {
 	local retval="${1:-0}"
-	shift
+	[ $# -eq 0 ] || shift
 
 	_eend "${retval}" eerror "$*"
 
@@ -278,7 +278,7 @@ eend()
 ewend()
 {
 	local retval="${1:-0}"
-	shift
+	[ $# -eq 0 ] || shift
 
 	_eend "${retval}" ewarn "$*"
 
@@ -342,7 +342,7 @@ get_libdir()
 {
 	if [ -n "${CONF_LIBDIR_OVERRIDE}" ] ; then
 		CONF_LIBDIR="${CONF_LIBDIR_OVERRIDE}"
-	elif type portageq > /dev/null 2>&1; then
+	elif command -v portageq > /dev/null 2>&1; then
 		CONF_LIBDIR="$(portageq envvar CONF_LIBDIR)"
 	fi
 	printf "${CONF_LIBDIR:=lib}\n"
@@ -391,7 +391,7 @@ is_older_than()
 {
 	local x=
 	local ref="$1"
-	shift
+	[ $# -eq 0 ] || shift
 
 	for x in "$@" ; do
 		[ "${x}" -nt "${ref}" ] && return 0
@@ -453,7 +453,7 @@ fi
 # Setup the colors so our messages all look pretty
 if yesno "${RC_NOCOLOR}"; then
 	unset GOOD WARN BAD NORMAL HILITE BRACKET
-elif (type tput && tput colors) >/dev/null 2>&1; then
+elif (command -v tput && tput colors) >/dev/null 2>&1; then
 	GOOD="$(tput sgr0)$(tput bold)$(tput setaf 2)"
 	WARN="$(tput sgr0)$(tput bold)$(tput setaf 3)"
 	BAD="$(tput sgr0)$(tput bold)$(tput setaf 1)"
