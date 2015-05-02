@@ -116,12 +116,12 @@ einfo()
 ewarnn()
 {
 	if yesno "${EINFO_QUIET}"; then
-		printf " $*"
-		else
+		return 0
+	else
 		if ! yesno "${RC_ENDCOL}" && [ "${LAST_E_CMD}" = "ebegin" ]; then
-			printf "\n"
+			printf "\n" >&2
 		fi
-		printf " ${WARN}*${NORMAL} ${RC_INDENTATION}$*"
+		printf " ${WARN}*${NORMAL} ${RC_INDENTATION}$*" >&2
 	fi
 
 	local name="${0##*/}"
@@ -138,12 +138,12 @@ ewarnn()
 ewarn()
 {
 	if yesno "${EINFO_QUIET}"; then
-		printf " $*\n"
-		else
+		return 0
+	else
 		if ! yesno "${RC_ENDCOL}" && [ "${LAST_E_CMD}" = "ebegin" ]; then
-			printf "\n"
+			printf "\n" >&2
 		fi
-		printf " ${WARN}*${NORMAL} ${RC_INDENTATION}$*\n"
+		printf " ${WARN}*${NORMAL} ${RC_INDENTATION}$*\n" >&2
 	fi
 
 	local name="${0##*/}"
@@ -159,13 +159,13 @@ ewarn()
 #
 eerrorn()
 {
-	if yesno "${EINFO_QUIET}"; then
-		printf " $*" >/dev/stderr
+	if yesno "${EERROR_QUIET}"; then
+		return 0
 	else
 		if ! yesno "${RC_ENDCOL}" && [ "${LAST_E_CMD}" = "ebegin" ]; then
-			printf "\n"
+			printf "\n" >&2
 		fi
-		printf " ${BAD}*${NORMAL} ${RC_INDENTATION}$*"
+		printf " ${BAD}*${NORMAL} ${RC_INDENTATION}$*" >&2
 	fi
 
 	local name="${0##*/}"
@@ -181,13 +181,13 @@ eerrorn()
 #
 eerror()
 {
-	if yesno "${EINFO_QUIET}"; then
-		printf " $*\n" >/dev/stderr
+	if yesno "${EERROR_QUIET}"; then
+		return 0
 	else
 		if ! yesno "${RC_ENDCOL}" && [ "${LAST_E_CMD}" = "ebegin" ]; then
-			printf "\n"
+			printf "\n" >&2
 		fi
-		printf " ${BAD}*${NORMAL} ${RC_INDENTATION}$*\n"
+		printf " ${BAD}*${NORMAL} ${RC_INDENTATION}$*\n" >&2
 	fi
 
 	local name="${0##*/}"
