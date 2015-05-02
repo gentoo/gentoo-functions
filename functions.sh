@@ -160,7 +160,7 @@ ewarn()
 eerrorn()
 {
 	if yesno "${EERROR_QUIET}"; then
-		return 0
+		return 1
 	else
 		if ! yesno "${RC_ENDCOL}" && [ "${LAST_E_CMD}" = "ebegin" ]; then
 			printf "\n" >&2
@@ -173,7 +173,7 @@ eerrorn()
 	esyslog "daemon.err" "rc-scripts" "$*"
 
 	LAST_E_CMD="eerrorn"
-	return 0
+	return 1
 }
 
 #
@@ -182,7 +182,7 @@ eerrorn()
 eerror()
 {
 	if yesno "${EERROR_QUIET}"; then
-		return 0
+		return 1
 	else
 		if ! yesno "${RC_ENDCOL}" && [ "${LAST_E_CMD}" = "ebegin" ]; then
 			printf "\n" >&2
@@ -195,7 +195,7 @@ eerror()
 	esyslog "daemon.err" "rc-scripts" "$*"
 
 	LAST_E_CMD="eerror"
-	return 0
+	return 1
 }
 
 #
