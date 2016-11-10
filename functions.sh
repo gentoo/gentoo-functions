@@ -469,4 +469,8 @@ else
 	NORMAL=$(printf '\033[0m')
 fi
 
+# If we made it this far, the script succeeded, so don't let failures
+# from earlier commands (like `tput`) screw up the $? value.
+:
+
 # vim:ts=4
