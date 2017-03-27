@@ -9,9 +9,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
-#include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include "headers.h"
@@ -32,6 +30,7 @@ const char * const tty_names[] = {
 
 static inline int check_ttyname(void)
 {
+#ifdef HAVE_TTYNAME
 	char *tty = ttyname(0);
 
 	if (tty == NULL)
@@ -47,6 +46,7 @@ static inline int check_ttyname(void)
 	else if (!strncmp (tty, "tty", 3))
 		return IS_VT;
 	else
+#endif
 		return IS_UNK;
 }
 
