@@ -2,7 +2,7 @@
 # Copyright 2014 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
-VERSION = 0.10
+VERSION = 0.12
 GITREF ?= $(VERSION)
 PKG ?= gentoo-functions-$(VERSION)
 
