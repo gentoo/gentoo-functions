@@ -431,7 +431,7 @@ fi
 for arg in "$@" ; do
 	case "${arg}" in
 		# Lastly check if the user disabled it with --nocolor argument
-		--nocolor|-nc)
+		--nocolor|--nocolour|-nc|-C)
 			RC_NOCOLOR="yes"
 			;;
 	esac
