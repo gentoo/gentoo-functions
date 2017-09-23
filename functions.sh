@@ -429,10 +429,12 @@ COLS="${COLUMNS:-0}"            # bash's internal COLUMNS variable
 [ -z "${COLS}" ] && COLS=80
 [ "${COLS}" -gt 0 ] || COLS=80	# width of [ ok ] == 7
 
-if yesno "${RC_ENDCOL}"; then
-	ENDCOL='\033[A\033['$(( COLS - 8 ))'C'
-else
+if ! yesno "${RC_ENDCOL}"; then
 	ENDCOL=''
+elif command -v tput >/dev/null 2>&1; then
+	ENDCOL="$(tput cuu1)$(tput cuf $(( COLS - 8 )) )"
+else
+	ENDCOL='\033[A\033['$(( COLS - 8 ))'C'
 fi
 
 # Setup the colors so our messages all look pretty
