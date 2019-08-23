@@ -14,7 +14,6 @@
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <sys/sysmacros.h>
-#include "headers.h"
 
 enum termtype {
 	IS_VT = 0,
