@@ -13,17 +13,21 @@ ROOTLIBEXECDIR ?= $(ROOTPREFIX)/lib/gentoo
 PREFIX ?= /usr
 MANDIR ?= $(PREFIX)/share/man
 
-PROGRAMS = consoletype
+PROGRAM_consoletype ?= consoletype
+
+PROGRAMS = $(PROGRAM_consoletype)
 
 all: $(PROGRAMS)
 
 install: all
-	install -m 0755 -d $(DESTDIR)$(ROOTSBINDIR)
-	install -m 0755 consoletype $(DESTDIR)$(ROOTSBINDIR)
 	install -m 0755 -d $(DESTDIR)$(ROOTLIBEXECDIR)
 	install -m 0644 functions.sh $(DESTDIR)$(ROOTLIBEXECDIR)
-	install -m 0755 -d $(DESTDIR)$(MANDIR)/man1
-	install -m 0644 consoletype.1 $(DESTDIR)$(MANDIR)/man1
+	for p in $(PROGRAMS) ; do \
+		install -m 0755 -d $(DESTDIR)$(ROOTSBINDIR) ; \
+		install -m 0755 $${p} $(DESTDIR)$(ROOTSBINDIR) ; \
+		install -m 0755 -d $(DESTDIR)$(MANDIR)/man1 ; \
+		install -m 0644 $${p}.1 $(DESTDIR)$(MANDIR)/man1 ; \
+	done
 
 clean:
 	rm -rf $(PROGRAMS)
