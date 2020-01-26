@@ -1,8 +1,8 @@
 # gentoo-functions Makefile
-# Copyright 2014 Gentoo Foundation
+# Copyright 2014-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-VERSION = 0.12
+VERSION = 0.13
 GITREF ?= $(VERSION)
 PKG ?= gentoo-functions-$(VERSION)
 
