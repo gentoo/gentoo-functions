@@ -336,19 +336,6 @@ veoutdent()
 }
 
 #
-#    prints the current libdir {lib,lib32,lib64}
-#
-get_libdir()
-{
-	if [ -n "${CONF_LIBDIR_OVERRIDE}" ] ; then
-		CONF_LIBDIR="${CONF_LIBDIR_OVERRIDE}"
-	elif command -v portageq > /dev/null 2>&1; then
-		CONF_LIBDIR="$(portageq envvar CONF_LIBDIR)"
-	fi
-	printf "${CONF_LIBDIR:=lib}\n"
-}
-
-#
 #   return 0 if gentoo=param was passed to the kernel
 #
 #   EXAMPLE:  if get_bootparam "nodevfs" ; then ....
