@@ -437,21 +437,21 @@ fi
 
 # Setup the colors so our messages all look pretty
 if yesno "${RC_NOCOLOR}"; then
-	unset GOOD WARN BAD NORMAL HILITE BRACKET
+	unset BAD BRACKET GOOD HILITE NORMAL WARN
 elif (command -v tput && tput colors) >/dev/null 2>&1; then
-	GOOD="$(tput sgr0)$(tput bold)$(tput setaf 2)"
-	WARN="$(tput sgr0)$(tput bold)$(tput setaf 3)"
 	BAD="$(tput sgr0)$(tput bold)$(tput setaf 1)"
-	HILITE="$(tput sgr0)$(tput bold)$(tput setaf 6)"
 	BRACKET="$(tput sgr0)$(tput bold)$(tput setaf 4)"
+	GOOD="$(tput sgr0)$(tput bold)$(tput setaf 2)"
+	HILITE="$(tput sgr0)$(tput bold)$(tput setaf 6)"
 	NORMAL="$(tput sgr0)"
+	WARN="$(tput sgr0)$(tput bold)$(tput setaf 3)"
 else
-	GOOD=$(printf '\033[32;01m')
-	WARN=$(printf '\033[33;01m')
 	BAD=$(printf '\033[31;01m')
-	HILITE=$(printf '\033[36;01m')
 	BRACKET=$(printf '\033[34;01m')
+	GOOD=$(printf '\033[32;01m')
+	HILITE=$(printf '\033[36;01m')
 	NORMAL=$(printf '\033[0m')
+	WARN=$(printf '\033[33;01m')
 fi
 
 # If we made it this far, the script succeeded, so don't let failures
