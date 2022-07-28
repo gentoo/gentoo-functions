@@ -26,7 +26,7 @@ _esetdent()
 eindent()
 {
 	local i="$1"
-	[ -n "$i" ] && [ "$i" -gt 0 ] || i=$RC_DEFAULT_INDENT
+	[ -n "$i" ] && [ "$i" -gt 0 ] || i=${RC_DEFAULT_INDENT}
 	_esetdent $(( ${#RC_INDENTATION} + i ))
 }
 
@@ -36,7 +36,7 @@ eindent()
 eoutdent()
 {
 	local i="$1"
-	[ -n "$i" ] && [ "$i" -gt 0 ] || i=$RC_DEFAULT_INDENT
+	[ -n "$i" ] && [ "$i" -gt 0 ] || i=${RC_DEFAULT_INDENT}
 	_esetdent $(( ${#RC_INDENTATION} - i ))
 }
 
@@ -71,7 +71,7 @@ esyslog()
 	local pri=
 	local tag=
 
-	if [ -n "$EINFO_LOG" ] && command -v logger > /dev/null 2>&1; then
+	if [ -n "${EINFO_LOG}" ] && command -v logger > /dev/null 2>&1; then
 		pri="$1"
 		tag="$2"
 
@@ -424,10 +424,10 @@ done
 
 # Setup COLS and ENDCOL so eend can line up the [ ok ]
 COLS="${COLUMNS:-0}"            # bash's internal COLUMNS variable
-[ "$COLS" -eq 0 ] && \
+[ "${COLS}" -eq 0 ] && \
         COLS="$(set -- $(stty size 2>/dev/null) ; printf "$2\n")"
-[ -z "$COLS" ] && COLS=80
-[ "$COLS" -gt 0 ] || COLS=80	# width of [ ok ] == 7
+[ -z "${COLS}" ] && COLS=80
+[ "${COLS}" -gt 0 ] || COLS=80	# width of [ ok ] == 7
 
 if yesno "${RC_ENDCOL}"; then
 	ENDCOL='\033[A\033['$(( COLS - 8 ))'C'
