@@ -404,13 +404,11 @@ RC_INDENTATION=''
 RC_DEFAULT_INDENT=2
 RC_DOT_PATTERN=''
 
-# Cache the CONSOLETYPE - this is important as backgrounded shells don't
-# have a TTY. rc unsets it at the end of running so it shouldn't hang
-# around
-if [ -z "${CONSOLETYPE}" ] ; then
-	CONSOLETYPE="$(consoletype stdout 2>/dev/null )"; export CONSOLETYPE
-fi
-if [ "${CONSOLETYPE}" = "serial" ] ; then
+# If either STDOUT or STDERR is not a tty, disable coloured output. A useful
+# improvement for  the future would be to have the individual logging functions
+# act as they should. For example, ewarn prints to STDOUT whereas eerror prints
+# to STDERR. For now, this is a reasonable compromise.
+if [ ! -t 1 ] || [ ! -t 2 ]; then
 	RC_NOCOLOR="yes"
 	RC_ENDCOL="no"
 fi
