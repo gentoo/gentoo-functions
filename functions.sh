@@ -71,7 +71,7 @@ esyslog()
 	local pri=
 	local tag=
 
-	if [ -n "${EINFO_LOG}" ] && command -v logger > /dev/null 2>&1; then
+	if [ -n "${EINFO_LOG}" ] && hash logger 2>/dev/null; then
 		pri="$1"
 		tag="$2"
 
@@ -434,6 +434,7 @@ for arg in "$@" ; do
 		# Lastly check if the user disabled it with --nocolor argument
 		--nocolor|--nocolour|-nc|-C)
 			RC_NOCOLOR="yes"
+			break
 			;;
 	esac
 done
@@ -447,7 +448,7 @@ COLS="${COLUMNS:-0}"            # bash's internal COLUMNS variable
 
 if ! yesno "${RC_ENDCOL}"; then
 	ENDCOL=''
-elif command -v tput >/dev/null 2>&1; then
+elif hash tput 2>/dev/null; then
 	ENDCOL="$(tput cuu1)$(tput cuf $(( COLS - 8 )) )"
 else
 	ENDCOL='\033[A\033['$(( COLS - 8 ))'C'
@@ -455,14 +456,16 @@ fi
 
 # Setup the colors so our messages all look pretty
 if yesno "${RC_NOCOLOR}"; then
-	unset BAD BRACKET GOOD HILITE NORMAL WARN
-elif (command -v tput && tput colors) >/dev/null 2>&1; then
-	BAD="$(tput sgr0)$(tput bold)$(tput setaf 1)"
-	BRACKET="$(tput sgr0)$(tput bold)$(tput setaf 4)"
-	GOOD="$(tput sgr0)$(tput bold)$(tput setaf 2)"
-	HILITE="$(tput sgr0)$(tput bold)$(tput setaf 6)"
-	NORMAL="$(tput sgr0)"
-	WARN="$(tput sgr0)$(tput bold)$(tput setaf 3)"
+	unset -v BAD BRACKET GOOD HILITE NORMAL WARN
+elif { hash tput && tput colors >/dev/null; } 2>/dev/null; then
+	genfuncs_bold=$(tput bold) genfuncs_norm=$(tput sgr0)
+	BAD="${genfuncs_norm}${genfuncs_bold}$(tput setaf 1)"
+	BRACKET="${genfuncs_norm}${genfuncs_bold}$(tput setaf 4)"
+	GOOD="${genfuncs_norm}${genfuncs_bold}$(tput setaf 2)"
+	HILITE="${genfuncs_norm}${genfuncs_bold}$(tput setaf 6)"
+	NORMAL="${genfuncs_norm}"
+	WARN="${genfuncs_norm}${genfuncs_bold}$(tput setaf 3)"
+	unset -v genfuncs_bold genfuncs_norm
 else
 	BAD=$(printf '\033[31;01m')
 	BRACKET=$(printf '\033[34;01m')
@@ -471,9 +474,5 @@ else
 	NORMAL=$(printf '\033[0m')
 	WARN=$(printf '\033[33;01m')
 fi
-
-# If we made it this far, the script succeeded, so don't let failures
-# from earlier commands (like `tput`) screw up the $? value.
-:
 
 # vim:ts=4
