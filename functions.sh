@@ -235,11 +235,6 @@ _eend()
 		yesno "${EINFO_QUIET}" && return 0
 		msg="${BRACKET}[ ${GOOD}ok${BRACKET} ]${NORMAL}"
 	else
-		if [ -c /dev/null ] ; then
-			rc_splash "stop" >/dev/null 2>&1 &
-		else
-			rc_splash "stop" &
-		fi
 		if [ -n "$*" ] ; then
 			${efunc} "$*"
 		fi
