@@ -22,7 +22,7 @@ dir=$(mktemp -d) \
 || bailout "Couldn't create or change to the temp dir"
 
 # The mtimes need to be explicitly assigned. Empirical evidence has shown
-# theat executing mkdir(1) sequentially, with a single operand each time,
+# that executing mkdir(1) sequentially, with a single operand each time,
 # does not guarantee the order of the resulting mtimes. As such, the
 # implementation of touch(1) from coreutils is required.
 export TZ=UTC
