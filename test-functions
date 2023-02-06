@@ -1,0 +1,115 @@
+#!/bin/bash
+
+# Presently, only the is_older_than() function is tested.
+# Requires mktemp(1) and touch(1) from GNU coreutils.
+
+bailout() {
+	printf 'Bail out! %s.\n' "$1"
+	exit 1
+}
+
+printf 'TAP version 14\n'
+
+if ! source ./functions.sh; then
+	bailout "Couldn't source ./functions.sh"
+fi
+
+unset -v dir
+trap '[[ ${dir} ]] && rm -rf -- "${dir}"' EXIT
+
+dir=$(mktemp -d) \
+&& CDPATH= cd -- "${dir}" \
+|| bailout "Couldn't create or change to the temp dir"
+
+# The mtimes need to be explicitly assigned. Empirical evidence has shown
+# theat executing mkdir(1) sequentially, with a single operand each time,
+# does not guarantee the order of the resulting mtimes. As such, the
+# implementation of touch(1) from coreutils is required.
+export TZ=UTC
+tstamp=197001010000
+for age in older newer; do
+	mkdir "${age}"{,-empty} \
+	&& touch -m -t "${tstamp%0}1" "${age}"/file \
+	&& touch -m -t "${tstamp}" "${age}"{,-empty} \
+	|| bailout "Couldn't create or adjust the mtimes of the sample files"
+	tstamp=197001010100 # add an hour
+done
+
+tests=(
+	1  ''            ''
+	0  newer         newer
+	1  newer         newer-empty
+	0  newer         newer/file
+	1  newer         non-existent
+	1  newer         older
+	1  newer         older-empty
+	1  newer         older/file
+	0  newer-empty   newer
+	1  newer-empty   newer-empty
+	0  newer-empty   newer/file
+	1  newer-empty   non-existent
+	1  newer-empty   older
+	1  newer-empty   older-empty
+	1  newer-empty   older/file
+	1  newer/file    newer
+	1  newer/file    newer-empty
+	1  newer/file    newer/file
+	1  newer/file    non-existent
+	1  newer/file    older
+	1  newer/file    older-empty
+	1  newer/file    older/file
+	0  non-existent  newer
+	0  non-existent  newer-empty
+	0  non-existent  newer/file
+	1  non-existent  non-existent
+	0  non-existent  older
+	0  non-existent  older-empty
+	0  non-existent  older/file
+	0  older         newer
+	0  older         newer-empty
+	0  older         newer/file
+	1  older         non-existent
+	0  older         older
+	1  older         older-empty
+	0  older         older/file
+	0  older-empty   newer
+	0  older-empty   newer-empty
+	0  older-empty   newer/file
+	1  older-empty   non-existent
+	0  older-empty   older
+	1  older-empty   older-empty
+	0  older-empty   older/file
+	0  older/file    newer
+	0  older/file    newer-empty
+	0  older/file    newer/file
+	1  older/file    non-existent
+	1  older/file    older
+	1  older/file    older-empty
+	1  older/file    older/file
+)
+
+total=$(( ${#tests[@]} / 3 ))
+passed=0
+
+printf '1..%d\n' "${total}"
+
+for ((i = 0; i < total; i++)); do
+	set -- "${tests[@]:i*3:3}"
+	if [[ $2 && $3 ]]; then
+		desc="is_older_than $2 $3 (expecting $1)"
+		is_older_than "$2" "$3"
+	else
+		desc="is_older_than (expecting $1)"
+		is_older_than
+	fi
+	if (( $? == $1 )); then
+		(( ++passed ))
+	else
+		printf 'not '
+	fi
+	printf 'ok %d - %s\n' "$((i + 1))" "${desc}"
+done
+
+printf >&2 '%d/%d tests passed.\n' "${passed}" "${total}"
+
+exit "$(( passed < total ))"
