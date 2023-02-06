@@ -376,16 +376,32 @@ get_bootparam()
 #   EXAMPLE: if is_older_than a.out *.o ; then ...
 is_older_than()
 {
-	local x=
-	local ref="$1"
-	[ $# -eq 0 ] || shift
+	local ref has_gfind
 
-	for x in "$@" ; do
-		[ "${x}" -nt "${ref}" ] && return 0
-		[ -d "${x}" ] && is_older_than "${ref}" "${x}"/* && return 0
-	done
+	if [ -e "$1" ]; then
+		ref=$1
+	else
+		ref=
+	fi
+	shift
 
-	return 1
+	# Consult the hash table in the present shell, prior to forking.
+	hash gfind 2>/dev/null; has_gfind=$(( $? == 0 ))
+
+	for path; do
+		if [ -e "${path}" ]; then
+			printf '%s\0' "${path}"
+		fi
+	done |
+	{
+		set -- -L -files0-from - ${ref:+-newermm} ${ref:+"${ref}"} -printf '\n' -quit
+		if [ "${has_gfind}" -eq 1 ]; then
+			gfind "$@"
+		else
+			find "$@"
+		fi
+	} |
+	read -r line
 }
 
 # This is the main script, please add all functions above this point!
