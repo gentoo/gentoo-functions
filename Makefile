@@ -1,5 +1,5 @@
 # gentoo-functions Makefile
-# Copyright 2014-2022 Gentoo Authors
+# Copyright 2014-2023 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 VERSION = 0.17
@@ -29,7 +29,7 @@ clean:
 	rm -rf $(PROGRAMS)
 
 dist:
-	git archive --prefix=$(PKG)/ $(GITREF) | bzip2 > $(PKG).tar.bz2
+	git archive --prefix=$(PKG)/ $(GITREF) | xz > $(PKG).tar.xz
 
 consoletype: consoletype.c
 
