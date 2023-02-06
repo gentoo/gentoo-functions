@@ -17,6 +17,9 @@ PROGRAMS = consoletype
 
 all: $(PROGRAMS)
 
+check: all
+	./test-functions
+
 install: all
 	install -m 0755 -d $(DESTDIR)$(ROOTSBINDIR)
 	install -m 0755 consoletype $(DESTDIR)$(ROOTSBINDIR)
