@@ -377,7 +377,7 @@ is_older_than()
 	else
 		ref=
 	fi
-	shift
+	[ "$#" -gt 0 ] && shift
 
 	# Consult the hash table in the present shell, prior to forking.
 	hash gfind 2>/dev/null; has_gfind=$(( $? == 0 ))
