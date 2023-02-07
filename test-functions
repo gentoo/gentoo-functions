@@ -1,154 +1,165 @@
-#!/bin/bash
-
+#!/bin/sh
+# shellcheck disable=2015
 # Requires mktemp(1) and touch(1) from GNU coreutils.
 
 bailout() {
 	printf 'Bail out! %s.\n' "$1"
+	cleanup_tmpdir
 	exit 1
 }
 
 assign_tmpdir() {
+	# shellcheck disable=1007
 	dir=$(mktemp -d) \
 	&& CDPATH= cd -- "${dir}" \
 	|| bailout "Couldn't create or change to the temp dir"
 }
 
+cleanup_tmpdir() {
+	if [ -n "${dir}" ]; then
+		rm -rf -- "${dir}"
+	fi
+}
+
 test_is_older_than() {
-	local age desc i passed total tstamp
-	local -a tests=(
-		1  N/A           N/A
-		0  newer         newer
-		1  newer         newer-empty
-		0  newer         newer/file
-		1  newer         non-existent
-		1  newer         older
-		1  newer         older-empty
-		1  newer         older/file
-		0  newer-empty   newer
-		1  newer-empty   newer-empty
-		0  newer-empty   newer/file
-		1  newer-empty   non-existent
-		1  newer-empty   older
-		1  newer-empty   older-empty
-		1  newer-empty   older/file
-		1  newer/file    newer
-		1  newer/file    newer-empty
-		1  newer/file    newer/file
-		1  newer/file    non-existent
-		1  newer/file    older
-		1  newer/file    older-empty
-		1  newer/file    older/file
-		0  non-existent  newer
-		0  non-existent  newer-empty
-		0  non-existent  newer/file
-		1  non-existent  non-existent
-		0  non-existent  older
-		0  non-existent  older-empty
-		0  non-existent  older/file
-		0  older         newer
-		0  older         newer-empty
-		0  older         newer/file
-		1  older         non-existent
-		0  older         older
-		1  older         older-empty
-		0  older         older/file
-		0  older-empty   newer
-		0  older-empty   newer-empty
-		0  older-empty   newer/file
-		1  older-empty   non-existent
-		0  older-empty   older
-		1  older-empty   older-empty
-		0  older-empty   older/file
-		0  older/file    newer
-		0  older/file    newer-empty
-		0  older/file    newer/file
-		1  older/file    non-existent
-		1  older/file    older
-		1  older/file    older-empty
+	set -- \
+		1  N/A           N/A \
+		0  newer         newer \
+		1  newer         newer-empty \
+		0  newer         newer/file \
+		1  newer         non-existent \
+		1  newer         older \
+		1  newer         older-empty \
+		1  newer         older/file \
+		0  newer-empty   newer \
+		1  newer-empty   newer-empty \
+		0  newer-empty   newer/file \
+		1  newer-empty   non-existent \
+		1  newer-empty   older \
+		1  newer-empty   older-empty \
+		1  newer-empty   older/file \
+		1  newer/file    newer \
+		1  newer/file    newer-empty \
+		1  newer/file    newer/file \
+		1  newer/file    non-existent \
+		1  newer/file    older \
+		1  newer/file    older-empty \
+		1  newer/file    older/file \
+		0  non-existent  newer \
+		0  non-existent  newer-empty \
+		0  non-existent  newer/file \
+		1  non-existent  non-existent \
+		0  non-existent  older \
+		0  non-existent  older-empty \
+		0  non-existent  older/file \
+		0  older         newer \
+		0  older         newer-empty \
+		0  older         newer/file \
+		1  older         non-existent \
+		0  older         older \
+		1  older         older-empty \
+		0  older         older/file \
+		0  older-empty   newer \
+		0  older-empty   newer-empty \
+		0  older-empty   newer/file \
+		1  older-empty   non-existent \
+		0  older-empty   older \
+		1  older-empty   older-empty \
+		0  older-empty   older/file \
+		0  older/file    newer \
+		0  older/file    newer-empty \
+		0  older/file    newer/file \
+		1  older/file    non-existent \
+		1  older/file    older \
+		1  older/file    older-empty \
 		1  older/file    older/file
-	)
 
 	# The mtimes need to be explicitly assigned. Empirical evidence has shown
 	# that executing mkdir(1) sequentially, with a single operand each time,
 	# does not guarantee the order of the resulting mtimes. As such, the
 	# implementation of touch(1) from coreutils is required.
-	local -x TZ=UTC
 	tstamp=197001010000
 	for age in older newer; do
-		mkdir "${age}"{,-empty} \
+		mkdir "${age}" "${age}-empty" \
 		&& touch -m -t "${tstamp%0}1" "${age}"/file \
-		&& touch -m -t "${tstamp}" "${age}"{,-empty} \
+		&& touch -m -t "${tstamp}" "${age}" "${age}-empty" \
 		|| bailout "Couldn't create or adjust the mtimes of the sample files"
 		tstamp=197001010100 # add an hour
 	done
 
-	total=$(( ${#tests[@]} / 3 ))
 	passed=0
-	printf '1..%d\n' "${total}"
-	for ((i = 0; i < total; i++)); do
-		set -- "${tests[@]:i*3:3}"
-		if [[ $2 != N/A && $3 != N/A ]]; then
+	total=$(( $# / 3 ))
+	i=1
+	printf '%d..%d\n' "${i}" "${total}"
+	while [ "${i}" -le "${total}" ]; do
+		if [ "$2" != "N/A" ] && [ "$3" != "N/A" ]; then
 			desc="is_older_than $2 $3 (expecting $1)"
 			is_older_than "$2" "$3"
 		else
 			desc="is_older_than (expecting $1)"
 			is_older_than
 		fi
-		if (( $? == $1 )); then
-			(( ++passed ))
+		if [ "$?" -eq "$1" ]; then
+			passed=$((passed + 1))
 		else
 			printf 'not '
 		fi
-		printf 'ok %d - %s\n' "$((i + 1))" "${desc}"
+		printf 'ok %d - %s\n' "${i}" "${desc}"
+		i=$((i + 1))
+		shift 3
 	done
 	return "$(( passed < total ))"
 }
 
 test_get_bootparam() {
-	local desc i input passed total
-	local -a tests=(
-		1  N/A      "${input:=foo gentoo=bar,baz quux}"
-		1  ''       "${input}"
-		1  ''       "gentoo="
-		1  foo      "${input}"
-		0  bar      "${input}"
-		0  baz      "${input}"
-		1  bar,baz  "${input}"
-	)
+	set -- \
+		1  N/A      "${cmdline:=foo gentoo=bar,baz quux}" \
+		1  ''       "${cmdline}" \
+		1  ''       "gentoo=" \
+		1  foo      "${cmdline}" \
+		0  bar      "${cmdline}" \
+		0  baz      "${cmdline}" \
+		1  bar,baz  "${cmdline}"
 
-	total=$(( ${#tests[@]} / 3 ))
-	printf '1..%d\n' "${total}"
-	for ((i = 0; i < total; i++)); do
-		set -- "${tests[@]:i*3:3}"
-		if [[ $2 == N/A ]]; then
+	passed=0
+	total=$(( $# / 3 ))
+	i=1
+	printf '%d..%d\n' "${i}" "${total}"
+	while [ "${i}" -le "${total}" ]; do
+		if [ "$2" = "N/A" ]; then
 			desc="get_bootparam (expecting $1)"
-			get_bootparam
+			printf '%s\n' "$3" | get_bootparam
 		else
 			desc="get_bootparam \"$2\" (expecting $1)"
-			get_bootparam "$2"
-		fi <<<"$3"
-		if (( $? == $1 )); then
-			(( ++passed ))
+			printf '%s\n' "$3" | get_bootparam "$2"
+		fi
+		if [ "$?" -eq "$1" ]; then
+			passed=$((passed + 1))
 		else
 			printf 'not '
 		fi
-		printf 'ok %d - %s\n' "$((i + 1))" "${desc}"
+		printf 'ok %d - %s\n' "${i}" "${desc}"
+		i=$((i + 1))
+		shift 3
 	done
 	return "$(( passed < total ))"
 }
 
+
 printf 'TAP version 14\n'
 
-if ! source ./functions.sh; then
+if ! . ./functions.sh; then
 	bailout "Couldn't source ./functions.sh"
 fi
 
 unset -v dir
-trap '[[ ${dir} ]] && rm -rf -- "${dir}"' EXIT
 assign_tmpdir
 
-TEST_GENFUNCS=1
+export TEST_GENFUNCS=1
+export TZ=UTC
+
 rc=0
 test_is_older_than || rc=1
 test_get_bootparam || rc=1
+cleanup_tmpdir
 exit "${rc}"
