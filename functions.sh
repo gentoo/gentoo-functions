@@ -336,33 +336,28 @@ veoutdent()
 #   EXAMPLE:  if get_bootparam "nodevfs" ; then ....
 #
 get_bootparam()
-{
-	local x copt params retval=1
+(
+	# Gentoo cmdline parameters are comma-delimited, so a search
+	# string containing a comma must not be allowed to match.
+	# Similarly, the empty string must not be allowed to match.
+	case $1 in ''|*,*) return 1 ;; esac
 
-	[ ! -r /proc/cmdline ] && return 1
+	read -r cmdline < /proc/cmdline || return
 
-	read copts < /proc/cmdline
-	for copt in $copts ; do
-		if [ "${copt%=*}" = "gentoo" ] ; then
-			params=$(gawk -v PARAMS="${copt##*=}" '
-				BEGIN {
-					split(PARAMS, nodes, ",")
-					for (x in nodes)
-						print nodes[x]
-				}')
-
-			# Parse gentoo option
-			for x in ${params} ; do
-				if [ "${x}" = "$1" ] ; then
-#					echo "YES"
-					retval=0
-				fi
-			done
+	# Disable pathname expansion. The definition of this function
+	# is a compound command that incurs a subshell. Therefore, the
+	# prior state of the option does not need to be recalled.
+	set -f
+	for opt in ${cmdline}; do
+		gentoo_opt=${opt#gentoo=}
+		if [ "${opt}" != "${gentoo_opt}" ]; then
+			case ,${gentoo_opt}, in
+				*,"$1",*) return 0
+			esac
 		fi
 	done
-
-	return ${retval}
-}
+	return 1
+)
 
 #
 #   return 0 if any of the files/dirs are newer than
