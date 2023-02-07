@@ -74,10 +74,9 @@ test_is_older_than() {
 		1  older/file    older-empty \
 		1  older/file    older/file
 
-	# The mtimes need to be explicitly assigned. Empirical evidence has shown
-	# that executing mkdir(1) sequentially, with a single operand each time,
-	# does not guarantee the order of the resulting mtimes. As such, the
-	# implementation of touch(1) from coreutils is required.
+	# The mtimes need to be explicitly assigned. Empirical evidence has
+	# shown that executing mkdir(1) sequentially, with a single operand
+	# each time, does not guarantee the order of the resulting mtimes.
 	tstamp=197001010000
 	for age in older newer; do
 		mkdir "${age}" "${age}-empty" \
