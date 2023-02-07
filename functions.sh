@@ -342,7 +342,11 @@ get_bootparam()
 	# Similarly, the empty string must not be allowed to match.
 	case $1 in ''|*,*) return 1 ;; esac
 
-	read -r cmdline < /proc/cmdline || return
+	if [ "${TEST_GENFUNCS}" = 1 ]; then
+		read -r cmdline
+	else
+		read -r cmdline < /proc/cmdline
+	fi || return
 
 	# Disable pathname expansion. The definition of this function
 	# is a compound command that incurs a subshell. Therefore, the
