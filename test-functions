@@ -1,6 +1,7 @@
 #!/bin/sh
 # shellcheck disable=2015
-# Requires mktemp(1) and touch(1) from GNU coreutils.
+# Requires mktemp(1) and touch(1). The implementations provided by GNU
+# coreutils are compatible, as are the builtins provided by busybox.
 
 bailout() {
 	printf 'Bail out! %s.\n' "$1"
