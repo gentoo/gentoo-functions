@@ -151,14 +151,14 @@ test_get_bootparam() {
 	return "$(( passed < total ))"
 }
 
-
 printf 'TAP version 14\n'
+
+unset -v dir
 
 if ! . ./functions.sh; then
 	bailout "Couldn't source ./functions.sh"
 fi
 
-unset -v dir
 assign_tmpdir
 
 export TEST_GENFUNCS=1
