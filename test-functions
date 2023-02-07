@@ -112,14 +112,20 @@ test_is_older_than() {
 }
 
 test_get_bootparam() {
+	cmdline="foo gentoo=bar,baz quux"
 	set -- \
-		1  N/A      "${cmdline:=foo gentoo=bar,baz quux}" \
-		1  ''       "${cmdline}" \
-		1  ''       "gentoo=" \
-		1  foo      "${cmdline}" \
-		0  bar      "${cmdline}" \
-		0  baz      "${cmdline}" \
-		1  bar,baz  "${cmdline}"
+		1  N/A       "${cmdline}" \
+		1  ''        "${cmdline}" \
+		1  ''        "gentoo=" \
+		1  foo       "${cmdline}" \
+		0  bar       "${cmdline}" \
+		0  bar       "foo gentoo=gentoo=1,bar baz" \
+		0  bar       "foo gentoo=bar,gentoo=1 baz" \
+		0  baz       "${cmdline}" \
+		1  bar,baz   "${cmdline}" \
+		0  gentoo=1  "foo gentoo=bar,gentoo=1 baz" \
+		0  gentoo=1  "foo gentoo=gentoo=1,bar baz" \
+		1  quux      "${cmdline}"
 
 	passed=0
 	total=$(( $# / 3 ))
