@@ -68,20 +68,23 @@ yesno()
 #
 esyslog()
 {
-	local pri=
-	local tag=
+	local pri tag msg
 
-	if [ -n "${EINFO_LOG}" ] && hash logger 2>/dev/null; then
-		pri="$1"
-		tag="$2"
-
+	if [ "$#" -lt 2 ]; then
+		printf 'Too few arguments for esyslog (got %d, expected at least 2)\n' "$#" >&2
+		return 1
+	elif [ -n "${EINFO_LOG}" ] && hash logger 2>/dev/null; then
+		pri=$1
+		tag=$2
 		shift 2
-		[ -z "$*" ] && return 0
-
-		logger -p "${pri}" -t "${tag}" -- "$*"
+		msg=$*
+		case ${msg} in
+			*[[:graph:]]*)
+				# This is not strictly portable because POSIX
+				# defines no options whatsoever for logger(1).
+				logger -p "${pri}" -t "${tag}" -- "${msg}"
+		esac
 	fi
-
-	return 0
 }
 
 #
