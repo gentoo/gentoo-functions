@@ -453,8 +453,15 @@ for arg in "$@" ; do
 done
 
 # Define COLS and ENDCOL so that eend can line up the [ ok ].
+if [ -n "${BASH}" ] && shopt -s checkwinsize 2>/dev/null; then
+	# As is documented, running an external command will cause bash to set
+	# the COLUMNS variable. This technique is effective for >=4.3, though
+	# it requires for the checkwinsize shopt to be enabled. By default, it
+	# is only enabled for >=5.0.
+	/bin/true
+fi
 if is_int "${COLUMNS}" && [ "${COLUMNS}" -gt 0 ]; then
-	# The value of COLUMNS was likely set by a shell such as bash. Trust it.
+	# The value of COLUMNS was likely set by a shell such as bash or mksh.
 	COLS=${COLUMNS}
 else
 	# Try to use stty(1) to determine the number of columns. The use of the
