@@ -127,9 +127,8 @@ ewarnn()
 		printf " ${WARN}*${NORMAL} ${RC_INDENTATION}$*" >&2
 	fi
 
-	local name="${0##*/}"
 	# Log warnings to system log
-	esyslog "daemon.warning" "${name}" "$*"
+	esyslog "daemon.warning" "${0##*/}" "$@"
 
 	LAST_E_CMD="ewarnn"
 	return 0
@@ -149,9 +148,8 @@ ewarn()
 		printf " ${WARN}*${NORMAL} ${RC_INDENTATION}$*\n" >&2
 	fi
 
-	local name="${0##*/}"
 	# Log warnings to system log
-	esyslog "daemon.warning" "${name}" "$*"
+	esyslog "daemon.warning" "${0##*/}" "$@"
 
 	LAST_E_CMD="ewarn"
 	return 0
@@ -171,9 +169,8 @@ eerrorn()
 		printf " ${BAD}*${NORMAL} ${RC_INDENTATION}$*" >&2
 	fi
 
-	local name="${0##*/}"
 	# Log errors to system log
-	esyslog "daemon.err" "rc-scripts" "$*"
+	esyslog "daemon.err" "${0##*/}" "$@"
 
 	LAST_E_CMD="eerrorn"
 	return 1
@@ -193,9 +190,8 @@ eerror()
 		printf " ${BAD}*${NORMAL} ${RC_INDENTATION}$*\n" >&2
 	fi
 
-	local name="${0##*/}"
 	# Log errors to system log
-	esyslog "daemon.err" "rc-scripts" "$*"
+	esyslog "daemon.err" "${0##*/}" "$@"
 
 	LAST_E_CMD="eerror"
 	return 1
