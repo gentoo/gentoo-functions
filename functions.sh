@@ -397,6 +397,26 @@ is_older_than()
 	read -r line
 }
 
+#
+#   Determine whether the first operand is in the form of an integer. A leading
+#   <hypen-minus> shall be permitted. Thereafter, leading zeroes shall not be
+#   permitted because the string might later be considered to be octal in an
+#   arithmetic context, causing the shell to exit if the number be invalid.
+#
+is_int() {
+	set -- "${1#-}"
+	case $1 in
+		''|*[!0123456789]*)
+			false
+			;;
+		0)
+			true
+			;;
+		*)
+			test "$1" = "${1#0}"
+	esac
+}
+
 # This is the main script, please add all functions above this point!
 
 # Dont output to stdout?
@@ -432,12 +452,23 @@ for arg in "$@" ; do
 	esac
 done
 
-# Setup COLS and ENDCOL so eend can line up the [ ok ]
-COLS="${COLUMNS:-0}"            # bash's internal COLUMNS variable
-[ "${COLS}" -eq 0 ] && \
-        COLS="$(set -- $(stty size 2>/dev/null) ; printf "$2\n")"
-[ -z "${COLS}" ] && COLS=80
-[ "${COLS}" -gt 0 ] || COLS=80	# width of [ ok ] == 7
+# Define COLS and ENDCOL so that eend can line up the [ ok ].
+if is_int "${COLUMNS}" && [ "${COLUMNS}" -gt 0 ]; then
+	# The value of COLUMNS was likely set by a shell such as bash. Trust it.
+	COLS=${COLUMNS}
+else
+	# Try to use stty(1) to determine the number of columns. The use of the
+	# size operand is not portable.
+	COLS=$(
+		stty size 2>/dev/null | {
+			read -r h w _ && printf '%s\n' "$w"
+		}
+	)
+	if ! is_int "${COLS}" || [ "${COLS}" -le 0 ]; then
+		# Give up and assume 80 available columns.
+		COLS=80
+	fi
+fi
 
 if ! yesno "${RC_ENDCOL}"; then
 	ENDCOL=''
