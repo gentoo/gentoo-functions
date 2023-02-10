@@ -156,6 +156,31 @@ test_esyslog() {
 	iterate_tests 5 "$@"
 }
 
+test_is_int() {
+	set -- \
+		1  N/A \
+		1  ' ' \
+		1  ' 1 ' \
+		1  '' \
+		1  +1 \
+		1  +008 \
+		1  -008 \
+		1  008 \
+		1  x \
+		0  0 \
+		0  1 \
+		0  -1 \
+		0  123456789
+
+		callback() {
+			shift
+			test_description="is_int $(print_args "$@")"
+			is_int "$@"
+		}
+
+		iterate_tests 2 "$@"
+}
+
 iterate_tests() {
 	slice_width=$1
 	shift
@@ -192,11 +217,13 @@ print_args() {
 		if [ "$((i += 1))" -eq 1 ]; then
 			set --
 		fi
-		if [ -n "${arg}" ]; then
-			set -- "$@" "${arg}"
-		else
-			set -- "$@" "''"
-		fi
+		case ${arg} in
+			''|*[[:space:]]*)
+				set -- "$@" "'${arg}'"
+				;;
+			*)
+				set -- "$@" "${arg}"
+		esac
 	done
 	printf '%s\n' "$*"
 }
@@ -218,5 +245,6 @@ rc=0
 test_is_older_than || rc=1
 test_get_bootparam || rc=1
 test_esyslog || rc=1
+test_is_int || rc=1
 cleanup_tmpdir
 exit "${rc}"
