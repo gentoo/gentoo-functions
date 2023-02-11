@@ -432,7 +432,6 @@ RC_ENDCOL="yes"
 # Default values for e-message indentation and dots
 RC_INDENTATION=''
 RC_DEFAULT_INDENT=2
-RC_DOT_PATTERN=''
 
 # If either STDOUT or STDERR is not a tty, disable coloured output. A useful
 # improvement for  the future would be to have the individual logging functions
