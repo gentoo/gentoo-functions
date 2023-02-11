@@ -55,7 +55,7 @@ yesno()
 	esac
 
 	local value=
-	eval value=\$${1}
+	eval "value=\$${1}"
 	case "$value" in
 		[Yy][Ee][Ss]|[Tt][Rr][Uu][Ee]|[Oo][Nn]|1) return 0;;
 		[Nn][Oo]|[Ff][Aa][Ll][Ss][Ee]|[Oo][Ff][Ff]|0) return 1;;
@@ -247,7 +247,7 @@ _eend()
 		printf "%$(( COLS - LAST_E_LEN - 6 ))s%b\n" '' "${msg}"
 	fi
 
-	return ${retval}
+	return "${retval}"
 }
 
 #
@@ -262,7 +262,7 @@ eend()
 	_eend "${retval}" eerror "$*"
 
 	LAST_E_CMD="eend"
-	return ${retval}
+	return "${retval}"
 }
 
 #
@@ -277,7 +277,7 @@ ewend()
 	_eend "${retval}" ewarn "$*"
 
 	LAST_E_CMD="ewend"
-	return ${retval}
+	return "${retval}"
 }
 
 # v-e-commands honor EINFO_VERBOSE which defaults to no.
@@ -310,13 +310,13 @@ vebegin()
 veend()
 {
 	yesno "${EINFO_VERBOSE}" && { eend "$@"; return $?; }
-	return ${1:-0}
+	return "${1:-0}"
 }
 
 vewend()
 {
 	yesno "${EINFO_VERBOSE}" && { ewend "$@"; return $?; }
-	return ${1:-0}
+	return "${1:-0}"
 }
 
 veindent()
