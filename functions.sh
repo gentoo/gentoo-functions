@@ -230,14 +230,15 @@ _eend()
 	local retval="${1:-0}" efunc="${2:-eerror}" msg
 	shift 2
 
-	if [ "${retval}" = "0" ]; then
-		yesno "${EINFO_QUIET}" && return 0
-		msg="${BRACKET}[ ${GOOD}ok${BRACKET} ]${NORMAL}"
-	else
-		if [ -n "$*" ] ; then
-			${efunc} "$*"
+	if [ "${retval}" != "0" ]; then
+		if [ -n "$*" ]; then
+			"${efunc}" "$*"
 		fi
 		msg="${BRACKET}[ ${BAD}!!${BRACKET} ]${NORMAL}"
+	elif yesno "${EINFO_QUIET}"; then
+		return 0
+	else
+		msg="${BRACKET}[ ${GOOD}ok${BRACKET} ]${NORMAL}"
 	fi
 
 	if yesno "${RC_ENDCOL}"; then
