@@ -468,7 +468,9 @@ else
 	# size operand is not portable.
 	COLS=$(
 		stty size 2>/dev/null | {
-			read -r h w _ && printf '%s\n' "$w"
+			if read -r h w _; then
+				printf '%s\n' "$w"
+			fi
 		}
 	)
 	if ! is_int "${COLS}" || [ "${COLS}" -le 0 ]; then
