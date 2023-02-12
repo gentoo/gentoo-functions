@@ -47,20 +47,31 @@ eoutdent()
 #
 yesno()
 {
-	[ -z "$1" ] && return 1
-
-	case "$1" in
-		[Yy][Ee][Ss]|[Tt][Rr][Uu][Ee]|[Oo][Nn]|1) return 0;;
-		[Nn][Oo]|[Ff][Aa][Ll][Ss][Ee]|[Oo][Ff][Ff]|0) return 1;;
-	esac
-
-	local value=
-	eval "value=\$${1}"
-	case "$value" in
-		[Yy][Ee][Ss]|[Tt][Rr][Uu][Ee]|[Oo][Nn]|1) return 0;;
-		[Nn][Oo]|[Ff][Aa][Ll][Ss][Ee]|[Oo][Ff][Ff]|0) return 1;;
-		*) vewarn "\$$1 is not set properly"; return 1;;
-	esac
+	for _ in 1 2; do
+		case $1 in
+			[Nn][Oo]|[Ff][Aa][Ll][Ss][Ee]|[Oo][Ff][Ff]|0)
+				return 1
+				;;
+			[Yy][Ee][Ss]|[Tt][Rr][Uu][Ee]|[Oo][Nn]|1)
+				return 0
+		esac
+		if [ "$_" -gt 1 ]; then
+			! break
+		else
+			# Using eval can be very dangerous. Check whether the
+			# value is a legitimate variable name before proceeding
+			# to treat it as one.
+			(
+				LC_ALL=C
+				case $1 in
+					''|_|[[:digit:]]*|*[!_[:alnum:]]*) exit 1
+				esac
+			) || ! break
+			# Treat the value as a nameref then try again.
+			eval "set -- \"\$$1\""
+		fi
+	done || vewarn "Invalid argument given to yesno (expected a boolean-like or a legal name)"
+	return 1
 }
 
 #
