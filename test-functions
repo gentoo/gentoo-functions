@@ -181,6 +181,44 @@ test_is_int() {
 		iterate_tests 2 "$@"
 }
 
+test_yesno() {
+	set -- \
+		0  yes \
+		0  YES \
+		0  Yes \
+		0  true \
+		0  TRUE \
+		0  true \
+		0  on \
+		0  ON \
+		0  On \
+		0  1 \
+		1  no \
+		1  NO \
+		1  No \
+		1  false \
+		1  FALSE \
+		1  False \
+		1  off \
+		1  OFF \
+		1  Off \
+		1  0 \
+		1  not_a_nameref \
+		1  not-a-valid-nameref \
+		1  '_"; set -- yes # code injection' \
+		0  truthful_nameref
+
+		truthful_nameref=yes
+
+		callback() {
+			shift
+			test_description="yesno $(print_args "$@")"
+			yesno "$@"
+		}
+
+		iterate_tests 2 "$@"
+}
+
 iterate_tests() {
 	slice_width=$1
 	shift
@@ -246,5 +284,6 @@ test_is_older_than || rc=1
 test_get_bootparam || rc=1
 test_esyslog || rc=1
 test_is_int || rc=1
+test_yesno || rc=1
 cleanup_tmpdir
 exit "${rc}"
