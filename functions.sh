@@ -294,52 +294,71 @@ ewend()
 }
 
 # v-e-commands honor EINFO_VERBOSE which defaults to no.
-# The condition is negated so the return value will be zero.
 veinfo()
 {
-	yesno "${EINFO_VERBOSE}" && einfo "$@"
+	if yesno "${EINFO_VERBOSE}"; then
+		einfo "$@"
+	fi
 }
 
 veinfon()
 {
-	yesno "${EINFO_VERBOSE}" && einfon "$@"
+	if yesno "${EINFO_VERBOSE}"; then
+		einfon "$@"
+	fi
 }
 
 vewarn()
 {
-	yesno "${EINFO_VERBOSE}" && ewarn "$@"
+	if yesno "${EINFO_VERBOSE}"; then
+		ewarn "$@"
+	fi
 }
 
 veerror()
 {
-	yesno "${EINFO_VERBOSE}" && eerror "$@"
+	if yesno "${EINFO_VERBOSE}"; then
+		eerror "$@"
+	fi
 }
 
 vebegin()
 {
-	yesno "${EINFO_VERBOSE}" && ebegin "$@"
+	if yesno "${EINFO_VERBOSE}"; then
+		ebegin "$@"
+	fi
 }
 
 veend()
 {
-	yesno "${EINFO_VERBOSE}" && { eend "$@"; return $?; }
-	return "${1:-0}"
+	if yesno "${EINFO_VERBOSE}"; then
+		eend "$@"
+	else
+		return "${1:-0}"
+	fi
 }
 
 vewend()
 {
-	yesno "${EINFO_VERBOSE}" && { ewend "$@"; return $?; }
-	return "${1:-0}"
+	if yesno "${EINFO_VERBOSE}"; then
+		ewend "$@"
+	else
+		return "${1:-0}"
+	fi
 }
 
 veindent()
 {
-	yesno "${EINFO_VERBOSE}" && eindent
+	if yesno "${EINFO_VERBOSE}"; then
+		eindent
+	fi
 }
 
 veoutdent()
 {
-	yesno "${EINFO_VERBOSE}" && eoutdent
+	if yesno "${EINFO_VERBOSE}"; then
+		eoutdent
+	fi
 }
 
 #
