@@ -91,12 +91,11 @@ esyslog()
 		tag=$2
 		shift 2
 		msg=$*
-		case ${msg} in
-			*[[:graph:]]*)
-				# This is not strictly portable because POSIX
-				# defines no options whatsoever for logger(1).
-				logger -p "${pri}" -t "${tag}" -- "${msg}"
-		esac
+		if _is_visible "${msg}"; then
+			# This is not strictly portable because POSIX defines
+			# no options whatsoever for logger(1).
+			logger -p "${pri}" -t "${tag}" -- "${msg}"
+		fi
 	fi
 }
 
@@ -244,7 +243,7 @@ _eend()
 	shift 2
 
 	if [ "${retval}" != "0" ]; then
-		if [ -n "$*" ]; then
+		if _is_visible "$*"; then
 			"${efunc}" "$*"
 		fi
 		msg="${BRACKET}[ ${BAD}!!${BRACKET} ]${NORMAL}"
@@ -429,6 +428,14 @@ is_int() {
 		*)
 			test "$1" = "${1#0}"
 	esac
+}
+
+#
+#   Determine whether the first operand contains any visible characters. This
+#   is intended to be a private function.
+#
+_is_visible() {
+	! case $1 in *[[:graph:]]*) false ;; esac
 }
 
 # This is the main script, please add all functions above this point!
