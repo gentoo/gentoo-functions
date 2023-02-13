@@ -416,12 +416,15 @@ is_older_than()
 {
 	local ref has_gfind
 
-	if [ -e "$1" ]; then
+	if [ "$#" -lt 2 ]; then
+		printf 'Too few arguments for is_older_than (got %d, expected at least 2)\n' "$#" >&2
+		return 1
+	elif [ -e "$1" ]; then
 		ref=$1
 	else
 		ref=
 	fi
-	[ "$#" -gt 0 ] && shift
+	shift
 
 	# Consult the hash table in the present shell, prior to forking.
 	hash gfind 2>/dev/null; has_gfind=$(( $? == 0 ))
