@@ -242,10 +242,22 @@ ebegin()
 #
 _eend()
 {
-	local retval="${1:-0}" efunc="${2:-eerror}" msg
-	shift 2
+	local efunc msg retval
 
-	if [ "${retval}" != "0" ]; then
+	efunc=$1
+	shift
+	if [ "$#" -eq 0 ]; then
+		retval=0
+	elif ! is_int "$1" || [ "$1" -lt 0 ]; then
+		printf 'Invalid argument given to _eend (the exit status code must be an integer >= 0)\n' >&2
+		retval=0
+		shift
+	else
+		retval=$1
+		shift
+	fi
+
+	if [ "${retval}" -ne 0 ]; then
 		if _is_visible "$*"; then
 			"${efunc}" "$*"
 		fi
@@ -272,11 +284,10 @@ _eend()
 #
 eend()
 {
-	local retval="${1:-0}"
-	[ $# -eq 0 ] || shift
+	local retval
 
-	_eend "${retval}" eerror "$*"
-
+	_eend error "$@"
+	retval=$?
 	LAST_E_CMD="eend"
 	return "${retval}"
 }
@@ -287,11 +298,10 @@ eend()
 #
 ewend()
 {
-	local retval="${1:-0}"
-	[ $# -eq 0 ] || shift
+	local retval
 
-	_eend "${retval}" ewarn "$*"
-
+	_eend ewarn "$@"
+	retval=$?
 	LAST_E_CMD="ewend"
 	return "${retval}"
 }
