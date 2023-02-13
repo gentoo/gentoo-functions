@@ -263,7 +263,7 @@ _eend()
 		fi
 		msg="${BRACKET}[ ${BAD}!!${BRACKET} ]${NORMAL}"
 	elif yesno "${EINFO_QUIET}"; then
-		return 0
+		return "${retval}"
 	else
 		msg="${BRACKET}[ ${GOOD}ok${BRACKET} ]${NORMAL}"
 	fi
