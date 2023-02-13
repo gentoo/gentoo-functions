@@ -350,14 +350,14 @@ vewend()
 veindent()
 {
 	if yesno "${EINFO_VERBOSE}"; then
-		eindent
+		eindent "$@"
 	fi
 }
 
 veoutdent()
 {
 	if yesno "${EINFO_VERBOSE}"; then
-		eoutdent
+		eoutdent "$@"
 	fi
 }
 
