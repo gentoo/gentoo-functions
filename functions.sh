@@ -7,6 +7,7 @@
 # not use bashisms.
 #
 
+# shellcheck disable=2034
 RC_GOT_FUNCTIONS="yes"
 
 #
@@ -407,7 +408,7 @@ is_older_than()
 			find "$@"
 		fi
 	} |
-	read -r line
+	read -r _
 }
 
 #
@@ -465,6 +466,7 @@ for arg in "$@" ; do
 done
 
 # Define COLS and ENDCOL so that eend can line up the [ ok ].
+# shellcheck disable=3044
 if [ -n "${BASH}" ] && shopt -s checkwinsize 2>/dev/null; then
 	# As is documented, running an external command will cause bash to set
 	# the COLUMNS variable. This technique is effective for >=4.3, though
@@ -480,8 +482,8 @@ else
 	# size operand is not portable.
 	COLS=$(
 		stty size 2>/dev/null | {
-			if read -r h w _; then
-				printf '%s\n' "$w"
+			if read -r _ cols _; then
+				printf '%s\n' "${cols}"
 			fi
 		}
 	)
