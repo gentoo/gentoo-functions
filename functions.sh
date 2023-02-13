@@ -17,9 +17,10 @@ RC_GOT_FUNCTIONS="yes"
 #
 _esetdent()
 {
-	local i="$1"
-	[ -z "$i" ] || [ "$i" -lt 0 ] && i=0
-	RC_INDENTATION=$(printf "%${i}s" '')
+	if ! is_int "$1" || [ "$1" -lt 0 ]; then
+		set -- 0
+	fi
+	RC_INDENTATION=$(printf "%${1}s" '')
 }
 
 #
@@ -27,9 +28,10 @@ _esetdent()
 #
 eindent()
 {
-	local i="$1"
-	[ -n "$i" ] && [ "$i" -gt 0 ] || i=${RC_DEFAULT_INDENT}
-	_esetdent $(( ${#RC_INDENTATION} + i ))
+	if ! is_int "$1" || [ "$1" -le 0 ]; then
+		set -- "${RC_DEFAULT_INDENT}"
+	fi
+	_esetdent "$(( ${#RC_INDENTATION} + $1 ))"
 }
 
 #
@@ -37,9 +39,10 @@ eindent()
 #
 eoutdent()
 {
-	local i="$1"
-	[ -n "$i" ] && [ "$i" -gt 0 ] || i=${RC_DEFAULT_INDENT}
-	_esetdent $(( ${#RC_INDENTATION} - i ))
+	if ! is_int "$1" || [ "$1" -le 0 ]; then
+		set -- "${RC_DEFAULT_INDENT}"
+	fi
+	_esetdent "$(( ${#RC_INDENTATION} - $1 ))"
 }
 
 #
