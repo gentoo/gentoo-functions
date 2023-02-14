@@ -249,7 +249,7 @@ _eend()
 	if [ "$#" -eq 0 ]; then
 		retval=0
 	elif ! is_int "$1" || [ "$1" -lt 0 ]; then
-		printf 'Invalid argument given to _eend (the exit status code must be an integer >= 0)\n' >&2
+		printf 'Invalid argument given to %s (the exit status code must be an integer >= 0)\n' "${CALLER}" >&2
 		retval=0
 		shift
 	else
@@ -286,7 +286,7 @@ eend()
 {
 	local retval
 
-	_eend eerror "$@"
+	CALLER=${CALLER:-eend} _eend eerror "$@"
 	retval=$?
 	LAST_E_CMD="eend"
 	return "${retval}"
@@ -300,7 +300,7 @@ ewend()
 {
 	local retval
 
-	_eend ewarn "$@"
+	CALLER=${CALLER:-ewend} _eend ewarn "$@"
 	retval=$?
 	LAST_E_CMD="ewend"
 	return "${retval}"
@@ -345,7 +345,7 @@ vebegin()
 veend()
 {
 	if yesno "${EINFO_VERBOSE}"; then
-		eend "$@"
+		CALLER=veend eend "$@"
 	elif [ "$#" -gt 0 ] && { ! is_int "$1" || [ "$1" -lt 0 ]; }; then
 		printf 'Invalid argument given to veend (the exit status code must be an integer >= 0)\n' >&2
 	else
@@ -356,7 +356,7 @@ veend()
 vewend()
 {
 	if yesno "${EINFO_VERBOSE}"; then
-		ewend "$@"
+		CALLER=vewend ewend "$@"
 	elif [ "$#" -gt 0 ] && { ! is_int "$1" || [ "$1" -lt 0 ]; }; then
 		printf 'Invalid argument given to vewend (the exit status code must be an integer >= 0)\n' >&2
 	else
