@@ -346,8 +346,10 @@ veend()
 {
 	if yesno "${EINFO_VERBOSE}"; then
 		eend "$@"
+	elif [ "$#" -gt 0 ] && { ! is_int "$1" || [ "$1" -lt 0 ]; }; then
+		printf 'Invalid argument given to veend (the exit status code must be an integer >= 0)\n' >&2
 	else
-		return "${1:-0}"
+		return "$1"
 	fi
 }
 
@@ -355,8 +357,10 @@ vewend()
 {
 	if yesno "${EINFO_VERBOSE}"; then
 		ewend "$@"
+	elif [ "$#" -gt 0 ] && { ! is_int "$1" || [ "$1" -lt 0 ]; }; then
+		printf 'Invalid argument given to vewend (the exit status code must be an integer >= 0)\n' >&2
 	else
-		return "${1:-0}"
+		return "$1"
 	fi
 }
 
