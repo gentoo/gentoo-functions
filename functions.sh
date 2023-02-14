@@ -286,7 +286,7 @@ eend()
 {
 	local retval
 
-	_eend error "$@"
+	_eend eerror "$@"
 	retval=$?
 	LAST_E_CMD="eend"
 	return "${retval}"
