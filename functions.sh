@@ -16,7 +16,11 @@ _eprint() {
 	if [ -z "${genfun_endcol}" ] && [ "${genfun_lastcall}" = "ebegin" ]; then
 		printf '\n'
 	fi
-	printf ' %s*%s %s%b' "${color}" "${NORMAL}" "${genfun_indent}" "$*"
+	if [ -t 1 ]; then
+		printf ' %s*%s %s%b' "${color}" "${NORMAL}" "${genfun_indent}" "$*"
+	else
+		printf ' * %s%b' "${genfun_indent}" "$*"
+	fi
 }
 
 #
@@ -202,7 +206,7 @@ ebegin()
 #
 _eend()
 {
-	local efunc msg retval
+	local cols efunc is_tty msg retval
 
 	efunc=$1
 	shift
@@ -217,22 +221,44 @@ _eend()
 		shift
 	fi
 
+	if [ -t 1 ]; then
+		is_tty=1
+		cols=${genfun_cols}
+	else
+		# STDOUT is not currently a TTY. Therefore, the width of the
+		# controlling terminal, if any, is irrelevant. For this call,
+		# consider the number of columns as being 80.
+		is_tty=0
+		cols=80
+	fi
+
 	if [ "${retval}" -ne 0 ]; then
+		# If a message was given, print it with the specified function.
 		if _is_visible "$*"; then
 			"${efunc}" "$*"
 		fi
-		msg="${BRACKET}[ ${BAD}!!${BRACKET} ]${NORMAL}"
+		# Generate an indicator for ebegin's unsuccessful conclusion.
+		if [ "${is_tty}" -eq 0 ]; then
+			msg="[ !! ]"
+		else
+			msg="${BRACKET}[ ${BAD}!!${BRACKET} ]${NORMAL}"
+		fi
 	elif yesno "${EINFO_QUIET}"; then
 		return "${retval}"
 	else
-		msg="${BRACKET}[ ${GOOD}ok${BRACKET} ]${NORMAL}"
+		# Generate an indicator for ebegin's successful conclusion.
+		if [ "${is_tty}" -eq 0 ]; then
+			msg="[ ok ]"
+		else
+			msg="${BRACKET}[ ${GOOD}ok${BRACKET} ]${NORMAL}"
+		fi
 	fi
 
-	if [ -n "${genfun_endcol}" ]; then
+	if [ "${is_tty}" -eq 1 ] && [ -n "${genfun_endcol}" ]; then
 		printf '%s  %s\n' "${genfun_endcol}" "${msg}"
 	else
 		[ "${genfun_lastcall}" = ebegin ] || genfun_lastbegun_strlen=0
-		printf "%$(( genfun_cols - genfun_lastbegun_strlen - 6 ))s%s\n" '' "${msg}"
+		printf "%$(( cols - genfun_lastbegun_strlen - 6 ))s%s\n" '' "${msg}"
 	fi
 
 	return "${retval}"
@@ -451,15 +477,6 @@ unset -v genfun_endcol
 
 # Set the initial value for e-message indentation.
 genfun_indent=
-
-# If either STDOUT or STDERR is not a tty, disable coloured output. A useful
-# improvement for  the future would be to have the individual logging functions
-# act as they should. For example, ewarn prints to STDOUT whereas eerror prints
-# to STDERR. For now, this is a reasonable compromise.
-if [ ! -t 1 ] || [ ! -t 2 ]; then
-	RC_NOCOLOR="yes"
-	genfun_endcol=
-fi
 
 for arg in "$@" ; do
 	case "${arg}" in
