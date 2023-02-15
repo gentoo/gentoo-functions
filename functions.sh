@@ -29,7 +29,7 @@ _esetdent()
 eindent()
 {
 	if ! is_int "$1" || [ "$1" -le 0 ]; then
-		set -- "${RC_DEFAULT_INDENT}"
+		set -- 2
 	fi
 	_esetdent "$(( ${#RC_INDENTATION} + $1 ))"
 }
@@ -40,7 +40,7 @@ eindent()
 eoutdent()
 {
 	if ! is_int "$1" || [ "$1" -le 0 ]; then
-		set -- "${RC_DEFAULT_INDENT}"
+		set -- 2
 	fi
 	_esetdent "$(( ${#RC_INDENTATION} - $1 ))"
 }
@@ -489,9 +489,8 @@ RC_NOCOLOR="${RC_NOCOLOR:-no}"
 # Can the terminal handle endcols? Begin by assuming not.
 unset -v ENDCOL
 
-# Default values for e-message indentation and dots
-RC_INDENTATION=''
-RC_DEFAULT_INDENT=2
+# Set the initial value for e-message indentation.
+RC_INDENTATION=
 
 # If either STDOUT or STDERR is not a tty, disable coloured output. A useful
 # improvement for  the future would be to have the individual logging functions
