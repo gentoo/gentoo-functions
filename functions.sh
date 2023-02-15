@@ -229,7 +229,7 @@ _eend()
 	fi
 
 	if [ -n "${genfun_endcol}" ]; then
-		printf "${genfun_endcol}  ${msg}\n"
+		printf '%s  %b\n' "${genfun_endcol}" "${msg}"
 	else
 		[ "${genfun_lastcall}" = ebegin ] || genfun_lastbegun_strlen=0
 		printf "%$(( genfun_cols - genfun_lastbegun_strlen - 6 ))s%b\n" '' "${msg}"
