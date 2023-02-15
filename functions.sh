@@ -6,6 +6,20 @@
 RC_GOT_FUNCTIONS="yes"
 
 #
+#    This is a private function, called by ebegin, eerrorn, einfon, and ewarnn.
+#
+_eprint() {
+	local color
+	color=$1
+	shift
+
+	if [ -z "${genfun_endcol}" ] && [ "${genfun_lastcall}" = "ebegin" ]; then
+		printf '\n'
+	fi
+	printf ' %s*%s %s%b' "${color}" "${NORMAL}" "${genfun_indent}" "$*"
+}
+
+#
 #    hard set the indent used for e-commands.
 #    num defaults to 0
 # This is a private function.
@@ -102,15 +116,10 @@ esyslog()
 #
 einfon()
 {
-	if yesno "${EINFO_QUIET}"; then
-		return 0
+	if ! yesno "${EINFO_QUIET}"; then
+		_eprint "${GOOD}" "$@"
+		genfun_lastcall="einfon"
 	fi
-	if [ -z "${genfun_endcol}" ] && [ "${genfun_lastcall}" = "ebegin" ]; then
-		printf "\n"
-	fi
-	printf " ${GOOD}*${NORMAL} ${genfun_indent}$*"
-	genfun_lastcall="einfon"
-	return 0
 }
 
 #
@@ -118,9 +127,8 @@ einfon()
 #
 einfo()
 {
-	einfon "$*\n"
+	einfon "$*\\n"
 	genfun_lastcall="einfo"
-	return 0
 }
 
 #
@@ -128,20 +136,11 @@ einfo()
 #
 ewarnn()
 {
-	if yesno "${EINFO_QUIET}"; then
-		return 0
-	else
-		if [ -z "${genfun_endcol}" ] && [ "${genfun_lastcall}" = "ebegin" ]; then
-			printf "\n" >&2
-		fi
-		printf " ${WARN}*${NORMAL} ${genfun_indent}$*" >&2
+	if ! yesno "${EINFO_QUIET}"; then
+		_eprint "${WARN}" "$@" >&2
+		esyslog "daemon.warning" "${0##*/}" "$@"
+		genfun_lastcall="ewarnn"
 	fi
-
-	# Log warnings to system log
-	esyslog "daemon.warning" "${0##*/}" "$@"
-
-	genfun_lastcall="ewarnn"
-	return 0
 }
 
 #
@@ -149,20 +148,8 @@ ewarnn()
 #
 ewarn()
 {
-	if yesno "${EINFO_QUIET}"; then
-		return 0
-	else
-		if [ -z "${genfun_endcol}" ] && [ "${genfun_lastcall}" = "ebegin" ]; then
-			printf "\n" >&2
-		fi
-		printf " ${WARN}*${NORMAL} ${genfun_indent}$*\n" >&2
-	fi
-
-	# Log warnings to system log
-	esyslog "daemon.warning" "${0##*/}" "$@"
-
+	ewarnn "$*\\n"
 	genfun_lastcall="ewarn"
-	return 0
 }
 
 #
@@ -170,19 +157,11 @@ ewarn()
 #
 eerrorn()
 {
-	if yesno "${EERROR_QUIET}"; then
-		return 1
-	else
-		if [ -z "${genfun_endcol}" ] && [ "${genfun_lastcall}" = "ebegin" ]; then
-			printf "\n" >&2
-		fi
-		printf " ${BAD}*${NORMAL} ${genfun_indent}$*" >&2
+	if ! yesno "${EERROR_QUIET}"; then
+		_eprint "${BAD}" "$@" >&2
+		esyslog "daemon.err" "${0##*/}" "$@"
+		genfun_lastcall="eerrorn"
 	fi
-
-	# Log errors to system log
-	esyslog "daemon.err" "${0##*/}" "$@"
-
-	genfun_lastcall="eerrorn"
 	return 1
 }
 
@@ -191,18 +170,7 @@ eerrorn()
 #
 eerror()
 {
-	if yesno "${EERROR_QUIET}"; then
-		return 1
-	else
-		if [ -z "${genfun_endcol}" ] && [ "${genfun_lastcall}" = "ebegin" ]; then
-			printf "\n" >&2
-		fi
-		printf " ${BAD}*${NORMAL} ${genfun_indent}$*\n" >&2
-	fi
-
-	# Log errors to system log
-	esyslog "daemon.err" "${0##*/}" "$@"
-
+	eerrorn "$*\\n"
 	genfun_lastcall="eerror"
 	return 1
 }
@@ -212,20 +180,17 @@ eerror()
 #
 ebegin()
 {
-	local msg="$*"
-	if yesno "${EINFO_QUIET}"; then
-		return 0
-	fi
+	local msg
 
-	msg="${msg} ..."
-	einfon "${msg}"
-	if [ -n "${genfun_endcol}" ]; then
-		printf "\n"
+	if ! yesno "${EINFO_QUIET}"; then
+		msg="$* ..."
+		_eprint "${GOOD}" "${msg}"
+		if [ -n "${genfun_endcol}" ]; then
+			printf '\n'
+		fi
+		genfun_lastbegun_strlen="$(( 3 + ${#genfun_indent} + ${#msg} ))"
+		genfun_lastcall="ebegin"
 	fi
-
-	genfun_lastbegun_strlen="$(( 3 + ${#genfun_indent} + ${#msg} ))"
-	genfun_lastcall="ebegin"
-	return 0
 }
 
 #
