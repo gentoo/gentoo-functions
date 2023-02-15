@@ -2,11 +2,6 @@
 # Distributed under the terms of the GNU General Public License v2
 # shellcheck shell=sh disable=3043
 
-#
-# All functions in this file should be written in POSIX sh. Please do
-# not use bashisms.
-#
-
 # shellcheck disable=2034
 RC_GOT_FUNCTIONS="yes"
 
