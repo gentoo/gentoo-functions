@@ -475,9 +475,6 @@ EINFO_VERBOSE="${EINFO_VERBOSE:-no}"
 # Should we use color?
 RC_NOCOLOR="${RC_NOCOLOR:-no}"
 
-# Can the terminal handle endcols? Begin by assuming not.
-unset -v genfun_endcol
-
 # Set the initial value for e-message indentation.
 genfun_indent=
 
@@ -519,12 +516,10 @@ else
 	fi
 fi
 
-if [ -z "${genfun_endcol+set}" ]; then
-	if hash tput 2>/dev/null; then
-		genfun_endcol="$(tput cuu1)$(tput cuf $(( genfun_cols - 8 )) )"
-	else
-		genfun_endcol='\033[A\033['$(( genfun_cols - 8 ))'C'
-	fi
+if hash tput 2>/dev/null; then
+	genfun_endcol="$(tput cuu1)$(tput cuf $(( genfun_cols - 8 )) )"
+else
+	genfun_endcol='\033[A\033['$(( genfun_cols - 8 ))'C'
 fi
 
 # Setup the colors so our messages all look pretty
