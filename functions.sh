@@ -110,7 +110,7 @@ einfon()
 	if yesno "${EINFO_QUIET}"; then
 		return 0
 	fi
-	if ! yesno "${RC_ENDCOL}" && [ "${LAST_E_CMD}" = "ebegin" ]; then
+	if [ -z "${ENDCOL}" ] && [ "${LAST_E_CMD}" = "ebegin" ]; then
 		printf "\n"
 	fi
 	printf " ${GOOD}*${NORMAL} ${RC_INDENTATION}$*"
@@ -136,7 +136,7 @@ ewarnn()
 	if yesno "${EINFO_QUIET}"; then
 		return 0
 	else
-		if ! yesno "${RC_ENDCOL}" && [ "${LAST_E_CMD}" = "ebegin" ]; then
+		if [ -z "${ENDCOL}" ] && [ "${LAST_E_CMD}" = "ebegin" ]; then
 			printf "\n" >&2
 		fi
 		printf " ${WARN}*${NORMAL} ${RC_INDENTATION}$*" >&2
@@ -157,7 +157,7 @@ ewarn()
 	if yesno "${EINFO_QUIET}"; then
 		return 0
 	else
-		if ! yesno "${RC_ENDCOL}" && [ "${LAST_E_CMD}" = "ebegin" ]; then
+		if [ -z "${ENDCOL}" ] && [ "${LAST_E_CMD}" = "ebegin" ]; then
 			printf "\n" >&2
 		fi
 		printf " ${WARN}*${NORMAL} ${RC_INDENTATION}$*\n" >&2
@@ -178,7 +178,7 @@ eerrorn()
 	if yesno "${EERROR_QUIET}"; then
 		return 1
 	else
-		if ! yesno "${RC_ENDCOL}" && [ "${LAST_E_CMD}" = "ebegin" ]; then
+		if [ -z "${ENDCOL}" ] && [ "${LAST_E_CMD}" = "ebegin" ]; then
 			printf "\n" >&2
 		fi
 		printf " ${BAD}*${NORMAL} ${RC_INDENTATION}$*" >&2
@@ -199,7 +199,7 @@ eerror()
 	if yesno "${EERROR_QUIET}"; then
 		return 1
 	else
-		if ! yesno "${RC_ENDCOL}" && [ "${LAST_E_CMD}" = "ebegin" ]; then
+		if [ -z "${ENDCOL}" ] && [ "${LAST_E_CMD}" = "ebegin" ]; then
 			printf "\n" >&2
 		fi
 		printf " ${BAD}*${NORMAL} ${RC_INDENTATION}$*\n" >&2
@@ -224,7 +224,7 @@ ebegin()
 
 	msg="${msg} ..."
 	einfon "${msg}"
-	if yesno "${RC_ENDCOL}"; then
+	if [ -n "${ENDCOL}" ]; then
 		printf "\n"
 	fi
 
@@ -268,7 +268,7 @@ _eend()
 		msg="${BRACKET}[ ${GOOD}ok${BRACKET} ]${NORMAL}"
 	fi
 
-	if yesno "${RC_ENDCOL}"; then
+	if [ -n "${ENDCOL}" ]; then
 		printf "${ENDCOL}  ${msg}\n"
 	else
 		[ "${LAST_E_CMD}" = ebegin ] || LAST_E_LEN=0
@@ -485,8 +485,9 @@ EINFO_VERBOSE="${EINFO_VERBOSE:-no}"
 
 # Should we use color?
 RC_NOCOLOR="${RC_NOCOLOR:-no}"
-# Can the terminal handle endcols?
-RC_ENDCOL="yes"
+
+# Can the terminal handle endcols? Begin by assuming not.
+unset -v ENDCOL
 
 # Default values for e-message indentation and dots
 RC_INDENTATION=''
@@ -498,7 +499,7 @@ RC_DEFAULT_INDENT=2
 # to STDERR. For now, this is a reasonable compromise.
 if [ ! -t 1 ] || [ ! -t 2 ]; then
 	RC_NOCOLOR="yes"
-	RC_ENDCOL="no"
+	ENDCOL=
 fi
 
 for arg in "$@" ; do
@@ -539,12 +540,12 @@ else
 	fi
 fi
 
-if ! yesno "${RC_ENDCOL}"; then
-	ENDCOL=''
-elif hash tput 2>/dev/null; then
-	ENDCOL="$(tput cuu1)$(tput cuf $(( COLS - 8 )) )"
-else
-	ENDCOL='\033[A\033['$(( COLS - 8 ))'C'
+if [ -z "${ENDCOL+set}" ]; then
+	if hash tput 2>/dev/null; then
+		ENDCOL="$(tput cuu1)$(tput cuf $(( COLS - 8 )) )"
+	else
+		ENDCOL='\033[A\033['$(( COLS - 8 ))'C'
+	fi
 fi
 
 # Setup the colors so our messages all look pretty
