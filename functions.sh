@@ -17,9 +17,9 @@ _eprint() {
 		printf '\n'
 	fi
 	if [ -t 1 ]; then
-		printf ' %s*%s %s%b' "${color}" "${NORMAL}" "${genfun_indent}" "$*"
+		printf ' %s*%s %s%s' "${color}" "${NORMAL}" "${genfun_indent}" "$*"
 	else
-		printf ' * %s%b' "${genfun_indent}" "$*"
+		printf ' * %s%s' "${genfun_indent}" "$*"
 	fi
 }
 
@@ -131,7 +131,8 @@ einfon()
 #
 einfo()
 {
-	einfon "$*\\n"
+	einfon "$*
+"
 	genfun_lastcall="einfo"
 }
 
@@ -152,7 +153,8 @@ ewarnn()
 #
 ewarn()
 {
-	ewarnn "$*\\n"
+	ewarnn "$*
+"
 	genfun_lastcall="ewarn"
 }
 
@@ -174,7 +176,8 @@ eerrorn()
 #
 eerror()
 {
-	eerrorn "$*\\n"
+	eerrorn "$*
+"
 	genfun_lastcall="eerror"
 	return 1
 }
