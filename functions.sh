@@ -20,7 +20,7 @@ _esetdent()
 	if ! is_int "$1" || [ "$1" -lt 0 ]; then
 		set -- 0
 	fi
-	RC_INDENTATION=$(printf "%${1}s" '')
+	genfun_indent=$(printf "%${1}s" '')
 }
 
 #
@@ -31,7 +31,7 @@ eindent()
 	if ! is_int "$1" || [ "$1" -le 0 ]; then
 		set -- 2
 	fi
-	_esetdent "$(( ${#RC_INDENTATION} + $1 ))"
+	_esetdent "$(( ${#genfun_indent} + $1 ))"
 }
 
 #
@@ -42,7 +42,7 @@ eoutdent()
 	if ! is_int "$1" || [ "$1" -le 0 ]; then
 		set -- 2
 	fi
-	_esetdent "$(( ${#RC_INDENTATION} - $1 ))"
+	_esetdent "$(( ${#genfun_indent} - $1 ))"
 }
 
 #
@@ -110,11 +110,11 @@ einfon()
 	if yesno "${EINFO_QUIET}"; then
 		return 0
 	fi
-	if [ -z "${ENDCOL}" ] && [ "${LAST_E_CMD}" = "ebegin" ]; then
+	if [ -z "${genfun_endcol}" ] && [ "${genfun_lastcall}" = "ebegin" ]; then
 		printf "\n"
 	fi
-	printf " ${GOOD}*${NORMAL} ${RC_INDENTATION}$*"
-	LAST_E_CMD="einfon"
+	printf " ${GOOD}*${NORMAL} ${genfun_indent}$*"
+	genfun_lastcall="einfon"
 	return 0
 }
 
@@ -124,7 +124,7 @@ einfon()
 einfo()
 {
 	einfon "$*\n"
-	LAST_E_CMD="einfo"
+	genfun_lastcall="einfo"
 	return 0
 }
 
@@ -136,16 +136,16 @@ ewarnn()
 	if yesno "${EINFO_QUIET}"; then
 		return 0
 	else
-		if [ -z "${ENDCOL}" ] && [ "${LAST_E_CMD}" = "ebegin" ]; then
+		if [ -z "${genfun_endcol}" ] && [ "${genfun_lastcall}" = "ebegin" ]; then
 			printf "\n" >&2
 		fi
-		printf " ${WARN}*${NORMAL} ${RC_INDENTATION}$*" >&2
+		printf " ${WARN}*${NORMAL} ${genfun_indent}$*" >&2
 	fi
 
 	# Log warnings to system log
 	esyslog "daemon.warning" "${0##*/}" "$@"
 
-	LAST_E_CMD="ewarnn"
+	genfun_lastcall="ewarnn"
 	return 0
 }
 
@@ -157,16 +157,16 @@ ewarn()
 	if yesno "${EINFO_QUIET}"; then
 		return 0
 	else
-		if [ -z "${ENDCOL}" ] && [ "${LAST_E_CMD}" = "ebegin" ]; then
+		if [ -z "${genfun_endcol}" ] && [ "${genfun_lastcall}" = "ebegin" ]; then
 			printf "\n" >&2
 		fi
-		printf " ${WARN}*${NORMAL} ${RC_INDENTATION}$*\n" >&2
+		printf " ${WARN}*${NORMAL} ${genfun_indent}$*\n" >&2
 	fi
 
 	# Log warnings to system log
 	esyslog "daemon.warning" "${0##*/}" "$@"
 
-	LAST_E_CMD="ewarn"
+	genfun_lastcall="ewarn"
 	return 0
 }
 
@@ -178,16 +178,16 @@ eerrorn()
 	if yesno "${EERROR_QUIET}"; then
 		return 1
 	else
-		if [ -z "${ENDCOL}" ] && [ "${LAST_E_CMD}" = "ebegin" ]; then
+		if [ -z "${genfun_endcol}" ] && [ "${genfun_lastcall}" = "ebegin" ]; then
 			printf "\n" >&2
 		fi
-		printf " ${BAD}*${NORMAL} ${RC_INDENTATION}$*" >&2
+		printf " ${BAD}*${NORMAL} ${genfun_indent}$*" >&2
 	fi
 
 	# Log errors to system log
 	esyslog "daemon.err" "${0##*/}" "$@"
 
-	LAST_E_CMD="eerrorn"
+	genfun_lastcall="eerrorn"
 	return 1
 }
 
@@ -199,16 +199,16 @@ eerror()
 	if yesno "${EERROR_QUIET}"; then
 		return 1
 	else
-		if [ -z "${ENDCOL}" ] && [ "${LAST_E_CMD}" = "ebegin" ]; then
+		if [ -z "${genfun_endcol}" ] && [ "${genfun_lastcall}" = "ebegin" ]; then
 			printf "\n" >&2
 		fi
-		printf " ${BAD}*${NORMAL} ${RC_INDENTATION}$*\n" >&2
+		printf " ${BAD}*${NORMAL} ${genfun_indent}$*\n" >&2
 	fi
 
 	# Log errors to system log
 	esyslog "daemon.err" "${0##*/}" "$@"
 
-	LAST_E_CMD="eerror"
+	genfun_lastcall="eerror"
 	return 1
 }
 
@@ -224,12 +224,12 @@ ebegin()
 
 	msg="${msg} ..."
 	einfon "${msg}"
-	if [ -n "${ENDCOL}" ]; then
+	if [ -n "${genfun_endcol}" ]; then
 		printf "\n"
 	fi
 
-	LAST_E_LEN="$(( 3 + ${#RC_INDENTATION} + ${#msg} ))"
-	LAST_E_CMD="ebegin"
+	genfun_lastbegun_strlen="$(( 3 + ${#genfun_indent} + ${#msg} ))"
+	genfun_lastcall="ebegin"
 	return 0
 }
 
@@ -268,11 +268,11 @@ _eend()
 		msg="${BRACKET}[ ${GOOD}ok${BRACKET} ]${NORMAL}"
 	fi
 
-	if [ -n "${ENDCOL}" ]; then
-		printf "${ENDCOL}  ${msg}\n"
+	if [ -n "${genfun_endcol}" ]; then
+		printf "${genfun_endcol}  ${msg}\n"
 	else
-		[ "${LAST_E_CMD}" = ebegin ] || LAST_E_LEN=0
-		printf "%$(( COLS - LAST_E_LEN - 6 ))s%b\n" '' "${msg}"
+		[ "${genfun_lastcall}" = ebegin ] || genfun_lastbegun_strlen=0
+		printf "%$(( genfun_cols - genfun_lastbegun_strlen - 6 ))s%b\n" '' "${msg}"
 	fi
 
 	return "${retval}"
@@ -288,7 +288,7 @@ eend()
 
 	CALLER=${CALLER:-eend} _eend eerror "$@"
 	retval=$?
-	LAST_E_CMD="eend"
+	genfun_lastcall="eend"
 	return "${retval}"
 }
 
@@ -302,7 +302,7 @@ ewend()
 
 	CALLER=${CALLER:-ewend} _eend ewarn "$@"
 	retval=$?
-	LAST_E_CMD="ewend"
+	genfun_lastcall="ewend"
 	return "${retval}"
 }
 
@@ -487,10 +487,10 @@ EINFO_VERBOSE="${EINFO_VERBOSE:-no}"
 RC_NOCOLOR="${RC_NOCOLOR:-no}"
 
 # Can the terminal handle endcols? Begin by assuming not.
-unset -v ENDCOL
+unset -v genfun_endcol
 
 # Set the initial value for e-message indentation.
-RC_INDENTATION=
+genfun_indent=
 
 # If either STDOUT or STDERR is not a tty, disable coloured output. A useful
 # improvement for  the future would be to have the individual logging functions
@@ -498,7 +498,7 @@ RC_INDENTATION=
 # to STDERR. For now, this is a reasonable compromise.
 if [ ! -t 1 ] || [ ! -t 2 ]; then
 	RC_NOCOLOR="yes"
-	ENDCOL=
+	genfun_endcol=
 fi
 
 for arg in "$@" ; do
@@ -511,7 +511,7 @@ for arg in "$@" ; do
 	esac
 done
 
-# Define COLS and ENDCOL so that eend can line up the [ ok ].
+# Define genfun_cols and genfun_endcol so that eend can line up the [ ok ].
 # shellcheck disable=3044
 if [ -n "${BASH}" ] && shopt -s checkwinsize 2>/dev/null; then
 	# As is documented, running an external command will cause bash to set
@@ -522,28 +522,28 @@ if [ -n "${BASH}" ] && shopt -s checkwinsize 2>/dev/null; then
 fi
 if is_int "${COLUMNS}" && [ "${COLUMNS}" -gt 0 ]; then
 	# The value of COLUMNS was likely set by a shell such as bash or mksh.
-	COLS=${COLUMNS}
+	genfun_cols=${COLUMNS}
 else
 	# Try to use stty(1) to determine the number of columns. The use of the
 	# size operand is not portable.
-	COLS=$(
+	genfun_cols=$(
 		stty size 2>/dev/null | {
 			if read -r _ cols _; then
 				printf '%s\n' "${cols}"
 			fi
 		}
 	)
-	if ! is_int "${COLS}" || [ "${COLS}" -le 0 ]; then
+	if ! is_int "${genfun_cols}" || [ "${genfun_cols}" -le 0 ]; then
 		# Give up and assume 80 available columns.
-		COLS=80
+		genfun_cols=80
 	fi
 fi
 
-if [ -z "${ENDCOL+set}" ]; then
+if [ -z "${genfun_endcol+set}" ]; then
 	if hash tput 2>/dev/null; then
-		ENDCOL="$(tput cuu1)$(tput cuf $(( COLS - 8 )) )"
+		genfun_endcol="$(tput cuu1)$(tput cuf $(( genfun_cols - 8 )) )"
 	else
-		ENDCOL='\033[A\033['$(( COLS - 8 ))'C'
+		genfun_endcol='\033[A\033['$(( genfun_cols - 8 ))'C'
 	fi
 fi
 
@@ -551,14 +551,14 @@ fi
 if yesno "${RC_NOCOLOR}"; then
 	unset -v BAD BRACKET GOOD HILITE NORMAL WARN
 elif { hash tput && tput colors >/dev/null; } 2>/dev/null; then
-	genfuncs_bold=$(tput bold) genfuncs_norm=$(tput sgr0)
-	BAD="${genfuncs_norm}${genfuncs_bold}$(tput setaf 1)"
-	BRACKET="${genfuncs_norm}${genfuncs_bold}$(tput setaf 4)"
-	GOOD="${genfuncs_norm}${genfuncs_bold}$(tput setaf 2)"
-	HILITE="${genfuncs_norm}${genfuncs_bold}$(tput setaf 6)"
-	NORMAL="${genfuncs_norm}"
-	WARN="${genfuncs_norm}${genfuncs_bold}$(tput setaf 3)"
-	unset -v genfuncs_bold genfuncs_norm
+	genfun_bold=$(tput bold) genfun_norm=$(tput sgr0)
+	BAD="${genfun_norm}${genfun_bold}$(tput setaf 1)"
+	BRACKET="${genfun_norm}${genfun_bold}$(tput setaf 4)"
+	GOOD="${genfun_norm}${genfun_bold}$(tput setaf 2)"
+	HILITE="${genfun_norm}${genfun_bold}$(tput setaf 6)"
+	NORMAL="${genfun_norm}"
+	WARN="${genfun_norm}${genfun_bold}$(tput setaf 3)"
+	unset -v genfun_bold genfun_norm
 else
 	BAD=$(printf '\033[31;01m')
 	BRACKET=$(printf '\033[34;01m')
