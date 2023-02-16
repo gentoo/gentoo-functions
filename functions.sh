@@ -488,7 +488,7 @@ for arg in "$@" ; do
 	esac
 done
 
-# Define genfun_cols and genfun_endcol so that eend can line up the [ ok ].
+# Try to determine the number of available columns in the terminal.
 # shellcheck disable=3044
 if [ -n "${BASH}" ] && shopt -s checkwinsize 2>/dev/null; then
 	# As is documented, running an external command will cause bash to set
@@ -516,11 +516,12 @@ else
 	fi
 fi
 
-if hash tput 2>/dev/null; then
-	genfun_endcol="$(tput cuu1)$(tput cuf $(( genfun_cols - 8 )) )"
-else
-	genfun_endcol="$(printf '\033[A\033[%dC' "$(( genfun_cols - 8 ))")"
-fi
+# Set an ECMA-48 CSI sequence, allowing for eend to line up the [ ok ] string.
+{
+	genfun_endcol="$(tput cuu1)" \
+	&& genfun_endcol="${genfun_endcol}$(tput cuf -- "$(( genfun_cols - 8 ))")" \
+	|| genfun_endcol="$(printf '\033[A\033[%dC' "$(( genfun_cols - 8 ))")"
+} 2>/dev/null
 
 # Setup the colors so our messages all look pretty
 if yesno "${RC_NOCOLOR}"; then
