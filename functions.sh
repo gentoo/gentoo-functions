@@ -519,7 +519,7 @@ fi
 if hash tput 2>/dev/null; then
 	genfun_endcol="$(tput cuu1)$(tput cuf $(( genfun_cols - 8 )) )"
 else
-	genfun_endcol='\033[A\033['$(( genfun_cols - 8 ))'C'
+	genfun_endcol="$(printf '\033[A\033[%dC' "$(( genfun_cols - 8 ))")"
 fi
 
 # Setup the colors so our messages all look pretty
