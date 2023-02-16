@@ -379,6 +379,9 @@ get_bootparam()
 	# Similarly, the empty string must not be allowed to match.
 	case $1 in ''|*,*) return 1 ;; esac
 
+	# Reset the value of IFS because there is no telling what it may be.
+	IFS=$(printf ' \n\t')
+
 	if [ "${TEST_GENFUNCS}" = 1 ]; then
 		read -r cmdline
 	else
@@ -505,7 +508,7 @@ else
 	# size operand is not portable.
 	genfun_cols=$(
 		stty size 2>/dev/null | {
-			if read -r _ cols _; then
+			if IFS=' ' read -r _ cols _; then
 				printf '%s\n' "${cols}"
 			fi
 		}
