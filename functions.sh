@@ -481,13 +481,12 @@ RC_NOCOLOR="${RC_NOCOLOR:-no}"
 # Set the initial value for e-message indentation.
 genfun_indent=
 
-for arg in "$@" ; do
-	case "${arg}" in
-		# Lastly check if the user disabled it with --nocolor argument
+for _ in "$@"; do
+	case $_ in
+		# Check whether the user specifed an argument to disable color.
 		--nocolor|--nocolour|-nc|-C)
 			RC_NOCOLOR="yes"
 			break
-			;;
 	esac
 done
 
