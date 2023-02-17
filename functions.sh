@@ -492,32 +492,36 @@ for arg in "$@" ; do
 done
 
 # Try to determine the number of available columns in the terminal.
-# shellcheck disable=3044
-if [ -n "${BASH}" ] && shopt -s checkwinsize 2>/dev/null; then
-	# As is documented, running an external command will cause bash to set
-	# the COLUMNS variable. This technique is effective for >=4.3, though
-	# it requires for the checkwinsize shopt to be enabled. By default, it
-	# is only enabled for >=5.0.
-	/bin/true
-fi
-if is_int "${COLUMNS}" && [ "${COLUMNS}" -gt 0 ]; then
-	# The value of COLUMNS was likely set by a shell such as bash or mksh.
-	genfun_cols=${COLUMNS}
-else
-	# Try to use stty(1) to determine the number of columns. The use of the
-	# size operand is not portable.
-	genfun_cols=$(
-		stty size 2>/dev/null | {
-			if IFS=' ' read -r _ cols _; then
-				printf '%s\n' "${cols}"
+for _ in 1 2 3; do
+	case $_ in
+		1)
+			# Running an external command causes bash >=4.3 to set
+			# the COLUMNS variable, provided that the checkwinsize
+			# shopt is enabled. As of 5.0, it's enabled by default.
+			# shellcheck disable=3044
+			if [ -n "${BASH}" ] && shopt -s checkwinsize 2>/dev/null; then
+				/bin/true
 			fi
-		}
-	)
-	if ! is_int "${genfun_cols}" || [ "${genfun_cols}" -le 0 ]; then
-		# Give up and assume 80 available columns.
-		genfun_cols=80
+			genfun_cols=${COLUMNS}
+			;;
+		2)
+			# This use of stty(1) is portable as of POSIX Issue 8.
+			genfun_cols=$(
+				stty size 2>/dev/null | {
+					if IFS=' ' read -r _ cols; then
+						printf '%s\n' "${cols}"
+					fi
+				}
+			)
+			;;
+		3)
+			# Give up and assume 80 available columns.
+			genfun_cols=80
+	esac
+	if is_int "${genfun_cols}" && [ "${genfun_cols}" -gt 0 ]; then
+		break
 	fi
-fi
+done
 
 # Set an ECMA-48 CSI sequence, allowing for eend to line up the [ ok ] string.
 {
