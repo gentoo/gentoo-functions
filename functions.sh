@@ -237,8 +237,11 @@ _eend()
 
 	if [ "${retval}" -ne 0 ]; then
 		# If a message was given, print it with the specified function.
-		if _is_visible "$*"; then
-			"${efunc}" "$*"
+		if [ "$#" -gt 0 ]; then
+			msg=$*
+			if _is_visible "${msg}"; then
+				"${efunc}" "${msg}"
+			fi
 		fi
 		# Generate an indicator for ebegin's unsuccessful conclusion.
 		if [ "${is_tty}" -eq 0 ]; then
