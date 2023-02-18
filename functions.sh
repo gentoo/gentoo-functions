@@ -76,19 +76,11 @@ yesno()
 			[Yy][Ee][Ss]|[Tt][Rr][Uu][Ee]|[Oo][Nn]|1)
 				return 0
 		esac
-		if [ "$_" -gt 1 ]; then
+		if [ "$_" -ne 1 ] || ! is_identifier "$1"; then
 			! break
 		else
-			# Using eval can be very dangerous. Check whether the
-			# value is a legitimate variable name before proceeding
-			# to treat it as one.
-			(
-				LC_ALL=C
-				case $1 in
-					''|_|[[:digit:]]*|*[!_[:alnum:]]*) exit 1
-				esac
-			) || ! break
-			# Treat the value as a nameref then try again.
+			# The value appears to be a legal variable name. Treat
+			# it as a name reference and try again, once only.
 			eval "set -- \"\$$1\""
 		fi
 	done || vewarn "Invalid argument given to yesno (expected a boolean-like or a legal name)"
@@ -470,6 +462,17 @@ is_int() {
 _is_visible() {
 	! case $1 in *[[:graph:]]*) false ;; esac
 }
+
+#
+#   Determine whether the first operand is a valid identifier (variable name).
+#
+is_identifier()
+(
+	LC_ALL=C
+	case $1 in
+		''|_|[[:digit:]]*|*[!_[:alnum:]]*) false
+	esac
+)
 
 # This is the main script, please add all functions above this point!
 # shellcheck disable=2034
