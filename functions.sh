@@ -553,6 +553,7 @@ else
 	BAD=$(printf '\033[31;01m')
 	BRACKET=$(printf '\033[34;01m')
 	GOOD=$(printf '\033[32;01m')
+	# shellcheck disable=2034
 	HILITE=$(printf '\033[36;01m')
 	NORMAL=$(printf '\033[0m')
 	WARN=$(printf '\033[33;01m')
