@@ -488,7 +488,7 @@ genfun_indent=
 for _ in "$@"; do
 	case $_ in
 		# Check whether the user specifed an argument to disable color.
-		--nocolor|--nocolour|-nc|-C)
+		--nocolor|--nocolour|-C)
 			RC_NOCOLOR="yes"
 			break
 	esac
