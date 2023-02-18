@@ -2,8 +2,15 @@
 # Distributed under the terms of the GNU General Public License v2
 # shellcheck shell=sh disable=3043
 
+# This file contains a series of function declarations followed by some
+# initialization code. Functions intended for internal use shall be prefixed
+# with an <underscore> and shall not be considered as being a part of the public
+# API. With the exception of those declared by the local builtin, all variables
+# intended for internal use shall be prefixed with "genfun_" to indicate so,
+# and to reduce the probability of name space conflicts.
+
 #
-#    This is a private function, called by ebegin, eerrorn, einfon, and ewarnn.
+#    Called by ebegin, eerrorn, einfon, and ewarnn.
 #
 _eprint() {
 	local color
@@ -23,7 +30,6 @@ _eprint() {
 #
 #    hard set the indent used for e-commands.
 #    num defaults to 0
-# This is a private function.
 #
 _esetdent()
 {
@@ -200,9 +206,6 @@ ebegin()
 #
 #    indicate the completion of process, called from eend/ewend
 #    if error, show errstr via efunc
-#
-#    This function is private to functions.sh.  Do not call it from a
-#    script.
 #
 _eend()
 {
@@ -462,8 +465,7 @@ is_int() {
 }
 
 #
-#   Determine whether the first operand contains any visible characters. This
-#   is intended to be a private function.
+#   Determine whether the first operand contains any visible characters.
 #
 _is_visible() {
 	! case $1 in *[[:graph:]]*) false ;; esac
