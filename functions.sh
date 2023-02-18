@@ -253,7 +253,7 @@ _eend()
 	fi
 
 	if [ "${is_tty}" -eq 1 ] && [ -n "${genfun_endcol}" ]; then
-		printf '%s %s\n' "${genfun_endcol}" "${msg}"
+		printf '%b %s\n' "${genfun_endcol}" "${msg}"
 	else
 		[ "${genfun_lastcall}" = ebegin ] || genfun_lastbegun_strlen=0
 		printf "%$(( cols - genfun_lastbegun_strlen - 7 ))s %s\n" '' "${msg}"
@@ -474,6 +474,22 @@ is_identifier()
 	esac
 )
 
+_has_dumb_terminal() {
+	! case ${TERM} in *dumb*) false ;; esac
+}
+
+_has_monochrome_terminal() {
+	local colors
+
+	# The tput(1) invocation is not portable, though ncurses suffices. In
+	# this day and age, it is exceedingly unlikely that it will be needed.
+	if _has_dumb_terminal; then
+		true
+	elif colors=$(tput colors 2>/dev/null) && is_int "${colors}"; then
+		test "${colors}" -eq -1
+	fi
+}
+
 # This is the main script, please add all functions above this point!
 # shellcheck disable=2034
 RC_GOT_FUNCTIONS="yes"
@@ -533,26 +549,20 @@ for _ in 1 2 3; do
 	fi
 done
 
-# Set an ECMA-48 CSI sequence, allowing for eend to line up the [ ok ] string.
-{
-	genfun_endcol="$(tput cuu1)" \
-	&& genfun_endcol="${genfun_endcol}$(tput cuf -- "$(( genfun_cols - 7 ))")" \
-	|| genfun_endcol="$(printf '\033[A\033[%dC' "$(( genfun_cols - 7 ))")"
-} 2>/dev/null
-
-# Setup the colors so our messages all look pretty
-if yesno "${RC_NOCOLOR}"; then
-	unset -v BAD BRACKET GOOD HILITE NORMAL WARN
-elif { hash tput && tput colors >/dev/null; } 2>/dev/null; then
-	genfun_bold=$(tput bold) genfun_norm=$(tput sgr0)
-	BAD="${genfun_norm}${genfun_bold}$(tput setaf 1)"
-	BRACKET="${genfun_norm}${genfun_bold}$(tput setaf 4)"
-	GOOD="${genfun_norm}${genfun_bold}$(tput setaf 2)"
-	HILITE="${genfun_norm}${genfun_bold}$(tput setaf 6)"
-	NORMAL="${genfun_norm}"
-	WARN="${genfun_norm}${genfun_bold}$(tput setaf 3)"
-	unset -v genfun_bold genfun_norm
+if _has_dumb_terminal; then
+	unset -v genfun_endcol
 else
+	# Set some ECMA-48 CSI sequences (CUU1 and CUF) for cursor positioning.
+	# These are standard and, conveniently, documented by console_codes(4).
+	genfun_endcol="\\033[A\\033[$(( genfun_cols - 7 ))C"
+fi
+
+if _has_monochrome_terminal || yesno "${RC_NOCOLOR}"; then
+	unset -v BAD BRACKET GOOD HILITE NORMAL WARN
+else
+	# Define some ECMA-48 SGR sequences for color support. These variables
+	# are public, in so far as users of the library may be expanding them.
+	# The sequences are also documented by console_codes(4).
 	BAD=$(printf '\033[31;01m')
 	BRACKET=$(printf '\033[34;01m')
 	GOOD=$(printf '\033[32;01m')
