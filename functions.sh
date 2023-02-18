@@ -523,6 +523,7 @@ for _ in 1 2 3; do
 		3)
 			# Give up and assume 80 available columns.
 			genfun_cols=80
+			break
 	esac
 	if is_int "${genfun_cols}" && [ "${genfun_cols}" -gt 0 ]; then
 		break
