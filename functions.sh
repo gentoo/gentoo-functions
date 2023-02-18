@@ -2,9 +2,6 @@
 # Distributed under the terms of the GNU General Public License v2
 # shellcheck shell=sh disable=3043
 
-# shellcheck disable=2034
-RC_GOT_FUNCTIONS="yes"
-
 #
 #    This is a private function, called by ebegin, eerrorn, einfon, and ewarnn.
 #
@@ -473,6 +470,8 @@ _is_visible() {
 }
 
 # This is the main script, please add all functions above this point!
+# shellcheck disable=2034
+RC_GOT_FUNCTIONS="yes"
 
 # Dont output to stdout?
 EINFO_QUIET="${EINFO_QUIET:-no}"
