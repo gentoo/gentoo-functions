@@ -479,20 +479,23 @@ RC_GOT_FUNCTIONS="yes"
 EINFO_QUIET="${EINFO_QUIET:-no}"
 EINFO_VERBOSE="${EINFO_VERBOSE:-no}"
 
-# Should we use color?
-RC_NOCOLOR="${RC_NOCOLOR:-no}"
-
 # Set the initial value for e-message indentation.
 genfun_indent=
 
-for _ in "$@"; do
-	case $_ in
-		# Check whether the user specifed an argument to disable color.
-		--nocolor|--nocolour|-C)
-			RC_NOCOLOR="yes"
-			break
-	esac
-done
+# Should we use color?
+if [ -n "${NO_COLOR}" ]; then
+	# See https://no-color.org/.
+	RC_NOCOLOR="yes"
+else
+	RC_NOCOLOR="${RC_NOCOLOR:-no}"
+	for _ in "$@"; do
+		case $_ in
+			--nocolor|--nocolour|-C)
+				RC_NOCOLOR="yes"
+				break
+		esac
+	done
+fi
 
 # Try to determine the number of available columns in the terminal.
 for _ in 1 2 3; do
