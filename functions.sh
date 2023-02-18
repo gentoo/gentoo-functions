@@ -253,10 +253,10 @@ _eend()
 	fi
 
 	if [ "${is_tty}" -eq 1 ] && [ -n "${genfun_endcol}" ]; then
-		printf '%s  %s\n' "${genfun_endcol}" "${msg}"
+		printf '%s %s\n' "${genfun_endcol}" "${msg}"
 	else
 		[ "${genfun_lastcall}" = ebegin ] || genfun_lastbegun_strlen=0
-		printf "%$(( cols - genfun_lastbegun_strlen - 6 ))s%s\n" '' "${msg}"
+		printf "%$(( cols - genfun_lastbegun_strlen - 7 ))s %s\n" '' "${msg}"
 	fi
 
 	return "${retval}"
@@ -536,8 +536,8 @@ done
 # Set an ECMA-48 CSI sequence, allowing for eend to line up the [ ok ] string.
 {
 	genfun_endcol="$(tput cuu1)" \
-	&& genfun_endcol="${genfun_endcol}$(tput cuf -- "$(( genfun_cols - 8 ))")" \
-	|| genfun_endcol="$(printf '\033[A\033[%dC' "$(( genfun_cols - 8 ))")"
+	&& genfun_endcol="${genfun_endcol}$(tput cuf -- "$(( genfun_cols - 7 ))")" \
+	|| genfun_endcol="$(printf '\033[A\033[%dC' "$(( genfun_cols - 7 ))")"
 } 2>/dev/null
 
 # Setup the colors so our messages all look pretty
