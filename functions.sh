@@ -13,17 +13,21 @@
 #    Called by ebegin, eerrorn, einfon, and ewarnn.
 #
 _eprint() {
-	local color
+	local color msg
 	color=$1
 	shift
 
-	if [ -z "${genfun_endcol}" ] && [ "${genfun_lastcall}" = "ebegin" ]; then
-		printf '\n'
-	fi
+	msg=$*
 	if [ -t 1 ]; then
-		printf ' %s*%s %s%s' "${color}" "${NORMAL}" "${genfun_indent}" "$*"
+		printf ' %s*%s %s%s' "${color}" "${NORMAL}" "${genfun_indent}" "${msg}"
 	else
-		printf ' * %s%s' "${genfun_indent}" "$*"
+		printf ' * %s%s' "${genfun_indent}" "${msg}"
+	fi
+
+	if _ends_with_newline "${msg}"; then
+		genfun_is_pending_lf=0
+	else
+		genfun_is_pending_lf=1
 	fi
 }
 
@@ -117,7 +121,6 @@ einfon()
 {
 	if ! yesno "${EINFO_QUIET}"; then
 		_eprint "${GOOD}" "$@"
-		genfun_lastcall="einfon"
 	fi
 }
 
@@ -126,9 +129,7 @@ einfon()
 #
 einfo()
 {
-	einfon "$*
-"
-	genfun_lastcall="einfo"
+	einfon "${*}${genfun_newline}"
 }
 
 #
@@ -139,7 +140,6 @@ ewarnn()
 	if ! yesno "${EINFO_QUIET}"; then
 		_eprint "${WARN}" "$@" >&2
 		esyslog "daemon.warning" "${0##*/}" "$@"
-		genfun_lastcall="ewarnn"
 	fi
 }
 
@@ -148,9 +148,7 @@ ewarnn()
 #
 ewarn()
 {
-	ewarnn "$*
-"
-	genfun_lastcall="ewarn"
+	ewarnn "${*}${genfun_newline}"
 }
 
 #
@@ -161,7 +159,6 @@ eerrorn()
 	if ! yesno "${EERROR_QUIET}"; then
 		_eprint "${BAD}" "$@" >&2
 		esyslog "daemon.err" "${0##*/}" "$@"
-		genfun_lastcall="eerrorn"
 	fi
 	return 1
 }
@@ -171,10 +168,7 @@ eerrorn()
 #
 eerror()
 {
-	eerrorn "$*
-"
-	genfun_lastcall="eerror"
-	return 1
+	eerrorn "${*}${genfun_newline}"
 }
 
 #
@@ -185,13 +179,8 @@ ebegin()
 	local msg
 
 	if ! yesno "${EINFO_QUIET}"; then
-		msg="$* ..."
-		_eprint "${GOOD}" "${msg}"
-		if [ -n "${genfun_endcol}" ]; then
-			printf '\n'
-		fi
-		genfun_lastbegun_strlen="$(( 3 + ${#genfun_indent} + ${#msg} ))"
-		genfun_lastcall="ebegin"
+		msg="$* ...${genfun_newline}"
+		GENFUN_CALLER=ebegin _eprint "${GOOD}" "${msg}"
 	fi
 }
 
@@ -201,14 +190,14 @@ ebegin()
 #
 _eend()
 {
-	local cols efunc is_tty msg retval
+	local efunc is_tty msg retval
 
 	efunc=$1
 	shift
 	if [ "$#" -eq 0 ]; then
 		retval=0
 	elif ! is_int "$1" || [ "$1" -lt 0 ]; then
-		ewarn "Invalid argument given to ${CALLER} (the exit status code must be an integer >= 0)"
+		ewarn "Invalid argument given to ${GENFUN_CALLER} (the exit status code must be an integer >= 0)"
 		retval=0
 		shift
 	else
@@ -218,13 +207,8 @@ _eend()
 
 	if [ -t 1 ]; then
 		is_tty=1
-		cols=${genfun_cols}
 	else
-		# STDOUT is not currently a TTY. Therefore, the width of the
-		# controlling terminal, if any, is irrelevant. For this call,
-		# consider the number of columns as being 80.
 		is_tty=0
-		cols=80
 	fi
 
 	if [ "${retval}" -ne 0 ]; then
@@ -253,11 +237,19 @@ _eend()
 	fi
 
 	if [ "${is_tty}" -eq 1 ] && [ -n "${genfun_endcol}" ]; then
+		# Should a LF character be pending then print one. The CUU
+		# (ECMA-48 CSI) sequence will move the cursor up by one line
+		# prior to printing the indicator, right-justified.
+		if [ "${genfun_is_pending_lf}" -eq 1 ]; then
+			printf '\n'
+		fi
 		printf '%b %s\n' "${genfun_endcol}" "${msg}"
 	else
-		[ "${genfun_lastcall}" = ebegin ] || genfun_lastbegun_strlen=0
-		printf "%$(( cols - genfun_lastbegun_strlen - 7 ))s %s\n" '' "${msg}"
+		printf ' %s\n' "${msg}"
 	fi
+
+	# Record the fact that a LF character is no longer pending.
+	genfun_is_pending_lf=0
 
 	return "${retval}"
 }
@@ -268,12 +260,7 @@ _eend()
 #
 eend()
 {
-	local retval
-
-	CALLER=${CALLER:-eend} _eend eerror "$@"
-	retval=$?
-	genfun_lastcall="eend"
-	return "${retval}"
+	GENFUN_CALLER=${GENFUN_CALLER:-eend} _eend eerror "$@"
 }
 
 #
@@ -282,12 +269,7 @@ eend()
 #
 ewend()
 {
-	local retval
-
-	CALLER=${CALLER:-ewend} _eend ewarn "$@"
-	retval=$?
-	genfun_lastcall="ewend"
-	return "${retval}"
+	GENFUN_CALLER=${GENFUN_CALLER:-ewend} _eend ewarn "$@"
 }
 
 # v-e-commands honor EINFO_VERBOSE which defaults to no.
@@ -329,7 +311,7 @@ vebegin()
 veend()
 {
 	if yesno "${EINFO_VERBOSE}"; then
-		CALLER=veend eend "$@"
+		GENFUN_CALLER=veend eend "$@"
 	elif [ "$#" -gt 0 ] && { ! is_int "$1" || [ "$1" -lt 0 ]; }; then
 		ewarn "Invalid argument given to veend (the exit status code must be an integer >= 0)"
 	else
@@ -340,7 +322,7 @@ veend()
 vewend()
 {
 	if yesno "${EINFO_VERBOSE}"; then
-		CALLER=vewend ewend "$@"
+		GENFUN_CALLER=vewend ewend "$@"
 	elif [ "$#" -gt 0 ] && { ! is_int "$1" || [ "$1" -lt 0 ]; }; then
 		ewarn "Invalid argument given to vewend (the exit status code must be an integer >= 0)"
 	else
@@ -490,6 +472,10 @@ _has_monochrome_terminal() {
 	fi
 }
 
+_ends_with_newline() {
+	! case $1 in *"${genfun_newline}") false ;; esac
+}
+
 # This is the main script, please add all functions above this point!
 # shellcheck disable=2034
 RC_GOT_FUNCTIONS="yes"
@@ -500,6 +486,14 @@ EINFO_VERBOSE="${EINFO_VERBOSE:-no}"
 
 # Set the initial value for e-message indentation.
 genfun_indent=
+
+# Assign the LF ('\n') character for later expansion. POSIX Issue 8 permits
+# $'\n' but it may take years for it to be commonly implemented.
+genfun_newline='
+'
+
+# Whether the last printed message is pending a concluding LF character.
+genfun_is_pending_lf=0
 
 # Should we use color?
 if [ -n "${NO_COLOR}" ]; then
@@ -552,7 +546,7 @@ done
 if _has_dumb_terminal; then
 	unset -v genfun_endcol
 else
-	# Set some ECMA-48 CSI sequences (CUU1 and CUF) for cursor positioning.
+	# Set some ECMA-48 CSI sequences (CUU and CUF) for cursor positioning.
 	# These are standard and, conveniently, documented by console_codes(4).
 	genfun_endcol="\\033[A\\033[$(( genfun_cols - 7 ))C"
 fi
