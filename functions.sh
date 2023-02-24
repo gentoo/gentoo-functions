@@ -512,19 +512,9 @@ else
 fi
 
 # Try to determine the number of available columns in the terminal.
-for _ in 1 2 3; do
+for _ in 1 2; do
 	case $_ in
 		1)
-			# Running an external command causes bash >=4.3 to set
-			# the COLUMNS variable, provided that the checkwinsize
-			# shopt is enabled. As of 5.0, it's enabled by default.
-			# shellcheck disable=3044
-			if [ -n "${BASH}" ] && shopt -s checkwinsize 2>/dev/null; then
-				/bin/true
-			fi
-			genfun_cols=${COLUMNS}
-			;;
-		2)
 			# This use of stty(1) is portable as of POSIX Issue 8.
 			genfun_cols=$(
 				stty size 2>/dev/null | {
@@ -534,7 +524,7 @@ for _ in 1 2 3; do
 				}
 			)
 			;;
-		3)
+		2)
 			# Give up and assume 80 available columns.
 			genfun_cols=80
 			break
