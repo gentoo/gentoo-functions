@@ -179,8 +179,9 @@ ebegin()
 	local msg
 
 	if ! yesno "${EINFO_QUIET}"; then
-		msg="$* ...${genfun_newline}"
-		GENFUN_CALLER=ebegin _eprint "${GOOD}" "${msg}"
+		msg=$*
+		msg=${msg%"${genfun_newline}"}
+		_eprint "${GOOD}" "${msg} ...${genfun_newline}"
 	fi
 }
 
