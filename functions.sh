@@ -95,7 +95,7 @@ esyslog()
 	local pri tag msg
 
 	if [ "$#" -lt 2 ]; then
-		printf 'Too few arguments for esyslog (got %d, expected at least 2)\n' "$#" >&2
+		ewarn "Too few arguments for esyslog (got $#, expected at least 2)"
 		return 1
 	elif [ -n "${EINFO_LOG}" ] && hash logger 2>/dev/null; then
 		pri=$1
@@ -208,7 +208,7 @@ _eend()
 	if [ "$#" -eq 0 ]; then
 		retval=0
 	elif ! is_int "$1" || [ "$1" -lt 0 ]; then
-		printf 'Invalid argument given to %s (the exit status code must be an integer >= 0)\n' "${CALLER}" >&2
+		ewarn "Invalid argument given to ${CALLER} (the exit status code must be an integer >= 0)"
 		retval=0
 		shift
 	else
@@ -331,7 +331,7 @@ veend()
 	if yesno "${EINFO_VERBOSE}"; then
 		CALLER=veend eend "$@"
 	elif [ "$#" -gt 0 ] && { ! is_int "$1" || [ "$1" -lt 0 ]; }; then
-		printf 'Invalid argument given to veend (the exit status code must be an integer >= 0)\n' >&2
+		ewarn "Invalid argument given to veend (the exit status code must be an integer >= 0)"
 	else
 		return "$1"
 	fi
@@ -342,7 +342,7 @@ vewend()
 	if yesno "${EINFO_VERBOSE}"; then
 		CALLER=vewend ewend "$@"
 	elif [ "$#" -gt 0 ] && { ! is_int "$1" || [ "$1" -lt 0 ]; }; then
-		printf 'Invalid argument given to vewend (the exit status code must be an integer >= 0)\n' >&2
+		ewarn "Invalid argument given to vewend (the exit status code must be an integer >= 0)"
 	else
 		return "$1"
 	fi
@@ -408,7 +408,7 @@ is_older_than()
 	local ref has_gfind
 
 	if [ "$#" -lt 2 ]; then
-		printf 'Too few arguments for is_older_than (got %d, expected at least 2)\n' "$#" >&2
+		ewarn "Too few arguments for is_older_than (got $#, expected at least 2)"
 		return 1
 	elif [ -e "$1" ]; then
 		ref=$1
