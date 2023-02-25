@@ -477,6 +477,23 @@ _ends_with_newline() {
 	! case $1 in *"${genfun_newline}") false ;; esac
 }
 
+_update_winsize() {
+	# The following use of stty(1) is portable as of POSIX Issue 8. It would
+	# be beneficial to leverage the checkwinsize option in bash but the
+	# implementation is buggy. Given that Chet has agreed to investigate,
+	# it may eventually become possible to support it.
+	# shellcheck disable=2046
+	set -- $(stty size 2>/dev/null)
+	if is_int "$1" && is_int "$2" && [ "$1" -gt 0 ] && [ "$2" -gt 0 ]; then
+		genfun_rows=$1
+		genfun_cols=$2
+	else
+		genfun_rows=
+		genfun_cols=
+		false
+	fi
+}
+
 # This is the main script, please add all functions above this point!
 # shellcheck disable=2034
 RC_GOT_FUNCTIONS="yes"
@@ -511,30 +528,7 @@ else
 	done
 fi
 
-# Try to determine the number of available columns in the terminal.
-for _ in 1 2; do
-	case $_ in
-		1)
-			# This use of stty(1) is portable as of POSIX Issue 8.
-			genfun_cols=$(
-				stty size 2>/dev/null | {
-					if IFS=' ' read -r _ cols; then
-						printf '%s\n' "${cols}"
-					fi
-				}
-			)
-			;;
-		2)
-			# Give up and assume 80 available columns.
-			genfun_cols=80
-			break
-	esac
-	if is_int "${genfun_cols}" && [ "${genfun_cols}" -gt 0 ]; then
-		break
-	fi
-done
-
-if _has_dumb_terminal; then
+if _has_dumb_terminal || ! _update_winsize; then
 	unset -v genfun_endcol
 else
 	# Set some ECMA-48 CSI sequences (CUU and CUF) for cursor positioning.
