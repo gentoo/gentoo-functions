@@ -339,7 +339,7 @@ export TEST_GENFUNCS=1
 export TZ=UTC
 
 rc=0
-test_is_older_than || rc=1
+( ewarn() { true; }; test_is_older_than ) || rc=1
 test_get_bootparam || rc=1
 test_esyslog || rc=1
 test_is_identifier || rc=1
