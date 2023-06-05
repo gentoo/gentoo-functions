@@ -470,6 +470,8 @@ _has_monochrome_terminal() {
 		true
 	elif colors=$(tput colors 2>/dev/null) && is_int "${colors}"; then
 		test "${colors}" -eq -1
+	else
+		false
 	fi
 }
 
