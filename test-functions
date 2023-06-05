@@ -160,6 +160,61 @@ test_esyslog() {
 	iterate_tests 5 "$@"
 }
 
+test_is_identifier() {
+	set -- \
+		1   ''   \
+		1    _   \
+		1    0   \
+		1   0a   \
+		1   0Z   \
+		1    9   \
+		1   9a   \
+		1   9Z   \
+		1   /a   \
+		1   /Z   \
+		1   .a   \
+		1   .Z   \
+		1   [a   \
+		1   [Z   \
+		1  '`a'  \
+		1  '`Z'  \
+		1   {a   \
+		1   {Z   \
+		1  '|a'  \
+		1  '|Z'  \
+		1   a/   \
+		1   Z/   \
+		1   a.   \
+		1   Z.   \
+		1   a[   \
+		1   Z[   \
+		1  'a`'  \
+		1  'Z`'  \
+		1   a{   \
+		1   Z{   \
+		1  'a|'  \
+		1  'Z|'  \
+		0    a   \
+		0    Z   \
+		0   __   \
+		0   _a   \
+		0   _Z   \
+		0   a_   \
+		0   Z_   \
+		0  a_a   \
+		0  a_Z   \
+		0  Z_a   \
+		0  Z_Z
+
+		callback() {
+			shift
+			test_description="is_identifier $(print_args "$@")"
+			is_identifier "$@"
+		}
+
+		iterate_tests 2 "$@"
+}
+
 test_is_int() {
 	set -- \
 		1  N/A \
@@ -287,6 +342,7 @@ rc=0
 test_is_older_than || rc=1
 test_get_bootparam || rc=1
 test_esyslog || rc=1
+test_is_identifier || rc=1
 test_is_int || rc=1
 test_yesno || rc=1
 cleanup_tmpdir
