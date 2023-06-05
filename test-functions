@@ -240,6 +240,26 @@ test_is_int() {
 		iterate_tests 2 "$@"
 }
 
+test_is_visible() {
+	set -- \
+		1  '' \
+		1  ' ' \
+		1  "$(printf '\t')" \
+		1  "$(printf '\a')" \
+		0  . \
+		0  ' . ' \
+		0  "$(printf '\t.\t')" \
+		0  "$(printf '\a.\a')"
+
+		callback() {
+			shift
+			test_description="_is_visible $(print_args "$@")"
+			_is_visible "$@"
+		}
+
+		iterate_tests 2 "$@"
+}
+
 test_yesno() {
 	set -- \
 		0  yes \
@@ -344,6 +364,7 @@ test_get_bootparam || rc=1
 test_esyslog || rc=1
 test_is_identifier || rc=1
 test_is_int || rc=1
+test_is_visible || rc=1
 test_yesno || rc=1
 cleanup_tmpdir
 exit "${rc}"
