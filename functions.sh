@@ -9,6 +9,11 @@
 # intended for internal use shall be prefixed with "genfun_" to indicate so,
 # and to reduce the probability of name space conflicts.
 
+# FIXME. There is just one invocation of ./ecma48-cpr, which can be found in
+# the _update_cursor_coords function. If you think it should be named sometime
+# else, I'm open to suggestions. Its behaviour now resembles that of stty size,
+# except that it reports the cursor coordinates (obviously).
+
 #
 #    Called by ebegin, eerrorn, einfon, and ewarnn.
 #
@@ -17,17 +22,72 @@ _eprint() {
 	color=$1
 	shift
 
-	msg=$*
-	if [ -t 1 ]; then
-		printf ' %s*%s %s%s' "${color}" "${NORMAL}" "${genfun_indent}" "${msg}"
-	else
-		printf ' * %s%s' "${genfun_indent}" "${msg}"
+	# Check whether STDOUT is a terminal, and how capable it is.
+	_update_tty_level <&1
+
+	if [ "${genfun_tty}" -eq 2 ]; then
+		# If the cursor is not situated on column 1, print a LF
+		# character. The assumption here is that the last call may have
+		# been via ebegin, or any of the other printing functions that
+		# pass a message without a trailing LF.
+		if [ "${genfun_x}" -ne 1 ]; then
+			printf '\n'
+		fi
+	elif [ "${genfun_is_pending_lf}" -eq 1 ]; then
+		# We are about to print to a dumb terminal or something other
+		# than a terminal. Print a LF character because the last printed
+		# message did not end with one. This technique is not ideal.
+		# For one thing, it can be thwarted by having called a printing
+		# function from a subshell or a shell launched by a subprocess,
+		# because the change to the flag variable would be lost. For
+		# another, it's possible for the user of the library to be
+		# directing STDOUT/STDERR to different places between calls.
+		# Such weaknesses cannot be addressed without some form of IPC.
+		printf '\n'
 	fi
 
-	if _ends_with_newline "${msg}"; then
-		genfun_is_pending_lf=0
+	msg=$*
+	if [ "${genfun_tty}" -lt 2 ]; then
+		if [ "${genfun_tty}" -eq 1 ]; then
+			# Print but do not attempt to save the cursor position.
+			printf ' %s*%s %s%s' "${color}" "${NORMAL}" "${genfun_indent}" "${msg}"
+		else
+			printf ' * %s%s' "${genfun_indent}" "${msg}"
+		fi
+		if _ends_with_newline "${msg}"; then
+			genfun_is_pending_lf=0
+		else
+			# Record the fact that a LF character is pending.
+			genfun_is_pending_lf=1
+		fi
+	elif ! _ends_with_newline "${msg}"; then
+		# Print the message before saving the cursor position with the
+		# DECSC sequence. This is a private mode sequence that is not
+		# defined by ECMA-48. However, it was introduced by DEC for the
+		# VT100 and can be considered as a de-facto standard.
+		printf ' %s*%s %s%s\0337' "${color}" "${NORMAL}" "${genfun_indent}" "${msg}"
 	else
-		genfun_is_pending_lf=1
+		# Print the message without its trailing LF character.
+		msg=${msg%"${genfun_newline}"}
+		printf ' %s*%s %s%s' "${color}" "${NORMAL}" "${genfun_indent}" "${msg}"
+
+		# Determine the current position of the cursor
+		_update_cursor_coords <&1
+
+		if [ "${genfun_y}" -ne "${genfun_rows}" ]; then
+			# Have the terminal save the position of the cursor
+			# with DECSC before printing a LF character to advance
+			# to the next line.
+			printf '\0337\n'
+		else
+			# The cursor is situated on the last row of the
+			# terminal, meaning that vertical scrolling will occur.
+			# Move the cursor up by one row with CUU (ECMA-48 CSI)
+			# before having the terminal save the position of the
+			# cursor with DECSC. Finally, print two LF characters to
+			# advance to the next line.
+			printf '\033[1A\0337\n\n'
+		fi
 	fi
 }
 
@@ -181,7 +241,7 @@ ebegin()
 	if ! yesno "${EINFO_QUIET}"; then
 		msg=$*
 		msg=${msg%"${genfun_newline}"}
-		_eprint "${GOOD}" "${msg} ...${genfun_newline}"
+		_eprint "${GOOD}" "${msg} ..."
 	fi
 }
 
@@ -191,7 +251,7 @@ ebegin()
 #
 _eend()
 {
-	local efunc is_tty msg retval
+	local efunc indent msg offset retval
 
 	efunc=$1
 	shift
@@ -200,28 +260,26 @@ _eend()
 	elif ! is_int "$1" || [ "$1" -lt 0 ]; then
 		ewarn "Invalid argument given to ${GENFUN_CALLER} (the exit status code must be an integer >= 0)"
 		retval=0
-		shift
+		msg=
 	else
 		retval=$1
 		shift
+		msg=$*
 	fi
 
-	if [ -t 1 ]; then
-		is_tty=1
-	else
-		is_tty=0
-	fi
+	# Stash the last known terminal dimensions, if any.
+	set -- "${genfun_cols}" "${genfun_rows}"
+
+	# Check whether STDOUT is a terminal, and how capable it is.
+	_update_tty_level <&1
 
 	if [ "${retval}" -ne 0 ]; then
 		# If a message was given, print it with the specified function.
-		if [ "$#" -gt 0 ]; then
-			msg=$*
-			if _is_visible "${msg}"; then
-				"${efunc}" "${msg}"
-			fi
+		if _is_visible "${msg}"; then
+			"${efunc}" "${msg}"
 		fi
 		# Generate an indicator for ebegin's unsuccessful conclusion.
-		if [ "${is_tty}" -eq 0 ]; then
+		if [ "${genfun_tty}" -eq 0 ]; then
 			msg="[ !! ]"
 		else
 			msg="${BRACKET}[ ${BAD}!!${BRACKET} ]${NORMAL}"
@@ -230,27 +288,64 @@ _eend()
 		return "${retval}"
 	else
 		# Generate an indicator for ebegin's successful conclusion.
-		if [ "${is_tty}" -eq 0 ]; then
+		if [ "${genfun_tty}" -eq 0 ]; then
 			msg="[ ok ]"
 		else
 			msg="${BRACKET}[ ${GOOD}ok${BRACKET} ]${NORMAL}"
 		fi
 	fi
 
-	if [ "${is_tty}" -eq 1 ] && [ -n "${genfun_endcol}" ]; then
-		# Should a LF character be pending then print one. The CUU
-		# (ECMA-48 CSI) sequence will move the cursor up by one line
-		# prior to printing the indicator, right-justified.
-		if [ "${genfun_is_pending_lf}" -eq 1 ]; then
-			printf '\n'
-		fi
-		printf '%b %s\n' "${genfun_endcol}" "${msg}"
+	if [ "${genfun_tty}" -lt 2 ]; then
+		printf ' %s\n' "${msg}"
+		genfun_is_pending_lf=0
 	else
+		# Provided that the terminal has not since been resized, it may
+		# be possible to write the indicator on the same row as the
+		# last printed message, even if it were LF-terminated.
+		if [ "${genfun_cols}" -eq "$1" ] && [ "${genfun_rows}" -eq "$2" ]; then
+			# Stash the current position of the cursor.
+			set -- "${genfun_x}" "${genfun_y}"
+
+			# Using the DECRC sequence, restore the cursor position
+			# to wherever it was just after the last message was
+			# printed, but before the trailing LF character, if any.
+			# This is a private mode sequence, and thus not defined
+			# by ECMA-48. However, it was introduced by DEC for the
+			# VT100 and can be considered as a de-facto standard.
+			printf '\0338'
+
+			# Determine the position of the cursor again.
+			_update_cursor_coords <&1
+
+			# Check whether the act of restoring the cursor position
+			# moved it to a different row, excepting the immediately
+			# preceding row. If it did, assume that scrolling has
+			# occurred since printing the last message and move the
+			# cursor back to where it was with CUP (ECMA-48 CSI).
+			offset=$(( $2 - genfun_y ))
+			if [ "${offset}" -lt 0 ] || [ "${offset}" -gt 1 ]; then
+				printf '\033[%d;%dH' "$1" "$2"
+				genfun_x=$1
+			fi
+		fi
+
+		# Calculate the column at which the indicator may be printed.
+		indent=$(( genfun_cols - genfun_x - 6 ))
+
+		# Determine whether the cursor needs to be repositioned.
+		if [ "${indent}" -gt 0 ]; then
+			# Use CHA (ECMA-48 CSI) to move the cursor to the right.
+			printf '\033[%dG' "$(( genfun_x + indent ))"
+		elif [ "${indent}" -lt 0 ]; then
+			# The indent is negative, meaning that there is not
+			# enough room. Arrange for the indicator to be printed
+			# on the next line instead.
+			printf '\n\033[%dG' "$(( genfun_cols - 6 ))"
+		fi
+
+		# Finally, print the indicator.
 		printf ' %s\n' "${msg}"
 	fi
-
-	# Record the fact that a LF character is no longer pending.
-	genfun_is_pending_lf=0
 
 	return "${retval}"
 }
@@ -479,6 +574,27 @@ _ends_with_newline() {
 	! case $1 in *"${genfun_newline}") false ;; esac
 }
 
+_update_tty_level() {
+	# Grade the capability of the terminal attached to STDIN (if any) on a
+	# scale of 0 to 2, assigning the resulting value to genfun_tty. If no
+	# terminal is detected, the value shall be 0. If a dumb terminal is
+	# detected, the value shall be 1. If a smart terminal is detected, the
+	# value shall be 2.
+	#
+	# In the case that a smart terminal is detected, its dimensions shall
+	# be assigned to genfun_cols and genfun_rows, and the position of the
+	# cursor shall be assigned to genfun_x and genfun_y. Further, it may
+	# reasonably be assumed that the ECMA-48 CSI and DECSC/DECRC escape
+	# sequences are supported.
+	if [ ! -t 0 ]; then
+		genfun_tty=0
+	elif _has_dumb_terminal || ! _update_winsize || ! _update_cursor_coords; then
+		genfun_tty=1
+	else
+		genfun_tty=2
+	fi
+}
+
 _update_winsize() {
 	# The following use of stty(1) is portable as of POSIX Issue 8. It would
 	# be beneficial to leverage the checkwinsize option in bash but the
@@ -486,12 +602,25 @@ _update_winsize() {
 	# it may eventually become possible to support it.
 	# shellcheck disable=2046
 	set -- $(stty size 2>/dev/null)
-	if is_int "$1" && is_int "$2" && [ "$1" -gt 0 ] && [ "$2" -gt 0 ]; then
+	if [ "$#" -eq 2 ] && is_int "$1" && is_int "$2"; then
 		genfun_rows=$1
 		genfun_cols=$2
 	else
 		genfun_rows=
 		genfun_cols=
+		false
+	fi
+}
+
+_update_cursor_coords() {
+	# shellcheck disable=2046
+	set -- $(./ecma48-cpr)
+	if [ "$#" -eq 2 ] && is_int "$1" && is_int "$2"; then
+		genfun_y=$1
+		genfun_x=$2
+	else
+		genfun_y=
+		genfun_x=
 		false
 	fi
 }
@@ -530,20 +659,12 @@ else
 	done
 fi
 
-if _has_dumb_terminal || ! _update_winsize; then
-	unset -v genfun_endcol
-else
-	# Set some ECMA-48 CSI sequences (CUU and CUF) for cursor positioning.
-	# These are standard and, conveniently, documented by console_codes(4).
-	genfun_endcol="\\033[A\\033[$(( genfun_cols - 7 ))C"
-fi
-
 if _has_monochrome_terminal || yesno "${RC_NOCOLOR}"; then
 	unset -v BAD BRACKET GOOD HILITE NORMAL WARN
 else
 	# Define some ECMA-48 SGR sequences for color support. These variables
 	# are public, in so far as users of the library may be expanding them.
-	# The sequences are also documented by console_codes(4).
+	# Conveniently, these sequences are documented by console_codes(4).
 	BAD=$(printf '\033[31;01m')
 	BRACKET=$(printf '\033[34;01m')
 	GOOD=$(printf '\033[32;01m')
