@@ -535,6 +535,24 @@ is_int() {
 }
 
 #
+#   A safe wrapper for the cd builtin. To run cd "$dir" is problematic because:
+#
+#   1) it may consider its operand as an option
+#   2) it will search CDPATH for an operand not beginning with ./, ../ or /
+#   3) it will switch to OLDPWD if the operand is -
+#   4) cdable_vars causes bash to treat the operand as a potential variable name
+#
+chdir() {
+	if [ "$BASH" ]; then
+		shopt -u cdable_vars
+	fi
+	if [ "$1" = - ]; then
+		set -- ./-
+	fi
+	CDPATH= cd -- "$@"
+}
+
+#
 #   Determine whether the first operand contains any visible characters.
 #
 _is_visible() {

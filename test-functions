@@ -14,7 +14,7 @@ bailout() {
 assign_tmpdir() {
 	# shellcheck disable=1007
 	dir=$(mktemp -d) \
-	&& CDPATH= cd -- "${dir}" \
+	&& chdir "${dir}" \
 	|| bailout "Couldn't create or change to the temp dir"
 }
 
@@ -22,6 +22,49 @@ cleanup_tmpdir() {
 	if [ -n "${dir}" ]; then
 		rm -rf -- "${dir}"
 	fi
+}
+
+test_chdir() {
+	set -- \
+		1  grandchild  \
+		1         var  \
+		0          -L  \
+		0          -p  \
+		0          -e  \
+		0          -@  \
+		0           -  \
+		0       child
+
+	if ! mkdir -p -- -L -p -e -@ - child child/grandchild; then
+		bailout "Couldn't set up all test directories"
+	fi
+
+	callback() {
+		shift
+		test_description="chdir $(print_args "$@")"
+		if [ "$BASH" ]; then
+			shopt -s cdable_vars
+		fi
+		CDPATH=child var=$CDPATH chdir "$@" \
+		&& test "$PWD" != "$OLDPWD" \
+		&& cd - >/dev/null
+	}
+
+	iterate_tests 2 "$@"
+}
+
+test_chdir_noop() {
+	set -- 0 ''
+
+	callback() {
+		shift
+		test_description="chdir $(print_args "$@")"
+		chdir "$@" \
+		&& test "$PWD" = "$OLDPWD" \
+		|| { cd - >/dev/null; false; }
+	}
+
+	iterate_tests 2 "$@"
 }
 
 test_is_older_than() {
@@ -317,12 +360,24 @@ iterate_tests() {
 			fi
 		done
 		eval "${code}"
-		if [ "$?" -eq "$1" ]; then
+		case $? in
+			0)
+				test "$?" -eq "$1"
+				;;
+			*)
+				test "$?" -ge "$1"
+		esac
+		if [ "$?" -eq 0 ]; then
 			passed=$((passed + 1))
 		else
 			printf 'not '
 		fi
-		printf 'ok %d - %s (expecting %d)\n' "${i}" "${test_description}" "$1"
+		if [ "$1" -eq 0 ]; then
+			expected=$1
+		else
+			expected=">=$1"
+		fi
+		printf 'ok %d - %s (expecting %s)\n' "${i}" "${test_description}" "${expected}"
 		shift "${slice_width}"
 	done
 	return "$(( passed < total ))"
@@ -359,6 +414,8 @@ export TEST_GENFUNCS=1
 export TZ=UTC
 
 rc=0
+test_chdir || rc=1
+test_chdir_noop || rc=1
 ( ewarn() { true; }; test_is_older_than ) || rc=1
 test_get_bootparam || rc=1
 test_esyslog || rc=1
