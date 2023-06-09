@@ -698,5 +698,3 @@ else
 	NORMAL=$(printf '\033[0m')
 	WARN=$(printf '\033[33;01m')
 fi
-
-# vim:ts=4
