@@ -43,6 +43,6 @@ do_tests = get_option('tests')
 if do_tests
   test(
     'test-functions', files('test-functions'),
-    workdir : meson.current_source_dir(),
+    workdir : meson.current_build_dir(),
   )
 endif
