@@ -303,6 +303,27 @@ test_is_visible() {
 		iterate_tests 2 "$@"
 }
 
+test_update_cursor_coords() {
+	if _has_dumb_terminal; then
+		printf '1..0 # TERM defines the terminal as being dumb\n'
+	elif ! ctty=$(ps -p "$$" -otty= 2>/dev/null) || [ -z "${ctty}" ]; then
+		printf '1..0 # the ps(1) implementation is defective or non-compliant\n'
+	elif [ "${ctty}" = "?" ]; then
+		printf '1..0 # no controlling terminal is available\n'
+	elif [ ! -e /dev/tty ]; then
+		printf '1..0 # the /dev/tty character device is missing\n'
+	elif ! _update_winsize </dev/tty; then
+		printf '1..0 # the controlling terminal is not smart\n'
+	elif ! _update_cursor_coords <>/dev/tty; then
+		printf '1..1\n'
+		printf 'not ok 1 - ecm48-cpr failed\n'
+		false
+	else
+		printf '1..1\n'
+		printf 'ok 1 - ecm48-cpr succeeded (x = %d, y = %d)\n' "${genfun_x}" "${genfun_y}"
+	fi
+}
+
 test_yesno() {
 	set -- \
 		0  yes \
@@ -430,6 +451,7 @@ test_esyslog || rc=1
 test_is_identifier || rc=1
 test_is_int || rc=1
 test_is_visible || rc=1
+test_update_cursor_coords || rc=1
 test_yesno || rc=1
 cleanup_tmpdir
 exit "${rc}"
