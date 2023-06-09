@@ -328,6 +328,7 @@ _eend()
 			if [ "${offset}" -lt 0 ] || [ "${offset}" -gt 1 ]; then
 				printf '\033[%d;%dH' "$1" "$2"
 				genfun_x=$1
+				genfun_y=$2
 			fi
 		fi
 
