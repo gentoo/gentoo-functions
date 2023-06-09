@@ -547,11 +547,13 @@ is_int() {
 #
 chdir() {
 	if [ "$BASH" ]; then
+		# shellcheck disable=3044
 		shopt -u cdable_vars
 	fi
 	if [ "$1" = - ]; then
 		set -- ./-
 	fi
+	# shellcheck disable=1007,2164
 	CDPATH= cd -- "$@"
 }
 
@@ -648,7 +650,7 @@ _update_cursor_coords() {
 }
 
 _ecma48_cpr() {
-	@GENTOO_LIBEXEC_DIR@/ecma48-cpr "$@"
+	@GENTOO_LIBEXEC_DIR@/ecma48-cpr
 }
 
 # This is the main script, please add all functions above this point!

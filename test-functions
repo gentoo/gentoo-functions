@@ -1,5 +1,5 @@
 #!/bin/sh
-# shellcheck disable=2015
+# shellcheck disable=2015,2154,2164,2181,2317
 
 # Requires mktemp(1), which is not a standard utility, but is commonly
 # available. The implementations provided by GNU coreutils, busybox and toybox
@@ -43,9 +43,10 @@ test_chdir() {
 		shift
 		test_description="chdir $(print_args "$@")"
 		if [ "$BASH" ]; then
+			# shellcheck disable=3044
 			shopt -s cdable_vars
 		fi
-		CDPATH=child var=$CDPATH chdir "$@" \
+		CDPATH=child var=child chdir "$@" \
 		&& test "$PWD" != "$OLDPWD" \
 		&& cd - >/dev/null
 	}
@@ -221,8 +222,8 @@ test_is_identifier() {
 		1   [Z   \
 		1  '`a'  \
 		1  '`Z'  \
-		1   {a   \
-		1   {Z   \
+		1  '{a'  \
+		1  '{Z'  \
 		1  '|a'  \
 		1  '|Z'  \
 		1   a/   \
@@ -233,8 +234,8 @@ test_is_identifier() {
 		1   Z[   \
 		1  'a`'  \
 		1  'Z`'  \
-		1   a{   \
-		1   Z{   \
+		1  'a{'  \
+		1  'Z{'  \
 		1  'a|'  \
 		1  'Z|'  \
 		0    a   \
@@ -351,6 +352,7 @@ test_yesno() {
 		1  '_"; set -- yes # code injection' \
 		0  truthful_nameref
 
+		# shellcheck disable=2034
 		truthful_nameref=yes
 
 		callback() {
@@ -433,8 +435,8 @@ fi
 # ecma48-cpr utility will not yet have been installed. Account for that by
 # redeclaring its shim function.
 if [ "${EBUILD_PHASE}" = test ]; then
-	export BUILD_DIR=${PWD}
-	_ecma48_cpr() { "${BUILD_DIR}"/ecma48-cpr "$@"; }
+	export BUILD_DIR="${PWD}"
+	_ecma48_cpr() { "${BUILD_DIR}"/ecma48-cpr; }
 fi
 
 assign_tmpdir
