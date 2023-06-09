@@ -408,6 +408,14 @@ if ! . ./functions.sh; then
 	bailout "Couldn't source ./functions.sh"
 fi
 
+# Since the test suite is normally executed during the src_test phase, the
+# ecma48-cpr utility will not yet have been installed. Account for that by
+# redeclaring its shim function.
+if [ "${EBUILD_PHASE}" = test ]; then
+	export BUILD_DIR=${PWD}
+	_ecma48_cpr() { "${BUILD_DIR}"/ecma48-cpr "$@"; }
+fi
+
 assign_tmpdir
 
 export TEST_GENFUNCS=1

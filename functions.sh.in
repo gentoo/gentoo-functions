@@ -627,7 +627,7 @@ _update_winsize() {
 
 _update_cursor_coords() {
 	# shellcheck disable=2046
-	set -- $(@GENTOO_LIBEXEC_DIR@/ecma48-cpr)
+	set -- $(_ecma48_cpr)
 	if [ "$#" -eq 2 ] && is_int "$1" && is_int "$2"; then
 		genfun_y=$1
 		genfun_x=$2
@@ -636,6 +636,10 @@ _update_cursor_coords() {
 		genfun_x=
 		false
 	fi
+}
+
+_ecma48_cpr() {
+	@GENTOO_LIBEXEC_DIR@/ecma48-cpr "$@"
 }
 
 # This is the main script, please add all functions above this point!
