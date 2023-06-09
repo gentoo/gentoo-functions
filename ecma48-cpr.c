@@ -95,6 +95,8 @@ main(void) {
 	 */
 	if (tcsetattr(STDIN_FILENO, TCSANOW, &new_tty) != 0) {
 		die("failed to modify the terminal settings");
+	} else if (tcflush(STDIN_FILENO, TCIFLUSH) != 0) {
+		die("failed to flush the terminal's input queue");
 	} else if (fprintf(tty, "\033[6n") != 4) {
 		die("failed to write the CPR sequence to the terminal");
 	} else if (fclose(tty) != 0) {
