@@ -9,11 +9,6 @@
 # intended for internal use shall be prefixed with "genfun_" to indicate so,
 # and to reduce the probability of name space conflicts.
 
-# FIXME. There is just one invocation of ./ecma48-cpr, which can be found in
-# the _update_cursor_coords function. If you think it should be named sometime
-# else, I'm open to suggestions. Its behaviour now resembles that of stty size,
-# except that it reports the cursor coordinates (obviously).
-
 #
 #    Called by ebegin, eerrorn, einfon, and ewarnn.
 #
@@ -632,7 +627,7 @@ _update_winsize() {
 
 _update_cursor_coords() {
 	# shellcheck disable=2046
-	set -- $(./ecma48-cpr)
+	set -- $(@GENTOO_LIBEXEC_DIR@/ecma48-cpr)
 	if [ "$#" -eq 2 ] && is_int "$1" && is_int "$2"; then
 		genfun_y=$1
 		genfun_x=$2
