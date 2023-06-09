@@ -62,8 +62,13 @@ _eprint() {
 		# VT100 and can be considered as a de-facto standard.
 		printf ' %s*%s %s%s\0337' "${color}" "${NORMAL}" "${genfun_indent}" "${msg}"
 	else
-		# Print the message without its trailing LF character.
-		msg=${msg%"${genfun_newline}"}
+		# Strip all trailing LF characters before printing the message.
+		while true; do
+			msg=${msg%"${genfun_newline}"}
+			if ! _ends_with_newline "${msg}"; then
+				break
+			fi
+		done
 		printf ' %s*%s %s%s' "${color}" "${NORMAL}" "${genfun_indent}" "${msg}"
 
 		# Determine the current position of the cursor
@@ -235,7 +240,9 @@ ebegin()
 
 	if ! yesno "${EINFO_QUIET}"; then
 		msg=$*
-		msg=${msg%"${genfun_newline}"}
+		while _ends_with_newline "${msg}"; do
+			msg=${msg%"${genfun_newline}"}
+		done
 		_eprint "${GOOD}" "${msg} ..."
 	fi
 }
@@ -584,7 +591,8 @@ _has_monochrome_terminal() {
 }
 
 _ends_with_newline() {
-	! case $1 in *"${genfun_newline}") false ;; esac
+	test "${genfun_newline}" \
+	&& ! case $1 in *"${genfun_newline}") false ;; esac
 }
 
 _update_tty_level() {
