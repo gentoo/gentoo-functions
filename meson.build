@@ -10,7 +10,9 @@ project(
 
 conf_data = configuration_data()
 conf_data.set('version', meson.project_version())
-conf_data.set('GENTOO_LIBEXEC_DIR', get_option('prefix') / get_option('libexecdir') / 'gentoo')
+# For now, we can't really use libexec, given everyone hardcodes /lib/gentoo.
+# We might be able to install some symlinks to get around this though?
+conf_data.set('GENTOO_LIBEXEC_DIR', get_option('prefix') / 'lib' / 'gentoo')
 
 configure_file(
   input: 'functions.sh.in',
@@ -36,7 +38,7 @@ executable(
   'ecma48-cpr',
   'ecma48-cpr.c',
   install: true,
-  install_dir: get_option('prefix') / get_option('libexecdir') / 'gentoo'
+  install_dir: get_option('prefix') / 'lib' / 'gentoo'
 )
 
 do_tests = get_option('tests')
