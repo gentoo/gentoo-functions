@@ -46,5 +46,6 @@ if do_tests
   test(
     'test-functions', files('test-functions'),
     workdir : meson.current_build_dir(),
+    protocol : 'tap'
   )
 endif
