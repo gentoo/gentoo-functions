@@ -93,10 +93,8 @@ main(void) {
 	/*
 	 * Try to apply the new terminal settings.
 	 */
-	if (tcsetattr(STDIN_FILENO, TCSANOW, &new_tty) != 0) {
+	if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &new_tty) != 0) {
 		die("failed to modify the terminal settings");
-	} else if (tcflush(STDIN_FILENO, TCIFLUSH) != 0) {
-		die("failed to flush the terminal's input queue");
 	} else if (fprintf(tty, "\033[6n") != 4) {
 		die("failed to write the CPR sequence to the terminal");
 	} else if (fclose(tty) != 0) {
@@ -214,7 +212,7 @@ static void
 cleanup(void) {
 	bool const is_saved = is_tty_saved;
 	if (is_saved) {
-		tcsetattr(STDIN_FILENO, TCSANOW, &save_tty);
+		tcsetattr(STDIN_FILENO, TCSAFLUSH, &save_tty);
 		is_tty_saved = false;
 	}
 }
