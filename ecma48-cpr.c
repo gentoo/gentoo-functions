@@ -90,6 +90,17 @@ main(void) {
 	new_tty.c_cc[VTIME] = 1;
 
 	/*
+	 * Prepare to catch our signals. We treat both an interrupt and a
+	 * depleted timer as essentially the same thing: fatal errors.
+	 */
+	struct sigaction act;
+	act.sa_handler = on_signal;
+	sigemptyset(&act.sa_mask);
+	act.sa_flags = 0;
+	sigaction(SIGALRM, &act, NULL);
+
+
+	/*
 	 * Try to apply the new terminal settings.
 	 */
 	if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &new_tty) != 0) {
@@ -99,16 +110,6 @@ main(void) {
 	} else if (fclose(tty) != 0) {
 		die("failed to flush the stream after writing the CPR sequence");
 	}
-
-	/*
-	 * Prepare to catch our signals. We treat both an interrupt and a
-	 * depleted timer as essentially the same thing: fatal errors.
-	 */
-	struct sigaction act;
-	act.sa_handler = on_signal;
-	sigemptyset(&act.sa_mask);
-	act.sa_flags = 0;
-	sigaction(SIGALRM, &act, NULL);
 
 	/*
 	 * A timeout is required, just in case read(2) proves unable to read an
