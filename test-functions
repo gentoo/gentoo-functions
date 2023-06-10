@@ -68,6 +68,25 @@ test_chdir_noop() {
 	iterate_tests 2 "$@"
 }
 
+test_ebegin() {
+	_eprint() {
+		shift
+		_ends_with_newline "$*"
+		ok=$(( $? == 0 ))
+	}
+
+	ok=0
+	set -- "message"
+	ebegin "$1"
+
+	if [ "${ok}" -eq 0 ]; then
+		printf 'not '
+	fi
+	printf 'ok %d - ebegin %s (expecting terminating newline)\n' "$((testnum + 1))" "$1"
+
+	return "$(( ok ? 0 : 1 ))"
+}
+
 test_is_older_than() {
 	set -- \
 		1  N/A           N/A \
@@ -451,6 +470,7 @@ rc=0
 
 test_chdir || rc=1
 test_chdir_noop || rc=1
+( test_ebegin ) || rc=1; testnum=$((testnum + 1))
 test_is_older_than || rc=1
 test_get_bootparam || rc=1
 test_esyslog || rc=1
