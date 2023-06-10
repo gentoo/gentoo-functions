@@ -305,9 +305,8 @@ test_is_visible() {
 }
 
 test_update_cursor_coords() {
-	printf '%d..%d\n' "${tap_i}" "${tap_i}"
 	skip() {
-		print 'ok %d # SKIP\n' "${tap_i}"
+		printf 'ok %d - _update_cursor_coords # SKIP\n' "$((testnum += 1))"
 	}
 	if _has_dumb_terminal; then
 		skip
@@ -323,10 +322,10 @@ test_update_cursor_coords() {
 		# The terminal isn't smart
 		skip
 	elif ! _update_cursor_coords <>/dev/tty; then
-		printf 'not ok %d - _update_cursor_coords\n' "${tap_i}"
+		printf 'not ok %d - _update_cursor_coords\n' "$((testnum += 1))"
 		false
 	else
-		printf 'ok %d - _update_cursor_coords (x = %d, y = %d)\n' "${tap_i}" "${genfun_x}" "${genfun_y}"
+		printf 'ok %d - _update_cursor_coords (x = %d, y = %d)\n' "$((testnum += 1))" "${genfun_x}" "${genfun_y}"
 	fi
 }
 
@@ -374,7 +373,6 @@ iterate_tests() {
 	shift
 
 	total=$(( $# / slice_width ))
-	printf '%d..%d\n' "${tap_i}" "$((tap_i + total - 1))"
 	passed=0
 	i=0
 	while [ "$((i += 1))" -le "${total}" ]; do
@@ -405,9 +403,8 @@ iterate_tests() {
 		else
 			expected=">=$1"
 		fi
-		printf 'ok %d - %s (expecting %s)\n' "${tap_i}" "${test_description}" "${expected}"
+		printf 'ok %d - %s (expecting %s)\n' "$((testnum += 1))" "${test_description}" "${expected}"
 		shift "${slice_width}"
-		tap_i=$((tap_i + 1))
 	done
 	return "$(( passed < total ))"
 }
@@ -429,7 +426,7 @@ print_args() {
 	printf '%s\n' "$*"
 }
 
-printf 'TAP version 14\n'
+printf 'TAP version 13\n'
 
 unset -v dir
 
@@ -449,9 +446,9 @@ assign_tmpdir
 
 export TEST_GENFUNCS=1
 export TZ=UTC
-tap_i=1
-
+testnum=0
 rc=0
+
 test_chdir || rc=1
 test_chdir_noop || rc=1
 test_is_older_than || rc=1
@@ -462,5 +459,9 @@ test_is_int || rc=1
 test_is_visible || rc=1
 test_update_cursor_coords || rc=1
 test_yesno || rc=1
+
 cleanup_tmpdir
+
+printf '1..%d\n' "${testnum}"
+
 exit "${rc}"
