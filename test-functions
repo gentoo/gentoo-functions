@@ -305,23 +305,28 @@ test_is_visible() {
 }
 
 test_update_cursor_coords() {
+	printf '%d..%d\n' "${tap_i}" "${tap_i}"
+	skip() {
+		print 'ok %d # SKIP\n' "${tap_i}"
+	}
 	if _has_dumb_terminal; then
-		printf '1..0 # TERM defines the terminal as being dumb\n'
+		skip
 	elif ! ctty=$(ps -p "$$" -otty= 2>/dev/null) || [ -z "${ctty}" ]; then
-		printf '1..0 # the ps(1) implementation is defective or non-compliant\n'
+		# The ps(1) implementation is defective or non-compliant
+		skip
 	elif [ "${ctty}" = "?" ]; then
-		printf '1..0 # no controlling terminal is available\n'
+		# No controlling terminal is available
+		skip
 	elif [ ! -e /dev/tty ]; then
-		printf '1..0 # the /dev/tty character device is missing\n'
+		skip
 	elif ! _update_winsize </dev/tty; then
-		printf '1..0 # the controlling terminal is not smart\n'
+		# The terminal isn't smart
+		skip
 	elif ! _update_cursor_coords <>/dev/tty; then
-		printf '1..1\n'
-		printf 'not ok 1 - ecm48-cpr failed\n'
+		printf 'not ok %d - _update_cursor_coords\n' "${tap_i}"
 		false
 	else
-		printf '1..1\n'
-		printf 'ok 1 - ecm48-cpr succeeded (x = %d, y = %d)\n' "${genfun_x}" "${genfun_y}"
+		printf 'ok %d - _update_cursor_coords (x = %d, y = %d)\n' "${tap_i}" "${genfun_x}" "${genfun_y}"
 	fi
 }
 
@@ -369,7 +374,7 @@ iterate_tests() {
 	shift
 
 	total=$(( $# / slice_width ))
-	printf '1..%d\n' "${total}"
+	printf '%d..%d\n' "${tap_i}" "$((tap_i + total - 1))"
 	passed=0
 	i=0
 	while [ "$((i += 1))" -le "${total}" ]; do
@@ -400,8 +405,9 @@ iterate_tests() {
 		else
 			expected=">=$1"
 		fi
-		printf 'ok %d - %s (expecting %s)\n' "${i}" "${test_description}" "${expected}"
+		printf 'ok %d - %s (expecting %s)\n' "${tap_i}" "${test_description}" "${expected}"
 		shift "${slice_width}"
+		tap_i=$((tap_i + 1))
 	done
 	return "$(( passed < total ))"
 }
@@ -443,6 +449,7 @@ assign_tmpdir
 
 export TEST_GENFUNCS=1
 export TZ=UTC
+tap_i=1
 
 rc=0
 test_chdir || rc=1
