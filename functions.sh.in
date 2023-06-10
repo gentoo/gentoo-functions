@@ -270,7 +270,7 @@ _eend()
 	fi
 
 	# Stash the last known terminal dimensions, if any.
-	set -- "${genfun_cols}" "${genfun_rows}"
+	set -- "${genfun_rows}" "${genfun_cols}"
 
 	# Check whether STDOUT is a terminal, and how capable it is.
 	_update_tty_level <&1
@@ -304,9 +304,9 @@ _eend()
 		# Provided that the terminal has not since been resized, it may
 		# be possible to write the indicator on the same row as the
 		# last printed message, even if it were LF-terminated.
-		if [ "${genfun_cols}" -eq "$1" ] && [ "${genfun_rows}" -eq "$2" ]; then
+		if [ "${genfun_rows}" -eq "$1" ] && [ "${genfun_cols}" -eq "$2" ]; then
 			# Stash the current position of the cursor.
-			set -- "${genfun_x}" "${genfun_y}"
+			set -- "${genfun_y}" "${genfun_x}"
 
 			# Using the DECRC sequence, restore the cursor position
 			# to wherever it was just after the last message was
@@ -324,11 +324,11 @@ _eend()
 			# preceding row. If it did, assume that scrolling has
 			# occurred since printing the last message and move the
 			# cursor back to where it was with CUP (ECMA-48 CSI).
-			offset=$(( $2 - genfun_y ))
+			offset=$(( $1 - genfun_y ))
 			if [ "${offset}" -lt 0 ] || [ "${offset}" -gt 1 ]; then
 				printf '\033[%d;%dH' "$1" "$2"
-				genfun_x=$1
-				genfun_y=$2
+				genfun_y=$1
+				genfun_x=$2
 			fi
 		fi
 
