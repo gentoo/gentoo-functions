@@ -243,7 +243,7 @@ ebegin()
 		while _ends_with_newline "${msg}"; do
 			msg=${msg%"${genfun_newline}"}
 		done
-		_eprint "${GOOD}" "${msg} ..."
+		_eprint "${GOOD}" "${msg} ...${genfun_newline}"
 	fi
 }
 
