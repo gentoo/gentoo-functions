@@ -72,7 +72,6 @@ main(void) {
 	 * Duplicate the current terminal settings for modification.
 	 */
 	struct termios new_tty = save_tty;
-	new_tty = save_tty;
 
 	/*
 	 * Turn off ECHO, so that the response from the terminal isn't printed.
