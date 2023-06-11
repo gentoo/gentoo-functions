@@ -626,7 +626,7 @@ _update_winsize() {
 	# it may eventually become possible to support it.
 	# shellcheck disable=2046
 	set -- $(stty size 2>/dev/null)
-	if [ "$#" -eq 2 ] && is_int "$1" && is_int "$2"; then
+	if [ "$#" -eq 2 ] && is_int "$1" && is_int "$2" && [ "$1" -gt 0 ] && [ "$2" -gt 0 ]; then
 		genfun_rows=$1
 		genfun_cols=$2
 	else
