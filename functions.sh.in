@@ -335,15 +335,24 @@ _eend()
 		# Calculate the column at which the indicator may be printed.
 		indent=$(( genfun_cols - genfun_x - 6 ))
 
+		# In Emacs, M-x term opens an "eterm-color" terminal, whose
+		# implementation of the CHA (ECMA-48 CSI) sequence suffers from
+		# an off-by-one error.
+		if [ "${INSIDE_EMACS}" ] && [ "${TERM}" = "eterm-color" ]; then
+			offset=-1
+		else
+			offset=0
+		fi
+
 		# Determine whether the cursor needs to be repositioned.
 		if [ "${indent}" -gt 0 ]; then
 			# Use CHA (ECMA-48 CSI) to move the cursor to the right.
-			printf '\033[%dG' "$(( genfun_x + indent ))"
+			printf '\033[%dG' "$(( genfun_x + indent + offset ))"
 		elif [ "${indent}" -lt 0 ]; then
 			# The indent is negative, meaning that there is not
 			# enough room. Arrange for the indicator to be printed
 			# on the next line instead.
-			printf '\n\033[%dG' "$(( genfun_cols - 6 ))"
+			printf '\n\033[%dG' "$(( genfun_cols - 6 + offset ))"
 		fi
 
 		# Finally, print the indicator.
