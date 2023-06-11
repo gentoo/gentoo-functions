@@ -79,8 +79,7 @@ main(void) {
 	 * thereby ensuring that its input is always immediately available,
 	 * with no processing having been performed.
 	 */
-	new_tty.c_lflag &= ~(ECHO|ECHOE|ECHOK|ECHONL);
-	new_tty.c_lflag &= ~(ICANON);
+	new_tty.c_lflag &= ~(ECHO | ICANON | IXON);
 
 	/*
 	 * Set an interbyte timeout of 1 decisecond. The timer is started only
