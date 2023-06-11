@@ -100,6 +100,13 @@ main(void) {
 
 
 	/*
+	 * Ignore the signals most likely to interrupt the process from hereon.
+	 */
+	signal(SIGINT, SIG_IGN);
+	signal(SIGTERM, SIG_IGN);
+	signal(SIGTSTP, SIG_IGN);
+
+	/*
 	 * Try to apply the new terminal settings.
 	 */
 	if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &new_tty) != 0) {
