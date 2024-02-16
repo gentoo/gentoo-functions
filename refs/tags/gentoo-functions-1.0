@@ -1,0 +1,15 @@
+certificate version 0.1
+pusher Sam James <sam@gentoo.org> 1708119359 +0000
+pushee git+ssh://git.gentoo.org/proj/gentoo-functions.git
+nonce 1708119359-024ef3d98a7edc0991024d8833c9209a85636645
+
+0000000000000000000000000000000000000000 e0a432f3c98b47097ac62a293a9a35ca63278160 refs/tags/gentoo-functions-1.0
+-----BEGIN PGP SIGNATURE-----
+
+iOUEABYKAI0WIQQlpruI3Zt2TGtVQcJzhAn1IN+RkAUCZc/VQF8UgAAAAAAuAChp
+c3N1ZXItZnByQG5vdGF0aW9ucy5vcGVucGdwLmZpZnRoaG9yc2VtYW4ubmV0MjVB
+NkJCODhERDlCNzY0QzZCNTU0MUMyNzM4NDA5RjUyMERGOTE5MA8cc2FtQGdlbnRv
+by5vcmcACgkQc4QJ9SDfkZBMXQD/ZilHikC3JzUcOgZx+IzmmmcQGn+a2yi0do87
+aM+A+PUA+gIg2cMa0SUXkK1cpDeQ9+ynrybdjZgyXqiZ9wc/owQF
+=a3y4
+-----END PGP SIGNATURE-----
