@@ -1,15 +1,15 @@
 certificate version 0.1
-pusher Sam James <sam@gentoo.org> 1686502033 +0100
+pusher Sam James <sam@gentoo.org> 1708119350 +0000
 pushee git+ssh://git.gentoo.org/proj/gentoo-functions.git
-nonce 1686502033-eac2593af4956f3112a2059502c3201e98d36f5f
+nonce 1708119350-8b3698460504f55955ffdf8a01ec52d36b836f9c
 
-c3c6ba532055f01cde10882b67aecda00abd01e1 075761b394201951e2948be8730f8cb8e7fc8122 refs/heads/master
+075761b394201951e2948be8730f8cb8e7fc8122 a72102fe08752fefc8243855285affd93e5ff015 refs/heads/master
 -----BEGIN PGP SIGNATURE-----
 
-iOUEABYKAI0WIQQlpruI3Zt2TGtVQcJzhAn1IN+RkAUCZIX6kV8UgAAAAAAuAChp
+iOUEABYKAI0WIQQlpruI3Zt2TGtVQcJzhAn1IN+RkAUCZc/VNl8UgAAAAAAuAChp
 c3N1ZXItZnByQG5vdGF0aW9ucy5vcGVucGdwLmZpZnRoaG9yc2VtYW4ubmV0MjVB
 NkJCODhERDlCNzY0QzZCNTU0MUMyNzM4NDA5RjUyMERGOTE5MA8cc2FtQGdlbnRv
-by5vcmcACgkQc4QJ9SDfkZD4fgEA3IPs0AMKIikY/5JgVMUquzSlDiTQ3R1QzjbW
-NqznpZAA/iHYGyghRu/+zsYW4oOsZ0CSi+GCRGjl/lh3rtKzN0oP
-=QInn
+by5vcmcACgkQc4QJ9SDfkZDgHQD6A/pS9053H/aBz0N+ArqiQUrrbrox/BeR335p
+f+HVgEsA/3F6pthPs+NDdjdfQvNb6RhHtKxn+co8UxLhZ7NegbMF
+=CXo3
 -----END PGP SIGNATURE-----
