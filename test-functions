@@ -323,31 +323,6 @@ test_is_visible() {
 		iterate_tests 2 "$@"
 }
 
-test_update_cursor_coords() {
-	skip() {
-		printf 'ok %d - _update_cursor_coords # SKIP\n' "$((testnum += 1))"
-	}
-	if _has_dumb_terminal; then
-		skip
-	elif ! ctty=$(ps -p "$$" -otty= 2>/dev/null) || [ -z "${ctty}" ]; then
-		# The ps(1) implementation is defective or non-compliant
-		skip
-	elif [ "${ctty}" = "?" ]; then
-		# No controlling terminal is available
-		skip
-	elif [ ! -e /dev/tty ]; then
-		skip
-	elif ! _update_winsize </dev/tty; then
-		# The terminal isn't smart
-		skip
-	elif ! _update_cursor_coords <>/dev/tty; then
-		printf 'not ok %d - _update_cursor_coords\n' "$((testnum += 1))"
-		false
-	else
-		printf 'ok %d - _update_cursor_coords (x = %d, y = %d)\n' "$((testnum += 1))" "${genfun_x}" "${genfun_y}"
-	fi
-}
-
 test_yesno() {
 	set -- \
 		0  yes \
@@ -453,14 +428,6 @@ if ! . ./functions.sh; then
 	bailout "Couldn't source ./functions.sh"
 fi
 
-# Since the test suite is normally executed during the src_test phase, the
-# ecma48-cpr utility will not yet have been installed. Account for that by
-# redeclaring its shim function.
-if [ "${EBUILD_PHASE}" = test ]; then
-	export BUILD_DIR="${PWD}"
-	_ecma48_cpr() { "${BUILD_DIR}"/ecma48-cpr; }
-fi
-
 assign_tmpdir
 
 export TEST_GENFUNCS=1
@@ -477,7 +444,6 @@ test_esyslog || rc=1
 test_is_identifier || rc=1
 test_is_int || rc=1
 test_is_visible || rc=1
-test_update_cursor_coords || rc=1
 test_yesno || rc=1
 
 cleanup_tmpdir
