@@ -12,7 +12,8 @@
 #
 #    Called by ebegin, eerrorn, einfon, and ewarnn.
 #
-_eprint() {
+_eprint()
+{
 	local color msg
 	color=$1
 	shift
@@ -532,7 +533,8 @@ is_older_than()
 #   permitted because the string might later be considered to be octal in an
 #   arithmetic context, causing the shell to exit if the number be invalid.
 #
-is_int() {
+is_int()
+{
 	set -- "${1#-}"
 	case $1 in
 		''|*[!0123456789]*)
@@ -554,7 +556,8 @@ is_int() {
 #   3) it will switch to OLDPWD if the operand is -
 #   4) cdable_vars causes bash to treat the operand as a potential variable name
 #
-chdir() {
+chdir()
+{
 	if [ "$BASH" ]; then
 		# shellcheck disable=3044
 		shopt -u cdable_vars
@@ -569,7 +572,8 @@ chdir() {
 #
 #   Determine whether the first operand contains any visible characters.
 #
-_is_visible() {
+_is_visible()
+{
 	! case $1 in *[[:graph:]]*) false ;; esac
 }
 
@@ -584,11 +588,13 @@ is_identifier()
 	esac
 )
 
-_has_dumb_terminal() {
+_has_dumb_terminal()
+{
 	! case ${TERM} in *dumb*) false ;; esac
 }
 
-_has_monochrome_terminal() {
+_has_monochrome_terminal()
+{
 	local colors
 
 	# The tput(1) invocation is not portable, though ncurses suffices. In
@@ -602,12 +608,14 @@ _has_monochrome_terminal() {
 	fi
 }
 
-_ends_with_newline() {
+_ends_with_newline()
+{
 	test "${genfun_newline}" \
 	&& ! case $1 in *"${genfun_newline}") false ;; esac
 }
 
-_update_tty_level() {
+_update_tty_level()
+{
 	# Grade the capability of the terminal attached to STDIN (if any) on a
 	# scale of 0 to 2, assigning the resulting value to genfun_tty. If no
 	# terminal is detected, the value shall be 0. If a dumb terminal is
@@ -628,7 +636,8 @@ _update_tty_level() {
 	fi
 }
 
-_update_winsize() {
+_update_winsize()
+{
 	# The following use of stty(1) is portable as of POSIX Issue 8. It would
 	# be beneficial to leverage the checkwinsize option in bash but the
 	# implementation is buggy. Given that Chet has agreed to investigate,
@@ -645,7 +654,8 @@ _update_winsize() {
 	fi
 }
 
-_update_cursor_coords() {
+_update_cursor_coords()
+{
 	# shellcheck disable=2046
 	set -- $(_ecma48_cpr)
 	if [ "$#" -eq 2 ] && is_int "$1" && is_int "$2"; then
@@ -658,7 +668,8 @@ _update_cursor_coords() {
 	fi
 }
 
-_ecma48_cpr() {
+_ecma48_cpr()
+{
 	@GENTOO_LIBEXEC_DIR@/ecma48-cpr
 }
 
