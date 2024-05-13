@@ -638,12 +638,17 @@ _update_tty_level()
 
 _update_winsize()
 {
+	local ifs
+
 	# The following use of stty(1) is portable as of POSIX Issue 8. It would
 	# be beneficial to leverage the checkwinsize option in bash but the
 	# implementation is buggy. Given that Chet has agreed to investigate,
 	# it may eventually become possible to support it.
+	ifs=$IFS
+	IFS=' '
 	# shellcheck disable=2046
 	set -- $(stty size 2>/dev/null)
+	IFS=$ifs
 	if [ "$#" -eq 2 ] && is_int "$1" && is_int "$2" && [ "$1" -gt 0 ] && [ "$2" -gt 0 ]; then
 		genfun_rows=$1
 		genfun_cols=$2
