@@ -92,10 +92,11 @@ main(void) {
 	 * Prepare to catch our signals. We treat both an interrupt and a
 	 * depleted timer as essentially the same thing: fatal errors.
 	 */
-	struct sigaction act;
-	act.sa_handler = on_signal;
+	struct sigaction act = {
+		.sa_handler = on_signal,
+		.sa_flags = 0
+	};
 	sigemptyset(&act.sa_mask);
-	act.sa_flags = 0;
 	sigaction(SIGALRM, &act, NULL);
 
 
@@ -190,19 +191,21 @@ main(void) {
 #ifndef __APPLE__
 static timer_t
 init_timer(void) {
-	struct itimerspec timer;
-	struct sigevent event;
 	timer_t timerid;
-	event.sigev_notify = SIGEV_SIGNAL;
-	event.sigev_signo = SIGALRM;
-	event.sigev_value.sival_ptr = &timerid;
+	struct sigevent event = {
+		.sigev_value.sival_ptr = &timerid,
+		.sigev_notify = SIGEV_SIGNAL,
+		.sigev_signo = SIGALRM
+	};
 	if (timer_create(CLOCK_REALTIME, &event, &timerid) == -1) {
 		die("failed to create a per-process timer");
 	} else {
-		timer.it_value.tv_sec = 0;
-		timer.it_value.tv_nsec = READ_TIMEOUT_NS;
-		timer.it_interval.tv_sec = 0;
-		timer.it_interval.tv_nsec = 0;
+		struct itimerspec timer = {
+			.it_value.tv_nsec = READ_TIMEOUT_NS,
+			.it_interval.tv_nsec = 0,
+			.it_interval.tv_sec = 0,
+			.it_value.tv_sec = 0
+		};
 		if (timer_settime(timerid, 0, &timer, NULL) == -1) {
 			die("failed to configure the per-process timer");
 		}
