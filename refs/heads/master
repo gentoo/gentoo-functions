@@ -1,15 +1,15 @@
 certificate version 0.1
-pusher Sam James <sam@gentoo.org> 1715645575 +0100
+pusher Sam James <sam@gentoo.org> 1715645736 +0100
 pushee git+ssh://git.gentoo.org/proj/gentoo-functions.git
-nonce 1715645575-abdcfaa010228b2d9e1f5105b738e38b25b9b03a
+nonce 1715645736-c6d0da096d2ebd69f59e26d1c16a8bb11b3c37a5
 
-6f8204800db6d66cc006cea972c6936c6675d8cc f1dd9a109f67ff77ce8a312cb737ab68a3f3a3fb refs/heads/master
+f1dd9a109f67ff77ce8a312cb737ab68a3f3a3fb 12d78db029707bc459f8ddded827dc46078fb8ad refs/heads/master
 -----BEGIN PGP SIGNATURE-----
 
-iOUEABYKAI0WIQQlpruI3Zt2TGtVQcJzhAn1IN+RkAUCZkKsh18UgAAAAAAuAChp
+iOUEABYKAI0WIQQlpruI3Zt2TGtVQcJzhAn1IN+RkAUCZkKtKV8UgAAAAAAuAChp
 c3N1ZXItZnByQG5vdGF0aW9ucy5vcGVucGdwLmZpZnRoaG9yc2VtYW4ubmV0MjVB
 NkJCODhERDlCNzY0QzZCNTU0MUMyNzM4NDA5RjUyMERGOTE5MA8cc2FtQGdlbnRv
-by5vcmcACgkQc4QJ9SDfkZDXlQEAhM+6unrpLhB//ctJ3jaKf0nX/3mu2dEPGgrX
-LuBLqbcBAMImujRyH67KrOPqTIYS7Hq92K+ekdg13S4TaKozyKEO
-=8zHE
+by5vcmcACgkQc4QJ9SDfkZCzgQEAuT10ZW2Flql5xFX2AbwcDO3TAJTm4/xKeIfK
+fiig1C4A/R7T8uevfPhTogXyWBCdJsgd9m11fjPrpwM7GQTbDmUK
+=AVnX
 -----END PGP SIGNATURE-----
