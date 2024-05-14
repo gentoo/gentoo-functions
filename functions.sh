@@ -227,10 +227,10 @@ _eend()
 	fi
 
 	if [ "${genfun_tty}" -eq 2 ]; then
-		# Move the cursor up by one line with CUU before positioning it
-		# horizontally with CHA. Both are formal ECMA-48 CSI sequences.
-		# Print the indicator afterwards.
-		printf '\033[1A\033[%dG %s\n' "$(( genfun_cols - 6 + genfun_offset ))" "${msg}"
+		# Save the cursor position with DECSC, move it up by one line
+		# with CUU, position it horizontally with CHA, print the
+		# indicator, then restore the cursor position with DECRC.
+		printf '\0337\033[1A\033[%dG %s\0338' "$(( genfun_cols - 6 + genfun_offset ))" "${msg}"
 	else
 		# The standard output does not refer to a sufficiently capable
 		# terminal. Print only the indicator.
