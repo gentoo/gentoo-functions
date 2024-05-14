@@ -14,6 +14,7 @@ conf_data.set('version', meson.project_version())
 # We might be able to install some symlinks to get around this though?
 conf_data.set('GENTOO_LIBEXEC_DIR', get_option('prefix') / 'lib' / 'gentoo')
 
+# TODO: Cleanup now that functions.sh no longer uses ecma48-cpr
 configure_file(
   input: 'functions.sh.in',
   output: 'functions.sh',
