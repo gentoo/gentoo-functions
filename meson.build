@@ -1,6 +1,6 @@
 project(
   'gentoo-functions', 'c',
-  version: '1.0',
+  version: '1.1',
   license: 'GPL-2.0-only',
   default_options : [
     'warning_level=2',
