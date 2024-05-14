@@ -25,13 +25,6 @@ install_man(
   'consoletype.1',
 )
 
-executable(
-  'ecma48-cpr',
-  'ecma48-cpr.c',
-  install: true,
-  install_dir: get_option('prefix') / 'lib' / 'gentoo'
-)
-
 do_tests = get_option('tests')
 if do_tests
   test(
