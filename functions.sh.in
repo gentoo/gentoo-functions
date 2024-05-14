@@ -499,7 +499,7 @@ _update_tty_level()
 	# terminal is detected, the value shall be 0. If a dumb terminal is
 	# detected, the value shall be 1. If a smart terminal is detected, the
 	# value shall be 2. For a terminal to be considered as smart, it must be
-	# able to successfuly reports its dimensions.
+	# able to successfully report its dimensions.
 	if [ ! -t 0 ]; then
 		genfun_tty=0
 	elif _has_dumb_terminal || ! _update_columns; then
