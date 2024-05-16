@@ -68,6 +68,28 @@ test_chdir_noop() {
 	iterate_tests 2 "$@"
 }
 
+test_die() {
+	set -- \
+		1     0 \
+		2     2 \
+		126 126 \
+		255 255
+
+	callback() {
+		test_description="( exit "$2" ); die"
+		( exit "$2" )
+		stderr=$(die "$2" 2>&1)
+		retval=$?
+		if [ "${stderr}" = "test-functions: $2" ]; then
+			return "${retval}"
+		else
+			return 1
+		fi
+	}
+
+	iterate_tests 2 "$@"
+}
+
 test_ebegin() {
 	_eprint() {
 		shift
@@ -380,24 +402,12 @@ iterate_tests() {
 			fi
 		done
 		eval "${code}"
-		case $? in
-			0)
-				test "$?" -eq "$1"
-				;;
-			*)
-				test "$?" -ge "$1"
-		esac
-		if [ "$?" -eq 0 ]; then
+		if [ "$?" -eq "$1" ]; then
 			passed=$((passed + 1))
 		else
 			printf 'not '
 		fi
-		if [ "$1" -eq 0 ]; then
-			expected=$1
-		else
-			expected=">=$1"
-		fi
-		printf 'ok %d - %s (expecting %s)\n' "$((testnum += 1))" "${test_description}" "${expected}"
+		printf 'ok %d - %s (expecting %s)\n' "$((testnum += 1))" "${test_description}" "$1"
 		shift "${slice_width}"
 	done
 	return "$(( passed < total ))"
@@ -445,6 +455,7 @@ test_is_identifier || rc=1
 test_is_int || rc=1
 test_is_visible || rc=1
 test_yesno || rc=1
+test_die || rc=1
 
 cleanup_tmpdir
 

@@ -31,6 +31,26 @@ chdir()
 }
 
 #
+# Prints a diagnostic message prefixed with the basename of the running script
+# before exiting. It shall preserve the value of $? as it was at the time of
+# invocation unless its value was 0, in which case the exit status shall be 1.
+#
+if ! command -v die >/dev/null; then
+	die()
+	{
+		case $? in
+			0)
+				genfun_status=1
+				;;
+			*)
+				genfun_status=$?
+		esac
+		printf '%s: %s\n' "${0##*/}" "$*" >&2
+		exit "${genfun_status}"
+	}
+fi
+
+#
 # Prints a message indicating the onset of a given process, provided that
 # EINFO_QUIET is false. It is expected that eend eventually be called, so as to
 # indicate whether the process completed successfully or not.
