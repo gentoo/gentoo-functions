@@ -307,6 +307,7 @@ vewend()
 	fi
 }
 
+#
 # Determines whether the first parameter is truthy. The values taken to be true
 # are "yes", "true", "on" and "1", whereas their opposites are taken to be
 # false. The empty string is also taken to be false. All pattern matching is
