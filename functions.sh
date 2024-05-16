@@ -423,7 +423,7 @@ _eprint()
 #
 _esetdent()
 {
-	if ! is_int "$1" || [ "$1" -lt 0 ]; then
+	if [ "$1" -lt 0 ]; then
 		set -- 0
 	fi
 	genfun_indent=$(printf "%${1}s" '')
