@@ -272,12 +272,20 @@ is_older_than()
 	read -r _
 }
 
-vebegin()
-{
-	if yesno "${EINFO_VERBOSE}"; then
-		ebegin "$@"
-	fi
-}
+#
+#   Declare the vebegin, veerror, veindent, veinfo, veinfon, veoutdent and
+#   vewarn functions. These differ from their non-v-prefixed counterparts in
+#   that they only have an effect where EINFO_VERBOSE is set as a truthy value.
+#
+for _ in vebegin veerror veindent veinfo veinfon veoutdent vewarn; do
+	eval "
+		$_ () {
+			if yesno \"\${EINFO_VERBOSE}\"; then
+				${_#v} \"\$@\"
+			fi
+		}
+	"
+done
 
 veend()
 {
@@ -287,48 +295,6 @@ veend()
 		ewarn "Invalid argument given to veend (the exit status code must be an integer >= 0)"
 	else
 		return "$1"
-	fi
-}
-
-veerror()
-{
-	if yesno "${EINFO_VERBOSE}"; then
-		eerror "$@"
-	fi
-}
-
-veindent()
-{
-	if yesno "${EINFO_VERBOSE}"; then
-		eindent "$@"
-	fi
-}
-
-veinfo()
-{
-	if yesno "${EINFO_VERBOSE}"; then
-		einfo "$@"
-	fi
-}
-
-veinfon()
-{
-	if yesno "${EINFO_VERBOSE}"; then
-		einfon "$@"
-	fi
-}
-
-veoutdent()
-{
-	if yesno "${EINFO_VERBOSE}"; then
-		eoutdent "$@"
-	fi
-}
-
-vewarn()
-{
-	if yesno "${EINFO_VERBOSE}"; then
-		ewarn "$@"
 	fi
 }
 
