@@ -469,14 +469,20 @@ _is_visible()
 #
 _update_columns()
 {
-	local ifs
-
-	# The following use of stty(1) is portable as of POSIX Issue 8.
-	ifs=$IFS
-	IFS=' '
-	# shellcheck disable=2046
-	set -- $(stty size 2>/dev/null)
-	IFS=$ifs
+	# Command substitutions are rather slow in bash. Using the COLUMNS
+	# variable helps but checkwinsize won't work properly in subshells.
+	# shellcheck disable=3028,3044
+	if [ "$$" = "${BASHPID}" ] && shopt -q checkwinsize; then
+		"${genfun_bin_true}"
+		set -- 0 "${COLUMNS}"
+	else
+		# The following use of stty(1) is portable as of POSIX Issue 8.
+		genfun_ifs=${IFS}
+		IFS=' '
+		# shellcheck disable=2046
+		set -- $(stty size 2>/dev/null)
+		IFS=${genfun_ifs}
+	fi
 	[ "$#" -eq 2 ] && is_int "$2" && [ "$2" -gt 0 ] && genfun_cols=$2
 }
 
@@ -513,6 +519,12 @@ if [ "${INSIDE_EMACS}" ] && [ "${TERM}" = "eterm-color" ]; then
 	genfun_offset=-1
 else
 	genfun_offset=0
+fi
+
+# Store the path to the true binary. It is potentially used by _update_columns.
+if [ "${BASH}" ]; then
+	# shellcheck disable=3045
+	genfun_bin_true=$(type -P true)
 fi
 
 # Determine whether the use of color is to be wilfully avoided.
