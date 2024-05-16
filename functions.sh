@@ -10,32 +10,69 @@
 # and to reduce the probability of name space conflicts.
 
 #
-#    Called by ebegin, eerrorn, einfon, and ewarnn.
+#   A safe wrapper for the cd builtin. To run cd "$dir" is problematic because:
 #
-_eprint()
+#   1) it may consider its operand as an option
+#   2) it will search CDPATH for an operand not beginning with ./, ../ or /
+#   3) it will switch to OLDPWD if the operand is -
+#   4) cdable_vars causes bash to treat the operand as a potential variable name
+#
+chdir()
 {
-	local color
+	if [ "$BASH" ]; then
+		# shellcheck disable=3044
+		shopt -u cdable_vars
+	fi
+	if [ "$1" = - ]; then
+		set -- ./-
+	fi
+	# shellcheck disable=1007,2164
+	CDPATH= cd -- "$@"
+}
 
-	color=$1
-	shift
+#
+#    show a message indicating the start of a process
+#
+ebegin()
+{
+	local msg
 
-	if [ -t 1 ]; then
-		printf ' %s*%s %s%s' "${color}" "${NORMAL}" "${genfun_indent}" "$*"
-	else
-		printf ' * %s%s' "${genfun_indent}" "$*"
+	if ! yesno "${EINFO_QUIET}"; then
+		msg=$*
+		while _ends_with_newline "${msg}"; do
+			msg=${msg%"${genfun_newline}"}
+		done
+		_eprint "${GOOD}" "${msg} ...${genfun_newline}"
 	fi
 }
 
 #
-#    hard set the indent used for e-commands.
-#    num defaults to 0
+#    indicate the completion of process
+#    if error, show errstr via eerror
 #
-_esetdent()
+eend()
 {
-	if ! is_int "$1" || [ "$1" -lt 0 ]; then
-		set -- 0
+	GENFUN_CALLER=${GENFUN_CALLER:-eend} _eend eerror "$@"
+}
+
+#
+#    show an error message (with a newline) and log it
+#
+eerror()
+{
+	eerrorn "${*}${genfun_newline}"
+}
+
+#
+#    show an error message (without a newline) and log it
+#
+eerrorn()
+{
+	if ! yesno "${EERROR_QUIET}"; then
+		_eprint "${BAD}" "$@" >&2
+		esyslog "daemon.err" "${0##*/}" "$@"
 	fi
-	genfun_indent=$(printf "%${1}s" '')
+	return 1
 }
 
 #
@@ -50,6 +87,24 @@ eindent()
 }
 
 #
+#    show an informative message (with a newline)
+#
+einfo()
+{
+	einfon "${*}${genfun_newline}"
+}
+
+#
+#    show an informative message (without a newline)
+#
+einfon()
+{
+	if ! yesno "${EINFO_QUIET}"; then
+		_eprint "${GOOD}" "$@"
+	fi
+}
+
+#
 #    decrease the indent used for e-commands.
 #
 eoutdent()
@@ -58,32 +113,6 @@ eoutdent()
 		set -- 2
 	fi
 	_esetdent "$(( ${#genfun_indent} - $1 ))"
-}
-
-#
-# this function was lifted from OpenRC. It returns 0 if the argument  or
-# the value of the argument is "yes", "true", "on", or "1" or 1
-# otherwise.
-#
-yesno()
-{
-	for _ in 1 2; do
-		case $1 in
-			[Nn][Oo]|[Ff][Aa][Ll][Ss][Ee]|[Oo][Ff][Ff]|0|'')
-				return 1
-				;;
-			[Yy][Ee][Ss]|[Tt][Rr][Uu][Ee]|[Oo][Nn]|1)
-				return 0
-		esac
-		if [ "$_" -ne 1 ] || ! is_identifier "$1"; then
-			! break
-		else
-			# The value appears to be a legal variable name. Treat
-			# it as a name reference and try again, once only.
-			eval "set -- \"\$$1\""
-		fi
-	done || vewarn "Invalid argument given to yesno (expected a boolean-like or a legal name)"
-	return 1
 }
 
 #
@@ -110,21 +139,11 @@ esyslog()
 }
 
 #
-#    show an informative message (without a newline)
+#    show a warning message (with a newline) and log it
 #
-einfon()
+ewarn()
 {
-	if ! yesno "${EINFO_QUIET}"; then
-		_eprint "${GOOD}" "$@"
-	fi
-}
-
-#
-#    show an informative message (with a newline)
-#
-einfo()
-{
-	einfon "${*}${genfun_newline}"
+	ewarnn "${*}${genfun_newline}"
 }
 
 #
@@ -139,47 +158,215 @@ ewarnn()
 }
 
 #
-#    show a warning message (with a newline) and log it
+#    indicate the completion of process
+#    if error, show errstr via ewarn
 #
-ewarn()
+ewend()
 {
-	ewarnn "${*}${genfun_newline}"
+	GENFUN_CALLER=${GENFUN_CALLER:-ewend} _eend ewarn "$@"
 }
 
 #
-#    show an error message (without a newline) and log it
+#   return 0 if gentoo=param was passed to the kernel
 #
-eerrorn()
-{
-	if ! yesno "${EERROR_QUIET}"; then
-		_eprint "${BAD}" "$@" >&2
-		esyslog "daemon.err" "${0##*/}" "$@"
-	fi
+#   EXAMPLE:  if get_bootparam "nodevfs" ; then ....
+#
+get_bootparam()
+(
+	# Gentoo cmdline parameters are comma-delimited, so a search
+	# string containing a comma must not be allowed to match.
+	# Similarly, the empty string must not be allowed to match.
+	case $1 in ''|*,*) return 1 ;; esac
+
+	# Reset the value of IFS because there is no telling what it may be.
+	IFS=$(printf ' \n\t')
+
+	if [ "${TEST_GENFUNCS}" = 1 ]; then
+		read -r cmdline
+	else
+		read -r cmdline < /proc/cmdline
+	fi || return
+
+	# Disable pathname expansion. The definition of this function
+	# is a compound command that incurs a subshell. Therefore, the
+	# prior state of the option does not need to be recalled.
+	set -f
+	for opt in ${cmdline}; do
+		gentoo_opt=${opt#gentoo=}
+		if [ "${opt}" != "${gentoo_opt}" ]; then
+			case ,${gentoo_opt}, in
+				*,"$1",*) return 0
+			esac
+		fi
+	done
 	return 1
+)
+
+#
+#   Determine whether the first operand is a valid identifier (variable name).
+#
+is_identifier()
+(
+	LC_ALL=C
+	case $1 in
+		''|_|[[:digit:]]*|*[!_[:alnum:]]*) false
+	esac
+)
+
+#
+#   Determine whether the first operand is in the form of an integer. A leading
+#   <hypen-minus> shall be permitted. Thereafter, leading zeroes shall not be
+#   permitted because the string might later be considered to be octal in an
+#   arithmetic context, causing the shell to exit if the number be invalid.
+#
+is_int()
+{
+	set -- "${1#-}"
+	case $1 in
+		''|*[!0123456789]*)
+			false
+			;;
+		0)
+			true
+			;;
+		*)
+			test "$1" = "${1#0}"
+	esac
 }
 
 #
-#    show an error message (with a newline) and log it
+#   return 0 if any of the files/dirs are newer than
+#   the reference file
 #
-eerror()
+#   EXAMPLE: if is_older_than a.out *.o ; then ...
+is_older_than()
 {
-	eerrorn "${*}${genfun_newline}"
-}
+	local ref has_gfind
 
-#
-#    show a message indicating the start of a process
-#
-ebegin()
-{
-	local msg
-
-	if ! yesno "${EINFO_QUIET}"; then
-		msg=$*
-		while _ends_with_newline "${msg}"; do
-			msg=${msg%"${genfun_newline}"}
-		done
-		_eprint "${GOOD}" "${msg} ...${genfun_newline}"
+	if [ "$#" -lt 2 ]; then
+		ewarn "Too few arguments for is_older_than (got $#, expected at least 2)"
+		return 1
+	elif [ -e "$1" ]; then
+		ref=$1
+	else
+		ref=
 	fi
+	shift
+
+	# Consult the hash table in the present shell, prior to forking.
+	hash gfind 2>/dev/null; has_gfind=$(( $? == 0 ))
+
+	for path; do
+		if [ -e "${path}" ]; then
+			printf '%s\0' "${path}"
+		fi
+	done |
+	{
+		set -- -L -files0-from - ${ref:+-newermm} ${ref:+"${ref}"} -printf '\n' -quit
+		if [ "${has_gfind}" -eq 1 ]; then
+			gfind "$@"
+		else
+			find "$@"
+		fi
+	} |
+	read -r _
+}
+
+vebegin()
+{
+	if yesno "${EINFO_VERBOSE}"; then
+		ebegin "$@"
+	fi
+}
+
+veend()
+{
+	if yesno "${EINFO_VERBOSE}"; then
+		GENFUN_CALLER=veend eend "$@"
+	elif [ "$#" -gt 0 ] && { ! is_int "$1" || [ "$1" -lt 0 ]; }; then
+		ewarn "Invalid argument given to veend (the exit status code must be an integer >= 0)"
+	else
+		return "$1"
+	fi
+}
+
+veerror()
+{
+	if yesno "${EINFO_VERBOSE}"; then
+		eerror "$@"
+	fi
+}
+
+veindent()
+{
+	if yesno "${EINFO_VERBOSE}"; then
+		eindent "$@"
+	fi
+}
+
+veinfo()
+{
+	if yesno "${EINFO_VERBOSE}"; then
+		einfo "$@"
+	fi
+}
+
+veinfon()
+{
+	if yesno "${EINFO_VERBOSE}"; then
+		einfon "$@"
+	fi
+}
+
+veoutdent()
+{
+	if yesno "${EINFO_VERBOSE}"; then
+		eoutdent "$@"
+	fi
+}
+
+vewarn()
+{
+	if yesno "${EINFO_VERBOSE}"; then
+		ewarn "$@"
+	fi
+}
+
+vewend()
+{
+	if yesno "${EINFO_VERBOSE}"; then
+		GENFUN_CALLER=vewend ewend "$@"
+	elif [ "$#" -gt 0 ] && { ! is_int "$1" || [ "$1" -lt 0 ]; }; then
+		ewarn "Invalid argument given to vewend (the exit status code must be an integer >= 0)"
+	else
+		return "$1"
+	fi
+}
+
+#
+# this function was lifted from OpenRC. It returns 0 if the argument  or
+# the value of the argument is "yes", "true", "on", or "1" or 1
+# otherwise.
+#
+yesno()
+{
+	for _ in 1 2; do
+		case $1 in
+			[Nn][Oo]|[Ff][Aa][Ll][Ss][Ee]|[Oo][Ff][Ff]|0|'')
+				return 1
+				;;
+			[Yy][Ee][Ss]|[Tt][Rr][Uu][Ee]|[Oo][Nn]|1)
+				return 0
+		esac
+		if [ "$_" -ne 1 ] || ! is_identifier "$1"; then
+			! break
+		else
+			# The value appears to be a legal variable name. Treat
+			# it as a name reference and try again, once only.
+			eval "set -- \"\$$1\""
+		fi
+	done || vewarn "Invalid argument given to yesno (expected a boolean-like or a legal name)"
+	return 1
 }
 
 #
@@ -240,230 +427,40 @@ _eend()
 	return "${retval}"
 }
 
-#
-#    indicate the completion of process
-#    if error, show errstr via eerror
-#
-eend()
+_ends_with_newline()
 {
-	GENFUN_CALLER=${GENFUN_CALLER:-eend} _eend eerror "$@"
+	test "${genfun_newline}" \
+	&& ! case $1 in *"${genfun_newline}") false ;; esac
 }
 
 #
-#    indicate the completion of process
-#    if error, show errstr via ewarn
+#    Called by ebegin, eerrorn, einfon, and ewarnn.
 #
-ewend()
+_eprint()
 {
-	GENFUN_CALLER=${GENFUN_CALLER:-ewend} _eend ewarn "$@"
-}
+	local color
 
-# v-e-commands honor EINFO_VERBOSE which defaults to no.
-veinfo()
-{
-	if yesno "${EINFO_VERBOSE}"; then
-		einfo "$@"
-	fi
-}
-
-veinfon()
-{
-	if yesno "${EINFO_VERBOSE}"; then
-		einfon "$@"
-	fi
-}
-
-vewarn()
-{
-	if yesno "${EINFO_VERBOSE}"; then
-		ewarn "$@"
-	fi
-}
-
-veerror()
-{
-	if yesno "${EINFO_VERBOSE}"; then
-		eerror "$@"
-	fi
-}
-
-vebegin()
-{
-	if yesno "${EINFO_VERBOSE}"; then
-		ebegin "$@"
-	fi
-}
-
-veend()
-{
-	if yesno "${EINFO_VERBOSE}"; then
-		GENFUN_CALLER=veend eend "$@"
-	elif [ "$#" -gt 0 ] && { ! is_int "$1" || [ "$1" -lt 0 ]; }; then
-		ewarn "Invalid argument given to veend (the exit status code must be an integer >= 0)"
-	else
-		return "$1"
-	fi
-}
-
-vewend()
-{
-	if yesno "${EINFO_VERBOSE}"; then
-		GENFUN_CALLER=vewend ewend "$@"
-	elif [ "$#" -gt 0 ] && { ! is_int "$1" || [ "$1" -lt 0 ]; }; then
-		ewarn "Invalid argument given to vewend (the exit status code must be an integer >= 0)"
-	else
-		return "$1"
-	fi
-}
-
-veindent()
-{
-	if yesno "${EINFO_VERBOSE}"; then
-		eindent "$@"
-	fi
-}
-
-veoutdent()
-{
-	if yesno "${EINFO_VERBOSE}"; then
-		eoutdent "$@"
-	fi
-}
-
-#
-#   return 0 if gentoo=param was passed to the kernel
-#
-#   EXAMPLE:  if get_bootparam "nodevfs" ; then ....
-#
-get_bootparam()
-(
-	# Gentoo cmdline parameters are comma-delimited, so a search
-	# string containing a comma must not be allowed to match.
-	# Similarly, the empty string must not be allowed to match.
-	case $1 in ''|*,*) return 1 ;; esac
-
-	# Reset the value of IFS because there is no telling what it may be.
-	IFS=$(printf ' \n\t')
-
-	if [ "${TEST_GENFUNCS}" = 1 ]; then
-		read -r cmdline
-	else
-		read -r cmdline < /proc/cmdline
-	fi || return
-
-	# Disable pathname expansion. The definition of this function
-	# is a compound command that incurs a subshell. Therefore, the
-	# prior state of the option does not need to be recalled.
-	set -f
-	for opt in ${cmdline}; do
-		gentoo_opt=${opt#gentoo=}
-		if [ "${opt}" != "${gentoo_opt}" ]; then
-			case ,${gentoo_opt}, in
-				*,"$1",*) return 0
-			esac
-		fi
-	done
-	return 1
-)
-
-#
-#   return 0 if any of the files/dirs are newer than
-#   the reference file
-#
-#   EXAMPLE: if is_older_than a.out *.o ; then ...
-is_older_than()
-{
-	local ref has_gfind
-
-	if [ "$#" -lt 2 ]; then
-		ewarn "Too few arguments for is_older_than (got $#, expected at least 2)"
-		return 1
-	elif [ -e "$1" ]; then
-		ref=$1
-	else
-		ref=
-	fi
+	color=$1
 	shift
 
-	# Consult the hash table in the present shell, prior to forking.
-	hash gfind 2>/dev/null; has_gfind=$(( $? == 0 ))
-
-	for path; do
-		if [ -e "${path}" ]; then
-			printf '%s\0' "${path}"
-		fi
-	done |
-	{
-		set -- -L -files0-from - ${ref:+-newermm} ${ref:+"${ref}"} -printf '\n' -quit
-		if [ "${has_gfind}" -eq 1 ]; then
-			gfind "$@"
-		else
-			find "$@"
-		fi
-	} |
-	read -r _
-}
-
-#
-#   Determine whether the first operand is in the form of an integer. A leading
-#   <hypen-minus> shall be permitted. Thereafter, leading zeroes shall not be
-#   permitted because the string might later be considered to be octal in an
-#   arithmetic context, causing the shell to exit if the number be invalid.
-#
-is_int()
-{
-	set -- "${1#-}"
-	case $1 in
-		''|*[!0123456789]*)
-			false
-			;;
-		0)
-			true
-			;;
-		*)
-			test "$1" = "${1#0}"
-	esac
-}
-
-#
-#   A safe wrapper for the cd builtin. To run cd "$dir" is problematic because:
-#
-#   1) it may consider its operand as an option
-#   2) it will search CDPATH for an operand not beginning with ./, ../ or /
-#   3) it will switch to OLDPWD if the operand is -
-#   4) cdable_vars causes bash to treat the operand as a potential variable name
-#
-chdir()
-{
-	if [ "$BASH" ]; then
-		# shellcheck disable=3044
-		shopt -u cdable_vars
+	if [ -t 1 ]; then
+		printf ' %s*%s %s%s' "${color}" "${NORMAL}" "${genfun_indent}" "$*"
+	else
+		printf ' * %s%s' "${genfun_indent}" "$*"
 	fi
-	if [ "$1" = - ]; then
-		set -- ./-
-	fi
-	# shellcheck disable=1007,2164
-	CDPATH= cd -- "$@"
 }
 
 #
-#   Determine whether the first operand contains any visible characters.
+#    hard set the indent used for e-commands.
+#    num defaults to 0
 #
-_is_visible()
+_esetdent()
 {
-	! case $1 in *[[:graph:]]*) false ;; esac
+	if ! is_int "$1" || [ "$1" -lt 0 ]; then
+		set -- 0
+	fi
+	genfun_indent=$(printf "%${1}s" '')
 }
-
-#
-#   Determine whether the first operand is a valid identifier (variable name).
-#
-is_identifier()
-(
-	LC_ALL=C
-	case $1 in
-		''|_|[[:digit:]]*|*[!_[:alnum:]]*) false
-	esac
-)
 
 _has_dumb_terminal()
 {
@@ -485,12 +482,26 @@ _has_monochrome_terminal()
 	fi
 }
 
-_ends_with_newline()
+#
+#   Determine whether the first operand contains any visible characters.
+#
+_is_visible()
 {
-	test "${genfun_newline}" \
-	&& ! case $1 in *"${genfun_newline}") false ;; esac
+	! case $1 in *[[:graph:]]*) false ;; esac
 }
 
+_update_columns()
+{
+	local ifs
+
+	# The following use of stty(1) is portable as of POSIX Issue 8.
+	ifs=$IFS
+	IFS=' '
+	# shellcheck disable=2046
+	set -- $(stty size 2>/dev/null)
+	IFS=$ifs
+	[ "$#" -eq 2 ] && is_int "$2" && [ "$2" -gt 0 ] && genfun_cols=$2
+}
 
 _update_tty_level()
 {
@@ -507,19 +518,6 @@ _update_tty_level()
 	else
 		genfun_tty=2
 	fi
-}
-
-_update_columns()
-{
-	local ifs
-
-	# The following use of stty(1) is portable as of POSIX Issue 8.
-	ifs=$IFS
-	IFS=' '
-	# shellcheck disable=2046
-	set -- $(stty size 2>/dev/null)
-	IFS=$ifs
-	[ "$#" -eq 2 ] && is_int "$2" && [ "$2" -gt 0 ] && genfun_cols=$2
 }
 
 # This is the main script, please add all functions above this point!
