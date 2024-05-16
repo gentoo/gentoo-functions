@@ -444,18 +444,18 @@ _has_dumb_terminal()
 #
 # Tries to determine whether the terminal supports ECMA-48 SGR color sequences.
 #
-_has_monochrome_terminal()
+_has_color_terminal()
 {
 	local colors
 
 	# The tput(1) invocation is not portable, though ncurses suffices. In
 	# this day and age, it is exceedingly unlikely that it will be needed.
 	if _has_dumb_terminal; then
-		true
-	elif colors=$(tput colors 2>/dev/null) && is_int "${colors}"; then
-		test "${colors}" -eq -1
-	else
 		false
+	elif colors=$(tput colors 2>/dev/null) && is_int "${colors}"; then
+		test "${colors}" -gt 0
+	else
+		true
 	fi
 }
 
@@ -545,7 +545,7 @@ else
 	done
 fi
 
-if _has_monochrome_terminal || yesno "${RC_NOCOLOR}"; then
+if ! _has_color_terminal || yesno "${RC_NOCOLOR}"; then
 	unset -v BAD BRACKET GOOD HILITE NORMAL WARN
 else
 	# Define some ECMA-48 SGR sequences for color support. These variables
