@@ -122,8 +122,7 @@ eoutdent()
 }
 
 #
-# Invokes logger(1) to log the given message, provided that EINFO_LOG is set as
-# a non-empty value.
+# Invokes logger(1) to log the given message, provided that EINFO_LOG is true.
 #
 esyslog()
 {
@@ -132,7 +131,7 @@ esyslog()
 	if [ "$#" -lt 2 ]; then
 		ewarn "Too few arguments for esyslog (got $#, expected at least 2)"
 		return 1
-	elif [ -n "${EINFO_LOG}" ] && hash logger 2>/dev/null; then
+	elif yesno "${EINFO_LOG}" && hash logger 2>/dev/null; then
 		pri=$1
 		tag=$2
 		shift 2
