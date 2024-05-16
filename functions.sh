@@ -74,8 +74,9 @@ for _ in eerror einfo ewarn; do
 done
 
 #
-# Prints an error message without appending a newline, while also conveying it
-# to the esyslog function.
+# Prints an error message without appending a newline, provided that
+# EERROR_QUIET is false. If printed, the message shall also be conveyed to the
+# esyslog function.
 #
 eerrorn()
 {
@@ -122,7 +123,9 @@ eoutdent()
 }
 
 #
-# Invokes logger(1) to log the given message, provided that EINFO_LOG is true.
+# Invokes the logger(1) utility, provided that EINFO_LOG is true. The first
+# parameter shall be taken as a priority level, the second as the message tag,
+# and the remaining parameters as the message to be logged.
 #
 esyslog()
 {
@@ -273,7 +276,7 @@ is_older_than()
 #
 # Declare the vebegin, veerror, veindent, veinfo, veinfon, veoutdent and vewarn
 # functions. These differ from their non-v-prefixed counterparts in that they
-# only print where EINFO_VERBOSE is true.
+# only have an effect where EINFO_VERBOSE is true.
 #
 for _ in vebegin veerror veindent veinfo veinfon veoutdent vewarn; do
 	eval "
@@ -466,7 +469,7 @@ _is_visible()
 
 #
 # Determines whether the terminal on STDIN is able to report its dimensions.
-# Upon success, the number of columns shall be stored.
+# Upon success, the number of columns shall be stored in genfun_cols.
 #
 _update_columns()
 {
