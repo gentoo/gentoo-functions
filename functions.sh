@@ -10,12 +10,12 @@
 # and to reduce the probability of name space conflicts.
 
 #
-#   A safe wrapper for the cd builtin. To run cd "$dir" is problematic because:
+# A safe wrapper for the cd builtin. To run cd "$dir" is problematic because:
 #
-#   1) it may consider its operand as an option
-#   2) it will search CDPATH for an operand not beginning with ./, ../ or /
-#   3) it will switch to OLDPWD if the operand is -
-#   4) cdable_vars causes bash to treat the operand as a potential variable name
+# - it may consider its operand as an option
+# - it will search CDPATH for an operand not beginning with ./, ../ or /
+# - it will switch to OLDPWD if the operand is -
+# - cdable_vars causes bash to treat the operand as a potential variable name
 #
 chdir()
 {
@@ -31,7 +31,9 @@ chdir()
 }
 
 #
-#    show a message indicating the start of a process
+# Prints a message indicating the onset of a given process, provided that
+# EINFO_QUIET is false. It is expected that eend eventually be called, so as to
+# indicate whether the process completed successfully or not.
 #
 ebegin()
 {
@@ -47,8 +49,12 @@ ebegin()
 }
 
 #
-#    indicate the completion of process
-#    if error, show errstr via eerror
+# Prints an indicator to convey the completion of a given process, provided that
+# EINFO_QUIET is false. It is expected that it be paired with an earlier call to
+# ebegin. The first parameter shall be taken as an exit status value, making it
+# possible to distinguish between success and failure. If unspecified, it shall
+# default to 0. The remaining parameters, if any, shall be taken as a diagnostic
+# message to convey as an error where the exit status is not 0.
 #
 eend()
 {
@@ -56,8 +62,8 @@ eend()
 }
 
 #
-#   Declare the eerror, einfo and ewarn functions. These wrap errorn, einfon and
-#   ewarnn respectively, the difference being that a newline is appended.
+# Declare the eerror, einfo and ewarn functions. These wrap errorn, einfon and
+# ewarnn respectively, the difference being that a newline is appended.
 #
 for _ in eerror einfo ewarn; do
 	eval "
@@ -68,7 +74,8 @@ for _ in eerror einfo ewarn; do
 done
 
 #
-#    show an error message (without a newline) and log it
+# Prints an error message without appending a newline, while also conveying it
+# to the esyslog function.
 #
 eerrorn()
 {
@@ -80,7 +87,8 @@ eerrorn()
 }
 
 #
-#    increase the indent used for e-commands.
+# Decreases the level of indentation used by various printing functions. If no
+# numerical parameter is given, or if it is negative, increase by 2 spaces.
 #
 eindent()
 {
@@ -91,7 +99,8 @@ eindent()
 }
 
 #
-#    show an informative message (without a newline)
+# Prints an informational message without appending a newline, provided that
+# EINFO_QUIET is false.
 #
 einfon()
 {
@@ -101,7 +110,8 @@ einfon()
 }
 
 #
-#    decrease the indent used for e-commands.
+# Decreases the level of indentation used by various printing functions. If no
+# numerical parameter is given, or if it is negative, decrease by 2 spaces.
 #
 eoutdent()
 {
@@ -112,7 +122,8 @@ eoutdent()
 }
 
 #
-#    use the system logger to log a message
+# Invokes logger(1) to log the given message, provided that EINFO_LOG is set as
+# a non-empty value.
 #
 esyslog()
 {
@@ -135,7 +146,9 @@ esyslog()
 }
 
 #
-#    show a warning message (without a newline) and log it
+# Prints a warning message without appending a newline, provided that
+# EINFO_QUIET is false. If printed, the message shall also be conveyed to the
+# esyslog function.
 #
 ewarnn()
 {
@@ -146,8 +159,8 @@ ewarnn()
 }
 
 #
-#    indicate the completion of process
-#    if error, show errstr via ewarn
+# This behaves as the eend function does, except that the given diagnostic
+# message shall be presented as a warning rather than an error.
 #
 ewend()
 {
@@ -155,9 +168,8 @@ ewend()
 }
 
 #
-#   return 0 if gentoo=param was passed to the kernel
-#
-#   EXAMPLE:  if get_bootparam "nodevfs" ; then ....
+# Determines whether the kernel cmdline contains the specified parameter as a
+# component of a comma-separated list specified in the format of gentoo=<list>.
 #
 get_bootparam()
 (
@@ -191,7 +203,7 @@ get_bootparam()
 )
 
 #
-#   Determine whether the first operand is a valid identifier (variable name).
+# Determines whether the first parameter is a valid identifier (variable name).
 #
 is_identifier()
 (
@@ -202,10 +214,10 @@ is_identifier()
 )
 
 #
-#   Determine whether the first operand is in the form of an integer. A leading
-#   <hypen-minus> shall be permitted. Thereafter, leading zeroes shall not be
-#   permitted because the string might later be considered to be octal in an
-#   arithmetic context, causing the shell to exit if the number be invalid.
+# Determines whether the first parameter is a valid integer. A leading
+# <hypen-minus> shall be permitted. Thereafter, leading zeroes shall not be
+# permitted because the string might later be considered to be octal in an
+# arithmetic context, causing the shell to exit if the number be invalid.
 #
 is_int()
 {
@@ -223,10 +235,9 @@ is_int()
 }
 
 #
-#   return 0 if any of the files/dirs are newer than
-#   the reference file
+# Takes the first parameter as a reference file/directory then determines
+# whether any of the following parameters refer to newer files/directories.
 #
-#   EXAMPLE: if is_older_than a.out *.o ; then ...
 is_older_than()
 {
 	local ref has_gfind
@@ -261,9 +272,9 @@ is_older_than()
 }
 
 #
-#   Declare the vebegin, veerror, veindent, veinfo, veinfon, veoutdent and
-#   vewarn functions. These differ from their non-v-prefixed counterparts in
-#   that they only have an effect where EINFO_VERBOSE is set as a truthy value.
+# Declare the vebegin, veerror, veindent, veinfo, veinfon, veoutdent and vewarn
+# functions. These differ from their non-v-prefixed counterparts in that they
+# only print where EINFO_VERBOSE is true.
 #
 for _ in vebegin veerror veindent veinfo veinfon veoutdent vewarn; do
 	eval "
@@ -297,10 +308,10 @@ vewend()
 	fi
 }
 
-#
-# this function was lifted from OpenRC. It returns 0 if the argument  or
-# the value of the argument is "yes", "true", "on", or "1" or 1
-# otherwise.
+# Determines whether the first parameter is truthy. The values taken to be true
+# are "yes", "true", "on" and "1", whereas their opposites are taken to be
+# false. The empty string is also taken to be false. All pattern matching is
+# performed case-insensitively.
 #
 yesno()
 {
@@ -324,8 +335,8 @@ yesno()
 }
 
 #
-#    indicate the completion of process, called from eend/ewend
-#    if error, show errstr via efunc
+# Called by eend, ewend, veend and vewend. See the definition of eend for an
+# overall description of its purpose.
 #
 _eend()
 {
@@ -381,6 +392,9 @@ _eend()
 	return "${retval}"
 }
 
+#
+# Determines whether the given string is newline-terminated.
+#
 _ends_with_newline()
 {
 	test "${genfun_newline}" \
@@ -388,7 +402,7 @@ _ends_with_newline()
 }
 
 #
-#    Called by ebegin, eerrorn, einfon, and ewarnn.
+# Called by ebegin, eerrorn, einfon, and ewarnn.
 #
 _eprint()
 {
@@ -405,8 +419,8 @@ _eprint()
 }
 
 #
-#    hard set the indent used for e-commands.
-#    num defaults to 0
+# Called by eindent, eoutdent, veindent and veoutdent. It is here that the
+# variable containing the horizontal whitespace is updated.
 #
 _esetdent()
 {
@@ -416,11 +430,17 @@ _esetdent()
 	genfun_indent=$(printf "%${1}s" '')
 }
 
+#
+# Determines whether the terminal is a dumb one.
+#
 _has_dumb_terminal()
 {
 	! case ${TERM} in *dumb*) false ;; esac
 }
 
+#
+# Tries to determine whether the terminal supports ECMA-48 SGR color sequences.
+#
 _has_monochrome_terminal()
 {
 	local colors
@@ -437,13 +457,17 @@ _has_monochrome_terminal()
 }
 
 #
-#   Determine whether the first operand contains any visible characters.
+# Determines whether the first parameter contains any visible characters.
 #
 _is_visible()
 {
 	! case $1 in *[[:graph:]]*) false ;; esac
 }
 
+#
+# Determines whether the terminal on STDIN is able to report its dimensions.
+# Upon success, the number of columns shall be stored.
+#
 _update_columns()
 {
 	local ifs
@@ -457,14 +481,15 @@ _update_columns()
 	[ "$#" -eq 2 ] && is_int "$2" && [ "$2" -gt 0 ] && genfun_cols=$2
 }
 
+#
+# Grades the capability of the terminal attached to STDIN, assigning the level
+# to genfun_tty. If no terminal is detected, the level shall be 0. If a dumb
+# terminal is detected, the level shall be 1. If a smart terminal is detected,
+# the level shall be 2. For a terminal to be considered as smart, it must be
+# able to successfully report its dimensions.
+#
 _update_tty_level()
 {
-	# Grade the capability of the terminal attached to STDIN (if any) on a
-	# scale of 0 to 2, assigning the resulting value to genfun_tty. If no
-	# terminal is detected, the value shall be 0. If a dumb terminal is
-	# detected, the value shall be 1. If a smart terminal is detected, the
-	# value shall be 2. For a terminal to be considered as smart, it must be
-	# able to successfully report its dimensions.
 	if [ ! -t 0 ]; then
 		genfun_tty=0
 	elif _has_dumb_terminal || ! _update_columns; then
@@ -474,7 +499,7 @@ _update_tty_level()
 	fi
 }
 
-# This is the main script, please add all functions above this point!
+# All function declarations end here! Initialisation code only from hereon.
 # shellcheck disable=2034
 RC_GOT_FUNCTIONS=yes
 
@@ -491,7 +516,7 @@ else
 	genfun_offset=0
 fi
 
-# Should we use color?
+# Determine whether the use of color is to be wilfully avoided.
 if [ -n "${NO_COLOR}" ]; then
 	# See https://no-color.org/.
 	RC_NOCOLOR=yes
