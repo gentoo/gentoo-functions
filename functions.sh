@@ -56,12 +56,16 @@ eend()
 }
 
 #
-#    show an error message (with a newline) and log it
+#   Declare the eerror, einfo and ewarn functions. These wrap errorn, einfon and
+#   ewarnn respectively, the difference being that a newline is appended.
 #
-eerror()
-{
-	eerrorn "${*}${genfun_newline}"
-}
+for _ in eerror einfo ewarn; do
+	eval "
+		$_ () {
+			${_}n \"\${*}\${genfun_newline}\"
+		}
+	"
+done
 
 #
 #    show an error message (without a newline) and log it
@@ -84,14 +88,6 @@ eindent()
 		set -- 2
 	fi
 	_esetdent "$(( ${#genfun_indent} + $1 ))"
-}
-
-#
-#    show an informative message (with a newline)
-#
-einfo()
-{
-	einfon "${*}${genfun_newline}"
 }
 
 #
@@ -136,14 +132,6 @@ esyslog()
 			logger -p "${pri}" -t "${tag}" -- "${msg}"
 		fi
 	fi
-}
-
-#
-#    show a warning message (with a newline) and log it
-#
-ewarn()
-{
-	ewarnn "${*}${genfun_newline}"
 }
 
 #
