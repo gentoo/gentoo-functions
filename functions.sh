@@ -488,14 +488,7 @@ _update_tty_level()
 
 # This is the main script, please add all functions above this point!
 # shellcheck disable=2034
-RC_GOT_FUNCTIONS="yes"
-
-# Dont output to stdout?
-EINFO_QUIET="${EINFO_QUIET:-no}"
-EINFO_VERBOSE="${EINFO_VERBOSE:-no}"
-
-# Set the initial value for e-message indentation.
-genfun_indent=
+RC_GOT_FUNCTIONS=yes
 
 # Assign the LF ('\n') character for later expansion. POSIX Issue 8 permits
 # $'\n' but it may take years for it to be commonly implemented.
@@ -513,13 +506,12 @@ fi
 # Should we use color?
 if [ -n "${NO_COLOR}" ]; then
 	# See https://no-color.org/.
-	RC_NOCOLOR="yes"
+	RC_NOCOLOR=yes
 else
-	RC_NOCOLOR="${RC_NOCOLOR:-no}"
 	for _ in "$@"; do
 		case $_ in
 			--nocolor|--nocolour|-C)
-				RC_NOCOLOR="yes"
+				RC_NOCOLOR=yes
 				break
 		esac
 	done
