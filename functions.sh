@@ -3,11 +3,29 @@
 # shellcheck shell=sh disable=3043
 
 # This file contains a series of function declarations followed by some
-# initialization code. Functions intended for internal use shall be prefixed
+# initialisation code. Functions intended for internal use shall be prefixed
 # with an <underscore> and shall not be considered as being a part of the public
 # API. With the exception of those declared by the local builtin, all variables
 # intended for internal use shall be prefixed with "genfun_" to indicate so,
 # and to reduce the probability of name space conflicts.
+
+# The following variables affect initialisation and/or function behaviour.
+
+# BASH          : whether bash-specific features may be employed
+# BASHPID       : potentially used by _update_columns() to detect subshells
+# COLUMNS       : potentially used by _update_columns() to get the column count
+# EERROR_QUIET  : whether error printing functions should be silenced
+# EINFO_LOG     : whether printing functions should call esyslog()
+# EINFO_QUIET   : whether info message printing functions should be silenced
+# EINFO_VERBOSE : whether v-prefixed functions should do anything
+# IFS           : multiple message operands are joined by its first character
+# INSIDE_EMACS  : whether to work around an emacs-specific bug in _eend()
+# NO_COLOR      : whether colored output should be suppressed
+# RC_NOCOLOR    : like NO_COLOR but deprecated
+# TEST_GENFUNCS : used for testing the behaviour of get_bootparam()
+# TERM          : may influence message formatting and whether color is used
+
+################################################################################
 
 #
 # A safe wrapper for the cd builtin. To run cd "$dir" is problematic because:
