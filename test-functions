@@ -77,7 +77,7 @@ test_die() {
 		eq  255  255
 
 	callback() {
-		test_description="( exit "$2" ); die"
+		test_description="( exit $2 ); die"
 		( exit "$2" )
 		stderr=$(die "$2" 2>&1)
 		retval=$?
@@ -404,7 +404,7 @@ iterate_tests() {
 		done
 		eval "${code}"
 		retval=$?
-		if [ "${retval}" -"$1" "$2" ]; then
+		if test "${retval}" -"$1" "$2"; then
 			passed=$((passed + 1))
 		else
 			printf 'not '
