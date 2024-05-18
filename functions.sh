@@ -506,14 +506,6 @@ _esetdent()
 }
 
 #
-# Determines whether the terminal is a dumb one.
-#
-_has_dumb_terminal()
-{
-	! case ${TERM} in *dumb*) false ;; esac
-}
-
-#
 # Tries to determine whether the terminal supports ECMA-48 SGR color sequences.
 #
 _has_color_terminal()
@@ -529,6 +521,14 @@ _has_color_terminal()
 	else
 		true
 	fi
+}
+
+#
+# Determines whether the terminal is a dumb one.
+#
+_has_dumb_terminal()
+{
+	! case ${TERM} in *dumb*) false ;; esac
 }
 
 #
