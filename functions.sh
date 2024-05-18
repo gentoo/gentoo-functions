@@ -87,6 +87,31 @@ ebegin()
 }
 
 #
+# Takes the positional parameters as the definition of a simple command then
+# prints the command as an informational message with einfo before executing it.
+# Should the command fail, a diagnostic message shall be printed and the shell
+# be made to exit by calling the die function.
+#
+edo() {
+	# Approximate the effect of ${param@Q} bash expansion.
+	genfun_cmd=$(
+		awk -v q=\' -f - "$@" <<-'EOF'
+			BEGIN {
+				argc = ARGC
+				ARGC = 1
+				for (i = 1; i < argc; i++) {
+					arg = ARGV[i]
+					gsub(q, q "\\" q q, arg)
+					printf("'%s' ", arg)
+				}
+			}
+		EOF
+	)
+	einfo "${genfun_cmd% }"
+	"$@" || die "Failed to run command: ${genfun_cmd% }"
+}
+
+#
 # Prints an indicator to convey the completion of a given process, provided that
 # EINFO_QUIET is false. It is expected that it be paired with an earlier call to
 # ebegin. The first parameter shall be taken as an exit status value, making it

@@ -110,6 +110,20 @@ test_ebegin() {
 	return "$(( ok ? 0 : 1 ))"
 }
 
+test_edo() {
+	set -- \
+		eq  1  false \
+		eq  0  true
+
+	callback() {
+		shift
+		test_description="edo $1"
+		( edo "$1" )
+	}
+
+	iterate_tests 3 "$@"
+}
+
 test_is_older_than() {
 	set -- \
 		ge  1  N/A           N/A \
@@ -459,6 +473,7 @@ test_is_int || rc=1
 test_is_visible || rc=1
 test_yesno || rc=1
 test_die || rc=1
+test_edo || rc=1
 
 cleanup_tmpdir
 
