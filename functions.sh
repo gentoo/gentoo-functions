@@ -95,7 +95,7 @@ ebegin()
 edo() {
 	# Approximate the effect of ${param@Q} bash expansion.
 	genfun_cmd=$(
-		awk -v q=\' -f - "$@" <<-'EOF'
+		awk -v q=\' -f - -- "$@" <<-'EOF'
 			BEGIN {
 				argc = ARGC
 				ARGC = 1
