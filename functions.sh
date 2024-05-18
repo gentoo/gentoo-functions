@@ -93,20 +93,7 @@ ebegin()
 # be made to exit by calling the die function.
 #
 edo() {
-	# Approximate the effect of ${param@Q} bash expansion.
-	genfun_cmd=$(
-		awk -v q=\' -f - -- "$@" <<-'EOF'
-			BEGIN {
-				argc = ARGC
-				ARGC = 1
-				for (i = 1; i < argc; i++) {
-					arg = ARGV[i]
-					gsub(q, q "\\" q q, arg)
-					printf("'%s' ", arg)
-				}
-			}
-		EOF
-	)
+	genfun_cmd=$(_print_args "$@")
 	einfo "${genfun_cmd% }"
 	"$@" || die "Failed to run command: ${genfun_cmd% }"
 }
@@ -537,6 +524,24 @@ _has_dumb_terminal()
 _is_visible()
 {
 	! case $1 in *[[:graph:]]*) false ;; esac
+}
+
+#
+# Prints the positional parameters in a manner that approximates the behaviour
+# of the ${*@Q} expansion in bash.
+#
+_print_args() {
+	awk -v q=\' -f - -- "$@" <<-'EOF'
+		BEGIN {
+			argc = ARGC
+			ARGC = 1
+			for (i = 1; i < argc; i++) {
+				arg = ARGV[i]
+				gsub(q, q "\\" q q, arg)
+				printf("'%s' ", arg)
+			}
+		}
+	EOF
 }
 
 #

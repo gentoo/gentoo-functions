@@ -41,7 +41,7 @@ test_chdir() {
 
 	callback() {
 		shift
-		test_description="chdir $(print_args "$@")"
+		test_description="chdir $(_print_args "$@")"
 		if [ "$BASH" ]; then
 			# shellcheck disable=3044
 			shopt -s cdable_vars
@@ -60,7 +60,7 @@ test_chdir_noop() {
 
 	callback() {
 		shift
-		test_description="chdir $(print_args "$@")"
+		test_description="chdir $(_print_args "$@")"
 		chdir "$@" \
 		&& test "$PWD" = "$OLDPWD" \
 		|| { cd - >/dev/null; false; }
@@ -195,7 +195,7 @@ test_is_older_than() {
 
 	callback() {
 		shift
-		test_description="is_older_than $(print_args "$@")"
+		test_description="is_older_than $(_print_args "$@")"
 		is_older_than "$@"
 	}
 
@@ -221,7 +221,7 @@ test_get_bootparam() {
 	callback() {
 		cmdline=$2
 		shift 2
-		test_description="get_bootparam $(print_args "$@")"
+		test_description="get_bootparam $(_print_args "$@")"
 		printf '%s\n' "${cmdline}" | get_bootparam "$@"
 	}
 
@@ -246,7 +246,7 @@ test_esyslog() {
 		should_log=$2
 		shift 2
 		logged=0
-		test_description="esyslog $(print_args "$@")"
+		test_description="esyslog $(_print_args "$@")"
 		EINFO_LOG=1 esyslog "$@" 2>/dev/null
 		case $? in
 			0)
@@ -308,7 +308,7 @@ test_is_identifier() {
 
 		callback() {
 			shift
-			test_description="is_identifier $(print_args "$@")"
+			test_description="is_identifier $(_print_args "$@")"
 			is_identifier "$@"
 		}
 
@@ -333,7 +333,7 @@ test_is_int() {
 
 		callback() {
 			shift
-			test_description="is_int $(print_args "$@")"
+			test_description="is_int $(_print_args "$@")"
 			is_int "$@"
 		}
 
@@ -353,7 +353,7 @@ test_is_visible() {
 
 		callback() {
 			shift
-			test_description="_is_visible $(print_args "$@")"
+			test_description="_is_visible $(_print_args "$@")"
 			_is_visible "$@"
 		}
 
@@ -392,7 +392,7 @@ test_yesno() {
 
 		callback() {
 			shift
-			test_description="yesno $(print_args "$@")"
+			test_description="yesno $(_print_args "$@")"
 			yesno "$@"
 		}
 
