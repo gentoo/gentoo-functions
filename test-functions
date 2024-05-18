@@ -26,14 +26,14 @@ cleanup_tmpdir() {
 
 test_chdir() {
 	set -- \
-		1  grandchild  \
-		1         var  \
-		0          -L  \
-		0          -p  \
-		0          -e  \
-		0          -@  \
-		0           -  \
-		0       child
+		ge  1  grandchild  \
+		ge  1         var  \
+		eq  0          -L  \
+		eq  0          -p  \
+		eq  0          -e  \
+		eq  0          -@  \
+		eq  0           -  \
+		eq  0       child
 
 	if ! mkdir -p -- -L -p -e -@ - child child/grandchild; then
 		bailout "Couldn't set up all test directories"
@@ -51,11 +51,12 @@ test_chdir() {
 		&& cd - >/dev/null
 	}
 
-	iterate_tests 2 "$@"
+	iterate_tests 3 "$@"
 }
 
 test_chdir_noop() {
-	set -- 0 ''
+	set -- \
+		eq  0  ''
 
 	callback() {
 		shift
@@ -65,15 +66,15 @@ test_chdir_noop() {
 		|| { cd - >/dev/null; false; }
 	}
 
-	iterate_tests 2 "$@"
+	iterate_tests 3 "$@"
 }
 
 test_die() {
 	set -- \
-		1     0 \
-		2     2 \
-		126 126 \
-		255 255
+		eq    1    0 \
+		eq    2    2 \
+		eq  126  126 \
+		eq  255  255
 
 	callback() {
 		test_description="( exit "$2" ); die"
@@ -87,7 +88,7 @@ test_die() {
 		fi
 	}
 
-	iterate_tests 2 "$@"
+	iterate_tests 3 "$@"
 }
 
 test_ebegin() {
@@ -111,60 +112,60 @@ test_ebegin() {
 
 test_is_older_than() {
 	set -- \
-		1  N/A           N/A \
-		1  newer         N/A \
-		1  newer-empty   N/A \
-		1  newer/file    N/A \
-		1  non-existent  N/A \
-		0  newer         newer \
-		1  newer         newer-empty \
-		0  newer         newer/file \
-		1  newer         non-existent \
-		1  newer         older \
-		1  newer         older-empty \
-		1  newer         older/file \
-		0  newer-empty   newer \
-		1  newer-empty   newer-empty \
-		0  newer-empty   newer/file \
-		1  newer-empty   non-existent \
-		1  newer-empty   older \
-		1  newer-empty   older-empty \
-		1  newer-empty   older/file \
-		1  newer/file    newer \
-		1  newer/file    newer-empty \
-		1  newer/file    newer/file \
-		1  newer/file    non-existent \
-		1  newer/file    older \
-		1  newer/file    older-empty \
-		1  newer/file    older/file \
-		0  non-existent  newer \
-		0  non-existent  newer-empty \
-		0  non-existent  newer/file \
-		1  non-existent  non-existent \
-		0  non-existent  older \
-		0  non-existent  older-empty \
-		0  non-existent  older/file \
-		0  older         newer \
-		0  older         newer-empty \
-		0  older         newer/file \
-		1  older         non-existent \
-		0  older         older \
-		1  older         older-empty \
-		0  older         older/file \
-		0  older-empty   newer \
-		0  older-empty   newer-empty \
-		0  older-empty   newer/file \
-		1  older-empty   non-existent \
-		0  older-empty   older \
-		1  older-empty   older-empty \
-		0  older-empty   older/file \
-		0  older/file    newer \
-		0  older/file    newer-empty \
-		0  older/file    newer/file \
-		1  older/file    non-existent \
-		1  older/file    older \
-		1  older/file    older-empty \
-		1  older/file    older/file
+		ge  1  N/A           N/A \
+		ge  1  newer         N/A \
+		ge  1  newer-empty   N/A \
+		ge  1  newer/file    N/A \
+		ge  1  non-existent  N/A \
+		eq  0  newer         newer \
+		ge  1  newer         newer-empty \
+		eq  0  newer         newer/file \
+		ge  1  newer         non-existent \
+		ge  1  newer         older \
+		ge  1  newer         older-empty \
+		ge  1  newer         older/file \
+		eq  0  newer-empty   newer \
+		ge  1  newer-empty   newer-empty \
+		eq  0  newer-empty   newer/file \
+		ge  1  newer-empty   non-existent \
+		ge  1  newer-empty   older \
+		ge  1  newer-empty   older-empty \
+		ge  1  newer-empty   older/file \
+		ge  1  newer/file    newer \
+		ge  1  newer/file    newer-empty \
+		ge  1  newer/file    newer/file \
+		ge  1  newer/file    non-existent \
+		ge  1  newer/file    older \
+		ge  1  newer/file    older-empty \
+		ge  1  newer/file    older/file \
+		eq  0  non-existent  newer \
+		eq  0  non-existent  newer-empty \
+		eq  0  non-existent  newer/file \
+		ge  1  non-existent  non-existent \
+		eq  0  non-existent  older \
+		eq  0  non-existent  older-empty \
+		eq  0  non-existent  older/file \
+		eq  0  older         newer \
+		eq  0  older         newer-empty \
+		eq  0  older         newer/file \
+		ge  1  older         non-existent \
+		eq  0  older         older \
+		ge  1  older         older-empty \
+		eq  0  older         older/file \
+		eq  0  older-empty   newer \
+		eq  0  older-empty   newer-empty \
+		eq  0  older-empty   newer/file \
+		ge  1  older-empty   non-existent \
+		eq  0  older-empty   older \
+		ge  1  older-empty   older-empty \
+		eq  0  older-empty   older/file \
+		eq  0  older/file    newer \
+		eq  0  older/file    newer-empty \
+		eq  0  older/file    newer/file \
+		ge  1  older/file    non-existent \
+		ge  1  older/file    older \
+		ge  1  older/file    older-empty \
+		ge  1  older/file    older/file
 
 	# The mtimes need to be explicitly assigned. Empirical evidence has
 	# shown that executing mkdir(1) sequentially, with a single operand
@@ -184,24 +185,24 @@ test_is_older_than() {
 		is_older_than "$@"
 	}
 
-	iterate_tests 3 "$@"
+	iterate_tests 4 "$@"
 }
 
 test_get_bootparam() {
 	cmdline="foo gentoo=bar,baz quux"
 	set -- \
-		1  "${cmdline}"                   N/A \
-		1  "${cmdline}"                   '' \
-		1  "gentoo="                      '' \
-		1  "${cmdline}"                   foo \
-		0  "${cmdline}"                   bar \
-		0  "foo gentoo=gentoo=1,bar baz"  bar \
-		0  "foo gentoo=bar,gentoo=1 baz"  bar \
-		0  "${cmdline}"                   baz \
-		1  "${cmdline}"                   bar,baz \
-		0  "foo gentoo=bar,gentoo=1 baz"  gentoo=1 \
-		0  "foo gentoo=gentoo=1,bar baz"  gentoo=1 \
-		1  "${cmdline}"                   quux
+		ge  1  "${cmdline}"                   N/A \
+		ge  1  "${cmdline}"                   '' \
+		ge  1  "gentoo="                      '' \
+		ge  1  "${cmdline}"                   foo \
+		eq  0  "${cmdline}"                   bar \
+		eq  0  "foo gentoo=gentoo=1,bar baz"  bar \
+		eq  0  "foo gentoo=bar,gentoo=1 baz"  bar \
+		eq  0  "${cmdline}"                   baz \
+		ge  1  "${cmdline}"                   bar,baz \
+		eq  0  "foo gentoo=bar,gentoo=1 baz"  gentoo=1 \
+		eq  0  "foo gentoo=gentoo=1,bar baz"  gentoo=1 \
+		ge  1  "${cmdline}"                   quux
 
 	callback() {
 		cmdline=$2
@@ -210,16 +211,16 @@ test_get_bootparam() {
 		printf '%s\n' "${cmdline}" | get_bootparam "$@"
 	}
 
-	iterate_tests 3 "$@"
+	iterate_tests 4 "$@"
 }
 
 test_esyslog() {
 	set -- \
-		1  0  N/A    N/A   N/A \
-		1  0  debug  N/A   N/A \
-		0  0  debug  user  N/A \
-		0  0  debug  user  '' \
-		0  1  debug  user  message
+		ge  1  0  N/A    N/A   N/A \
+		ge  1  0  debug  N/A   N/A \
+		eq  0  0  debug  user  N/A \
+		eq  0  0  debug  user  '' \
+		eq  0  1  debug  user  message
 
 	logger() {
 		# esyslog() ignores empty messages. By overriding logger(1), it
@@ -242,54 +243,54 @@ test_esyslog() {
 		esac
 	}
 
-	iterate_tests 5 "$@"
+	iterate_tests 6 "$@"
 }
 
 test_is_identifier() {
 	set -- \
-		1   ''   \
-		1    _   \
-		1    0   \
-		1   0a   \
-		1   0Z   \
-		1    9   \
-		1   9a   \
-		1   9Z   \
-		1   /a   \
-		1   /Z   \
-		1   .a   \
-		1   .Z   \
-		1   [a   \
-		1   [Z   \
-		1  '`a'  \
-		1  '`Z'  \
-		1  '{a'  \
-		1  '{Z'  \
-		1  '|a'  \
-		1  '|Z'  \
-		1   a/   \
-		1   Z/   \
-		1   a.   \
-		1   Z.   \
-		1   a[   \
-		1   Z[   \
-		1  'a`'  \
-		1  'Z`'  \
-		1  'a{'  \
-		1  'Z{'  \
-		1  'a|'  \
-		1  'Z|'  \
-		0    a   \
-		0    Z   \
-		0   __   \
-		0   _a   \
-		0   _Z   \
-		0   a_   \
-		0   Z_   \
-		0  a_a   \
-		0  a_Z   \
-		0  Z_a   \
-		0  Z_Z
+		ge  1   ''   \
+		ge  1    _   \
+		ge  1    0   \
+		ge  1   0a   \
+		ge  1   0Z   \
+		ge  1    9   \
+		ge  1   9a   \
+		ge  1   9Z   \
+		ge  1   /a   \
+		ge  1   /Z   \
+		ge  1   .a   \
+		ge  1   .Z   \
+		ge  1  '[a'   \
+		ge  1  '[Z'  \
+		ge  1  '`a'  \
+		ge  1  '`Z'  \
+		ge  1  '{a'  \
+		ge  1  '{Z'  \
+		ge  1  '|a'  \
+		ge  1  '|Z'  \
+		ge  1   a/   \
+		ge  1   Z/   \
+		ge  1   a.   \
+		ge  1   Z.   \
+		ge  1  'a['  \
+		ge  1  'Z['  \
+		ge  1  'a`'  \
+		ge  1  'Z`'  \
+		ge  1  'a{'  \
+		ge  1  'Z{'  \
+		ge  1  'a|'  \
+		ge  1  'Z|'  \
+		eq  0    a   \
+		eq  0    Z   \
+		eq  0   __   \
+		eq  0   _a   \
+		eq  0   _Z   \
+		eq  0   a_   \
+		eq  0   Z_   \
+		eq  0  a_a   \
+		eq  0  a_Z   \
+		eq  0  Z_a   \
+		eq  0  Z_Z
 
 		callback() {
 			shift
@@ -297,24 +298,24 @@ test_is_identifier() {
 			is_identifier "$@"
 		}
 
-		iterate_tests 2 "$@"
+		iterate_tests 3 "$@"
 }
 
 test_is_int() {
 	set -- \
-		1  N/A \
-		1  ' ' \
-		1  ' 1 ' \
-		1  '' \
-		1  +1 \
-		1  +008 \
-		1  -008 \
-		1  008 \
-		1  x \
-		0  0 \
-		0  1 \
-		0  -1 \
-		0  123456789
+		ge  1  N/A \
+		ge  1  ' ' \
+		ge  1  ' 1 ' \
+		ge  1  '' \
+		ge  1  +1 \
+		ge  1  +008 \
+		ge  1  -008 \
+		ge  1  008 \
+		ge  1  x \
+		eq  0  0 \
+		eq  0  1 \
+		eq  0  -1 \
+		eq  0  123456789
 
 		callback() {
 			shift
@@ -322,19 +323,19 @@ test_is_int() {
 			is_int "$@"
 		}
 
-		iterate_tests 2 "$@"
+		iterate_tests 3 "$@"
 }
 
 test_is_visible() {
 	set -- \
-		1  '' \
-		1  ' ' \
-		1  "$(printf '\t')" \
-		1  "$(printf '\a')" \
-		0  . \
-		0  ' . ' \
-		0  "$(printf '\t.\t')" \
-		0  "$(printf '\a.\a')"
+		ge  1  '' \
+		ge  1  ' ' \
+		ge  1  "$(printf '\t')" \
+		ge  1  "$(printf '\a')" \
+		eq  0  . \
+		eq  0  ' . ' \
+		eq  0  "$(printf '\t.\t')" \
+		eq  0  "$(printf '\a.\a')"
 
 		callback() {
 			shift
@@ -342,35 +343,35 @@ test_is_visible() {
 			_is_visible "$@"
 		}
 
-		iterate_tests 2 "$@"
+		iterate_tests 3 "$@"
 }
 
 test_yesno() {
 	set -- \
-		0  yes \
-		0  YES \
-		0  Yes \
-		0  true \
-		0  TRUE \
-		0  true \
-		0  on \
-		0  ON \
-		0  On \
-		0  1 \
-		1  no \
-		1  NO \
-		1  No \
-		1  false \
-		1  FALSE \
-		1  False \
-		1  off \
-		1  OFF \
-		1  Off \
-		1  0 \
-		1  not_a_nameref \
-		1  not-a-valid-nameref \
-		1  '_"; set -- yes # code injection' \
-		0  truthful_nameref
+		eq  0  yes \
+		eq  0  YES \
+		eq  0  Yes \
+		eq  0  true \
+		eq  0  TRUE \
+		eq  0  true \
+		eq  0  on \
+		eq  0  ON \
+		eq  0  On \
+		eq  0  1 \
+		ge  1  no \
+		ge  1  NO \
+		ge  1  No \
+		ge  1  false \
+		ge  1  FALSE \
+		ge  1  False \
+		ge  1  off \
+		ge  1  OFF \
+		ge  1  Off \
+		ge  1  0 \
+		ge  1  not_a_nameref \
+		ge  1  not-a-valid-nameref \
+		ge  1  '_"; set -- yes # code injection' \
+		eq  0  truthful_nameref
 
 		# shellcheck disable=2034
 		truthful_nameref=yes
@@ -381,7 +382,7 @@ test_yesno() {
 			yesno "$@"
 		}
 
-		iterate_tests 2 "$@"
+		iterate_tests 3 "$@"
 }
 
 iterate_tests() {
@@ -393,7 +394,7 @@ iterate_tests() {
 	i=0
 	while [ "$((i += 1))" -le "${total}" ]; do
 		code="callback"
-		j=0
+		j=1
 		while [ "$((j += 1))" -le "${slice_width}" ]; do
 			if eval "[ \"\$${j}\" = N/A ]"; then
 				break
@@ -402,12 +403,14 @@ iterate_tests() {
 			fi
 		done
 		eval "${code}"
-		if [ "$?" -eq "$1" ]; then
+		retval=$?
+		if [ "${retval}" -"$1" "$2" ]; then
 			passed=$((passed + 1))
 		else
 			printf 'not '
 		fi
-		printf 'ok %d - %s (expecting %s)\n' "$((testnum += 1))" "${test_description}" "$1"
+		printf 'ok %d - %s (test %d -%s %d)\n' \
+			"$((testnum += 1))" "${test_description}" "${retval}" "$1" "$2"
 		shift "${slice_width}"
 	done
 	return "$(( passed < total ))"
