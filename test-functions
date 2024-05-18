@@ -118,7 +118,7 @@ test_edo() {
 	callback() {
 		shift
 		test_description="edo $1"
-		( edo "$1" )
+		( edo "$1" >/dev/null )
 	}
 
 	iterate_tests 3 "$@"
