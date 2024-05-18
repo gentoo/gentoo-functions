@@ -161,6 +161,15 @@ eoutdent()
 }
 
 #
+# Prints a QA warning message, provided that EINFO_QUIET is false. If printed,
+# the message shall also be conveyed to the esyslog function. For now, this is
+# implemented merely as an ewarn wrapper.
+#
+eqawarn() {
+	ewarn "$@"
+}
+
+#
 # Invokes the logger(1) utility, provided that EINFO_LOG is true. The first
 # parameter shall be taken as a priority level, the second as the message tag,
 # and the remaining parameters as the message to be logged.
