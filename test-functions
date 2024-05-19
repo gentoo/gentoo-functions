@@ -430,23 +430,6 @@ iterate_tests() {
 	return "$(( passed < total ))"
 }
 
-print_args() {
-	i=0
-	for arg; do
-		if [ "$((i += 1))" -eq 1 ]; then
-			set --
-		fi
-		case ${arg} in
-			''|*[[:space:]]*)
-				set -- "$@" "'${arg}'"
-				;;
-			*)
-				set -- "$@" "${arg}"
-		esac
-	done
-	printf '%s\n' "$*"
-}
-
 printf 'TAP version 13\n'
 
 unset -v dir
