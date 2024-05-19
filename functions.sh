@@ -603,7 +603,6 @@ _is_visible()
 # of the ${*@Q} expansion in bash. The output shall be POSIX sh compatible as of
 # Issue 8. This should probably be made to exist as a standalone awk script.
 #
-#
 _print_args() {
 	awk -v q=\' -f - -- "$@" <<-'EOF'
 		BEGIN {
@@ -611,7 +610,7 @@ _print_args() {
 			ARGC = 1
 			for (arg_idx = 1; arg_idx < argc; arg_idx++) {
 				arg = ARGV[arg_idx]
-				if (arg !~ /[\001-\037]/) {
+				if (arg !~ /[\001-\037\177]/) {
 					gsub(q, q "\\" q q, arg)
 					word = q arg q
 				} else {
@@ -621,6 +620,7 @@ _print_args() {
 							char = sprintf("%c", i)
 							ord_by[char] = i
 						}
+						ord_by["\177"] = 127
 					}
 					word = "$'"
 					for (i = 1; i <= length(arg); i++) {
