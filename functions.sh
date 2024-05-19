@@ -173,6 +173,78 @@ eoutdent()
 }
 
 #
+# This is based on the eqatag function defined by isolated-functions.sh in
+# portage. If the first parameter is the -v option, it shall be disregarded.
+# Discounting said option, at least one parameter is required, which shall be
+# taken as a tag name. Thereafter, zero or more parameters shall be accepted in
+# the form of "key=val", followed by zero or more parameters beginning with a
+# <slash>. An object shall be composed in which the tag is the value of a "tag"
+# key, the key/value pairs the value of a "data" key, and the <slash>-prefixed
+# parameters the value of a "files" key. The resulting object shall be rendered
+# as JSON by jq(1) before being logged by the logger(1) utility.
+#
+eqatag() {
+	local arg argc json positional tag
+
+	case ${genfun_has_jq} in
+		0)
+			return 1
+			;;
+		1)
+			;;
+		*)
+			if command -v jq >/dev/null; then
+				genfun_has_jq=1
+			else
+				ewarn "The eqatag() function requires that jq be installed"
+				genfun_has_jq=0
+				return 1
+			fi
+	esac
+	# Acknowledge the -v option for isolated-functions API compatibility.
+	if [ "$1" = "-v" ]; then
+		shift
+	fi
+	if [ "$#" -eq 0 ]; then
+		die "eqatag: no tag specified"
+	fi
+	tag=$1
+	shift
+	argc=$#
+	positional=0
+	for arg; do
+		case ${arg} in
+			[!=/]*=?*)
+				if [ "${positional}" -eq 1 ]; then
+					die "eqatag: invalid argument in positional context -- ${arg}"
+				fi
+				set -- "$@" --arg "${arg%%=*}" "${arg#*=}"
+				;;
+			/*)
+				if [ "${positional}" -eq 0 ]; then
+					set -- "$@" --args --
+					positional=1
+				fi
+				set -- "$@" "${arg}"
+				;;
+			*)
+				die "eqatag: invalid argument -- ${arg}"
+		esac
+	done
+	shift "${argc}"
+	json=$(
+		jq -cn '{
+			eqatag: {
+				tag:   $ARGS.named["=tag"],
+				data:  $ARGS.named | with_entries(select(.key | startswith("=") | not)),
+				files: $ARGS.positional
+			}
+		}' --arg "=tag" "${tag}" "$@"
+	) \
+	&& logger -p user.debug -t "${0##*/}" -- "${json}"
+}
+
+#
 # Prints a QA warning message, provided that EINFO_QUIET is false. If printed,
 # the message shall also be conveyed to the esyslog function. For now, this is
 # implemented merely as an ewarn wrapper.
