@@ -535,10 +535,6 @@ _is_visible()
 _print_args() {
 	awk -v q=\' -f - -- "$@" <<-'EOF'
 		BEGIN {
-			for (i = 1; i < 32; i++) {
-				char = sprintf("%c", i)
-				ord_by[char] = i
-			}
 			argc = ARGC
 			ARGC = 1
 			for (arg_idx = 1; arg_idx < argc; arg_idx++) {
@@ -548,6 +544,12 @@ _print_args() {
 					word = q arg q
 				} else {
 					# Use $'' quoting per Issue 8
+					if (ord_by["\001"] == "") {
+						for (i = 1; i < 32; i++) {
+							char = sprintf("%c", i)
+							ord_by[char] = i
+						}
+					}
 					word = "$'"
 					for (i = 1; i <= length(arg); i++) {
 						char = substr(arg, i, 1)
