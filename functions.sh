@@ -94,8 +94,8 @@ ebegin()
 #
 edo() {
 	genfun_cmd=$(_print_args "$@")
-	einfo "${genfun_cmd}"
-	"$@" || die "Failed to run command: ${genfun_cmd}"
+	einfo "Executing: ${genfun_cmd}"
+	"$@" || die "Failed to execute command: ${genfun_cmd}"
 }
 
 #
