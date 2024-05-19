@@ -94,8 +94,8 @@ ebegin()
 #
 edo() {
 	genfun_cmd=$(_print_args "$@")
-	einfo "${genfun_cmd% }"
-	"$@" || die "Failed to run command: ${genfun_cmd% }"
+	einfo "${genfun_cmd}"
+	"$@" || die "Failed to run command: ${genfun_cmd}"
 }
 
 #
@@ -528,18 +528,46 @@ _is_visible()
 
 #
 # Prints the positional parameters in a manner that approximates the behaviour
-# of the ${*@Q} expansion in bash.
+# of the ${*@Q} expansion in bash. The output shall be POSIX sh compatible as of
+# Issue 8. This should probably be made to exist as a standalone awk script.
+#
 #
 _print_args() {
 	awk -v q=\' -f - -- "$@" <<-'EOF'
 		BEGIN {
+			for (i = 1; i < 32; i++) {
+				char = sprintf("%c", i)
+				ord_by[char] = i
+			}
 			argc = ARGC
 			ARGC = 1
-			for (i = 1; i < argc; i++) {
-				arg = ARGV[i]
-				gsub(q, q "\\" q q, arg)
-				printf("'%s' ", arg)
+			for (arg_idx = 1; arg_idx < argc; arg_idx++) {
+				arg = ARGV[arg_idx]
+				if (arg !~ /[\001-\037]/) {
+					gsub(q, q "\\" q q, arg)
+					word = q arg q
+				} else {
+					# Use $'' quoting per Issue 8
+					word = "$'"
+					for (i = 1; i <= length(arg); i++) {
+						char = substr(arg, i, 1)
+						if (char == "\\")
+							word = word "\\\\"
+						else if (char == q)
+							word = word "\\'"
+						else
+							ord = ord_by[char]
+							if (ord != "")
+								word = word "\\" sprintf("%03o", ord)
+							else
+								word = word char
+					}
+					word = word q
+				}
+				line = line word
+				if (arg_idx < argc - 1) line = line " "
 			}
+			print line
 		}
 	EOF
 }
