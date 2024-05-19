@@ -435,7 +435,7 @@ printf 'TAP version 13\n'
 unset -v dir
 
 # PATH is redefined to prevent ebuild-helpers such as die from interfering.
-export PATH=/sbin:/bin:/usr/sbin:/usr/bin
+export PATH=/sbin:/bin:/usr/sbin:/usr/bin:/opt/pkg/bin
 export TEST_GENFUNCS=1
 export TZ=UTC
 testnum=0
