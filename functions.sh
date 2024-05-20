@@ -92,7 +92,8 @@ ebegin()
 # Should the command fail, a diagnostic message shall be printed and the shell
 # be made to exit by calling the die function.
 #
-edo() {
+edo()
+{
 	genfun_cmd=$(_print_args "$@")
 	einfo "Executing: ${genfun_cmd}"
 	"$@" || die "Failed to execute command: ${genfun_cmd}"
@@ -117,7 +118,8 @@ eend()
 #
 for _ in eerror einfo ewarn; do
 	eval "
-		$_ () {
+		$_ ()
+		{
 			${_}n \"\${*}\${genfun_newline}\"
 		}
 	"
@@ -183,7 +185,8 @@ eoutdent()
 # parameters the value of a "files" key. The resulting object shall be rendered
 # as JSON by jq(1) before being logged by the logger(1) utility.
 #
-eqatag() {
+eqatag()
+{
 	local arg argc json positional tag
 
 	case ${genfun_has_jq} in
@@ -249,7 +252,8 @@ eqatag() {
 # the message shall also be conveyed to the esyslog function. For now, this is
 # implemented merely as an ewarn wrapper.
 #
-eqawarn() {
+eqawarn()
+{
 	ewarn "$@"
 }
 
@@ -409,7 +413,8 @@ is_older_than()
 #
 for _ in vebegin veerror veindent veinfo veinfon veoutdent vewarn; do
 	eval "
-		$_ () {
+		$_ ()
+		{
 			if yesno \"\${EINFO_VERBOSE}\"; then
 				${_#v} \"\$@\"
 			fi
@@ -605,7 +610,8 @@ _is_visible()
 # of the ${*@Q} expansion in bash. The output shall be POSIX sh compatible as of
 # Issue 8. This should probably be made to exist as a standalone awk script.
 #
-_print_args() {
+_print_args()
+{
 	awk -v q=\' -f - -- "$@" <<-'EOF'
 		BEGIN {
 			argc = ARGC
