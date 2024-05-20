@@ -625,21 +625,25 @@ _print_args() {
 					word = "$'"
 					for (i = 1; i <= length(arg); i++) {
 						char = substr(arg, i, 1)
-						if (char == "\\")
+						if (char == "\\") {
 							word = word "\\\\"
-						else if (char == q)
+						} else if (char == q) {
 							word = word "\\'"
-						else
+						} else {
 							ord = ord_by[char]
-							if (ord != "")
+							if (ord != "") {
 								word = word "\\" sprintf("%03o", ord)
-							else
+							} else {
 								word = word char
+							}
+						}
 					}
 					word = word q
 				}
 				line = line word
-				if (arg_idx < argc - 1) line = line " "
+				if (arg_idx < argc - 1) {
+					line = line " "
+				}
 			}
 			print line
 		}
