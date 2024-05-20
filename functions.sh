@@ -216,7 +216,7 @@ eqatag() {
 		case ${arg} in
 			[!=/]*=?*)
 				if [ "${positional}" -eq 1 ]; then
-					die "eqatag: invalid argument in positional context -- ${arg}"
+					_throw_invalid_args eqatag "${arg}"
 				fi
 				set -- "$@" --arg "${arg%%=*}" "${arg#*=}"
 				;;
@@ -228,7 +228,7 @@ eqatag() {
 				set -- "$@" "${arg}"
 				;;
 			*)
-				die "eqatag: invalid argument -- ${arg}"
+				_throw_invalid_args eqatag "${arg}"
 		esac
 	done
 	shift "${argc}"
@@ -263,8 +263,7 @@ esyslog()
 	local pri tag msg
 
 	if [ "$#" -lt 2 ]; then
-		ewarn "Too few arguments for esyslog (got $#, expected at least 2)"
-		return 1
+		die "esyslog: too few arguments (got $#, expected at least 2)"
 	elif yesno "${EINFO_LOG}" && hash logger 2>/dev/null; then
 		pri=$1
 		tag=$2
@@ -376,8 +375,7 @@ is_older_than()
 	local ref has_gfind
 
 	if [ "$#" -lt 2 ]; then
-		ewarn "Too few arguments for is_older_than (got $#, expected at least 2)"
-		return 1
+		die "is_older_than: too few arguments (got $#, expected at least 2)"
 	elif [ -e "$1" ]; then
 		ref=$1
 	else
@@ -424,7 +422,7 @@ veend()
 	if yesno "${EINFO_VERBOSE}"; then
 		GENFUN_CALLER=veend eend "$@"
 	elif [ "$#" -gt 0 ] && { ! is_int "$1" || [ "$1" -lt 0 ]; }; then
-		ewarn "Invalid argument given to veend (the exit status code must be an integer >= 0)"
+		_throw_invalid_args veend "$1"
 	else
 		return "$1"
 	fi
@@ -435,7 +433,7 @@ vewend()
 	if yesno "${EINFO_VERBOSE}"; then
 		GENFUN_CALLER=vewend ewend "$@"
 	elif [ "$#" -gt 0 ] && { ! is_int "$1" || [ "$1" -lt 0 ]; }; then
-		ewarn "Invalid argument given to vewend (the exit status code must be an integer >= 0)"
+		_throw_invalid_args vewend "$1"
 	else
 		return "$1"
 	fi
@@ -449,8 +447,14 @@ vewend()
 #
 yesno()
 {
+	local arg
+
+	if [ "$#" -eq 0 ]; then
+		die "yesno: too few arguments (got $#, expected 1)"
+	fi
+	arg=$1
 	for _ in 1 2; do
-		case $1 in
+		case ${arg} in
 			[Nn][Oo]|[Ff][Aa][Ll][Ss][Ee]|[Oo][Ff][Ff]|0|'')
 				return 1
 				;;
@@ -462,9 +466,9 @@ yesno()
 		else
 			# The value appears to be a legal variable name. Treat
 			# it as a name reference and try again, once only.
-			eval "set -- \"\$$1\""
+			eval "arg=\$$1"
 		fi
-	done || vewarn "Invalid argument given to yesno (expected a boolean-like or a legal name)"
+	done || _throw_invalid_args yesno "$1"
 	return 1
 }
 
@@ -481,9 +485,7 @@ _eend()
 	if [ "$#" -eq 0 ]; then
 		retval=0
 	elif ! is_int "$1" || [ "$1" -lt 0 ]; then
-		ewarn "Invalid argument given to ${GENFUN_CALLER} (the exit status code must be an integer >= 0)"
-		retval=0
-		msg=
+		_throw_invalid_args "${GENFUN_CALLER}" "$1"
 	else
 		retval=$1
 		shift
@@ -648,6 +650,21 @@ _print_args() {
 			print line
 		}
 	EOF
+}
+
+#
+# Prints a diganostic message concerning invalid function arguments then exits.
+# The first argument shall be taken as a function identifier. The remaining
+# arguments shall be safely rendered as a part of the diagnostic.
+#
+_throw_invalid_args()
+{
+	local ident plural
+
+	ident=$1
+	shift
+	[ "$#" -gt 1 ] && plural=s || plural=
+	die "${ident}: invalid argument${plural}: $(_print_args "$@")"
 }
 
 #

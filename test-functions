@@ -196,7 +196,7 @@ test_is_older_than() {
 	callback() {
 		shift
 		test_description="is_older_than $(_print_args "$@")"
-		is_older_than "$@"
+		( is_older_than "$@" )
 	}
 
 	iterate_tests 4 "$@"
@@ -239,18 +239,17 @@ test_esyslog() {
 	logger() {
 		# esyslog() ignores empty messages. By overriding logger(1), it
 		# can be determined whether a message would have been logged.
-		logged=$((logged + 1))
+		printf '1\n'
 	}
 
 	callback() {
 		should_log=$2
 		shift 2
-		logged=0
 		test_description="esyslog $(_print_args "$@")"
-		EINFO_LOG=1 esyslog "$@" 2>/dev/null
+		logged=$(EINFO_LOG=1 esyslog "$@")
 		case $? in
 			0)
-				test "${logged}" -eq "${should_log}"
+				test "${logged:-0}" -eq "${should_log}"
 				;;
 			*)
 				return "$?"
@@ -393,7 +392,7 @@ test_yesno() {
 		callback() {
 			shift
 			test_description="yesno $(_print_args "$@")"
-			yesno "$@"
+			( yesno "$@" )
 		}
 
 		iterate_tests 3 "$@"
