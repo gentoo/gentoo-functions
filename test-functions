@@ -95,19 +95,19 @@ test_ebegin() {
 	_eprint() {
 		shift
 		_ends_with_newline "$*"
-		ok=$(( $? == 0 ))
 	}
 
 	ok=0
 	set -- "message"
 	ebegin "$1"
+	retval=$?
 
-	if [ "${ok}" -eq 0 ]; then
+	if [ "${retval}" -ne 0 ]; then
 		printf 'not '
 	fi
 	printf 'ok %d - ebegin %s (expecting terminating newline)\n' "$((testnum + 1))" "$1"
 
-	return "$(( ok ? 0 : 1 ))"
+	return "${retval}"
 }
 
 test_edo() {
