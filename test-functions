@@ -196,7 +196,11 @@ test_is_older_than() {
 	callback() {
 		shift
 		test_description="is_older_than $(_print_args "$@")"
-		( is_older_than "$@" )
+		if [ "$#" -lt 2 ]; then
+			( is_older_than "$@" )
+		else
+			is_older_than "$@"
+		fi
 	}
 
 	iterate_tests 4 "$@"
@@ -371,6 +375,7 @@ test_yesno() {
 		eq  0  ON \
 		eq  0  On \
 		eq  0  1 \
+		eq  0  truthful_nameref \
 		ge  1  no \
 		ge  1  NO \
 		ge  1  No \
@@ -383,16 +388,20 @@ test_yesno() {
 		ge  1  0 \
 		ge  1  not_a_nameref \
 		ge  1  not-a-valid-nameref \
-		ge  1  '_"; set -- yes # code injection' \
-		eq  0  truthful_nameref
+		ge  1  '_"; set -- yes # code injection'
 
 		# shellcheck disable=2034
 		truthful_nameref=yes
+		row=0
 
 		callback() {
 			shift
 			test_description="yesno $(_print_args "$@")"
-			( yesno "$@" )
+			if [ "$(( row += 1 ))" -ge 22 ]; then
+				( yesno "$@" )
+			else
+				yesno "$@"
+			fi
 		}
 
 		iterate_tests 3 "$@"
