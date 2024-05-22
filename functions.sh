@@ -389,9 +389,9 @@ is_older_than()
 	fi
 	shift
 
-	# Check whether GNU find is installed by the name of "gfind". So as to avoid
-	# repeated PATH lookups, run the hash builtin in the present shell, prior to
-	# forking.
+	# Check whether GNU find is installed by the name of "gfind". So as to
+	# avoid repeated PATH lookups, run the hash builtin in the present
+	# shell, prior to forking.
 	hash gfind 2>/dev/null; has_gfind=$(( $? == 0 ))
 
 	for path; do
