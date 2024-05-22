@@ -187,7 +187,7 @@ eoutdent()
 #
 eqatag()
 {
-	local arg argc json positional tag
+	local arg i json positional tag
 
 	case ${genfun_has_jq} in
 		0)
@@ -211,11 +211,14 @@ eqatag()
 	if [ "$#" -eq 0 ]; then
 		die "eqatag: no tag specified"
 	fi
+	positional=0
 	tag=$1
 	shift
-	argc=$#
-	positional=0
+	i=0
 	for arg; do
+		if [ "$(( i += 1 ))" -eq 1 ]; then
+			set --
+		fi
 		case ${arg} in
 			[!=/]*=?*)
 				if [ "${positional}" -eq 1 ]; then
@@ -234,7 +237,6 @@ eqatag()
 				_throw_invalid_args eqatag "${arg}"
 		esac
 	done
-	shift "${argc}"
 	json=$(
 		jq -cn '{
 			eqatag: {
