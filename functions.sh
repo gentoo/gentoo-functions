@@ -345,6 +345,24 @@ get_bootparam()
 )
 
 #
+# Determines whether OpenRC appears to be operational as a service manager in
+# the context of the present root filesystem namespace.
+#
+has_openrc()
+{
+	test -d /run/openrc
+}
+
+#
+# Determines whether systemd appears to be operational as a service manager in
+# the context of the present root filesystem namespace.
+#
+has_systemd()
+{
+	test -d /run/systemd
+}
+
+#
 # Determines whether the first parameter is a valid identifier (variable name).
 #
 is_identifier()
