@@ -63,7 +63,7 @@ if ! command -v die >/dev/null; then
 			*)
 				genfun_status=$?
 		esac
-		printf '%s: %s\n' "${0##*/}" "$*" >&2
+		warn "$@"
 		exit "${genfun_status}"
 	}
 fi
@@ -209,7 +209,8 @@ eqatag()
 		shift
 	fi
 	if [ "$#" -eq 0 ]; then
-		die "eqatag: no tag specified"
+		warn "eqatag: no tag specified"
+		return 1
 	fi
 	positional=0
 	tag=$1
@@ -222,7 +223,8 @@ eqatag()
 		case ${arg} in
 			[!=/]*=?*)
 				if [ "${positional}" -eq 1 ]; then
-					_throw_invalid_args eqatag "${arg}"
+					_warn_for_args eqatag "${arg}"
+					return 1
 				fi
 				set -- "$@" --arg "${arg%%=*}" "${arg#*=}"
 				;;
@@ -234,7 +236,8 @@ eqatag()
 				set -- "$@" "${arg}"
 				;;
 			*)
-				_throw_invalid_args eqatag "${arg}"
+				_warn_for_args eqatag "${arg}"
+				return 1
 		esac
 	done
 	json=$(
@@ -269,7 +272,8 @@ esyslog()
 	local pri tag msg
 
 	if [ "$#" -lt 2 ]; then
-		die "esyslog: too few arguments (got $#, expected at least 2)"
+		warn "esyslog: too few arguments (got $#, expected at least 2)"
+		return 1
 	elif yesno "${EINFO_LOG}" && hash logger 2>/dev/null; then
 		pri=$1
 		tag=$2
@@ -380,8 +384,9 @@ is_older_than()
 {
 	local ref has_gfind
 
-	if [ "$#" -lt 2 ]; then
-		die "is_older_than: too few arguments (got $#, expected at least 2)"
+	if [ "$#" -eq 0 ]; then
+		warn "is_older_than: too few arguments (got $#, expected at least 1)"
+		return 1
 	elif [ -e "$1" ]; then
 		ref=$1
 	else
@@ -431,7 +436,8 @@ veend()
 	if yesno "${EINFO_VERBOSE}"; then
 		GENFUN_CALLER=veend eend "$@"
 	elif [ "$#" -gt 0 ] && { ! is_int "$1" || [ "$1" -lt 0 ]; }; then
-		_throw_invalid_args veend "$1"
+		_warn_for_args veend "$1"
+		false
 	else
 		return "$1"
 	fi
@@ -442,7 +448,8 @@ vewend()
 	if yesno "${EINFO_VERBOSE}"; then
 		GENFUN_CALLER=vewend ewend "$@"
 	elif [ "$#" -gt 0 ] && { ! is_int "$1" || [ "$1" -lt 0 ]; }; then
-		_throw_invalid_args vewend "$1"
+		_warn_for_args vewend "$1"
+		false
 	else
 		return "$1"
 	fi
@@ -459,7 +466,8 @@ yesno()
 	local arg
 
 	if [ "$#" -eq 0 ]; then
-		die "yesno: too few arguments (got $#, expected 1)"
+		warn "yesno: too few arguments (got $#, expected 1)"
+		return 1
 	fi
 	arg=$1
 	for _ in 1 2; do
@@ -471,14 +479,15 @@ yesno()
 				return 0
 		esac
 		if [ "$_" -ne 1 ] || ! is_identifier "$1"; then
-			! break
+			break
 		else
 			# The value appears to be a legal variable name. Treat
 			# it as a name reference and try again, once only.
 			eval "arg=\$$1"
 		fi
-	done || _throw_invalid_args yesno "$1"
-	return 1
+	done
+	_warn_for_args yesno "$@"
+	false
 }
 
 #
@@ -494,7 +503,9 @@ _eend()
 	if [ "$#" -eq 0 ]; then
 		retval=0
 	elif ! is_int "$1" || [ "$1" -lt 0 ]; then
-		_throw_invalid_args "${GENFUN_CALLER}" "$1"
+		_warn_for_args "${GENFUN_CALLER}" "$1"
+		retval=1
+		msg=
 	else
 		retval=$1
 		shift
@@ -663,21 +674,6 @@ _print_args()
 }
 
 #
-# Prints a diganostic message concerning invalid function arguments then exits.
-# The first argument shall be taken as a function identifier. The remaining
-# arguments shall be safely rendered as a part of the diagnostic.
-#
-_throw_invalid_args()
-{
-	local ident plural
-
-	ident=$1
-	shift
-	[ "$#" -gt 1 ] && plural=s || plural=
-	die "${ident}: invalid argument${plural}: $(_print_args "$@")"
-}
-
-#
 # Determines whether the terminal on STDIN is able to report its dimensions.
 # Upon success, the number of columns shall be stored in genfun_cols.
 #
@@ -716,6 +712,21 @@ _update_tty_level()
 	else
 		genfun_tty=2
 	fi
+}
+
+#
+# Prints a diganostic message concerning invalid function arguments. The first
+# argument shall be taken as a function identifier. The remaining arguments
+# shall be safely rendered as a part of the diagnostic.
+#
+_warn_for_args()
+{
+	local ident plural
+
+	ident=$1
+	shift
+	[ "$#" -gt 1 ] && plural=s || plural=
+	warn "${ident}: invalid argument${plural}: $(_print_args "$@")"
 }
 
 # All function declarations end here! Initialisation code only from hereon.

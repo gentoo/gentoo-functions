@@ -196,11 +196,7 @@ test_is_older_than() {
 	callback() {
 		shift
 		test_description="is_older_than $(_print_args "$@")"
-		if [ "$#" -lt 2 ]; then
-			( is_older_than "$@" )
-		else
-			is_older_than "$@"
-		fi
+		is_older_than "$@"
 	}
 
 	iterate_tests 4 "$@"
@@ -392,16 +388,11 @@ test_yesno() {
 
 		# shellcheck disable=2034
 		truthful_nameref=yes
-		row=0
 
 		callback() {
 			shift
 			test_description="yesno $(_print_args "$@")"
-			if [ "$(( row += 1 ))" -ge 22 ]; then
-				( yesno "$@" )
-			else
-				yesno "$@"
-			fi
+			yesno "$@"
 		}
 
 		iterate_tests 3 "$@"
