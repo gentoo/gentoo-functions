@@ -397,6 +397,27 @@ test_yesno() {
 	iterate_tests 3 "$@"
 }
 
+test_srandom() {
+	set -- \
+		eq 0 \
+		eq 0 \
+		eq 0 \
+		eq 0 \
+		eq 0
+
+	row=0
+
+	callback() {
+		number=$(srandom)
+		test_description="srandom ($(( row += 1 ))/5: ${number:-blank})"
+		is_int "${number}" \
+		&& test "${number}" -ge 0 \
+		&& test "${number}" -le 4294967295
+	}
+
+	iterate_tests 2 "$@"
+}
+
 iterate_tests() {
 	slice_width=$1
 	shift
@@ -457,6 +478,7 @@ test_is_visible || rc=1
 test_yesno || rc=1
 test_die || rc=1
 test_edo || rc=1
+test_srandom || rc=1
 
 cleanup_tmpdir
 

@@ -12,6 +12,7 @@
 # The following variables affect initialisation and/or function behaviour.
 
 # BASH          : whether bash-specific features may be employed
+# BASH_VERSINFO : whether bash-specific features may be employed
 # BASHPID       : potentially used by _update_columns() to detect subshells
 # COLUMNS       : potentially used by _update_columns() to get the column count
 # EERROR_QUIET  : whether error printing functions should be silenced
@@ -471,6 +472,32 @@ vewend()
 	else
 		return "$1"
 	fi
+}
+
+#
+# Generates a random uint32 with the assistance of the kernel CSPRNG.
+#
+srandom()
+{
+	# shellcheck disable=3028
+	if [ "${BASH_VERSINFO:-0}" -ge 5 ]; then
+		srandom()
+		{
+			printf '%d\n' "${SRANDOM}"
+		}
+	elif [ -c /dev/urandom ]; then
+		srandom()
+		{
+			printf '%d\n' "0x$(
+				LC_ALL=C od -vAn -N4 -tx1 /dev/urandom | tr -d '[:space:]'
+			)"
+		}
+	else
+		warn "srandom: /dev/urandom doesn't exist as a character device"
+		return 1
+	fi
+
+	srandom
 }
 
 #
