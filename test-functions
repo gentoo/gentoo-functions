@@ -97,7 +97,6 @@ test_ebegin() {
 		_ends_with_newline "$*"
 	}
 
-	ok=0
 	set -- "message"
 	ebegin "$1"
 	retval=$?
