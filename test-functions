@@ -304,13 +304,13 @@ test_is_identifier() {
 		eq  0  Z_a   \
 		eq  0  Z_Z
 
-		callback() {
-			shift
-			test_description="is_identifier $(_print_args "$@")"
-			is_identifier "$@"
-		}
+	callback() {
+		shift
+		test_description="is_identifier $(_print_args "$@")"
+		is_identifier "$@"
+	}
 
-		iterate_tests 3 "$@"
+	iterate_tests 3 "$@"
 }
 
 test_is_int() {
@@ -329,13 +329,13 @@ test_is_int() {
 		eq  0  -1 \
 		eq  0  123456789
 
-		callback() {
-			shift
-			test_description="is_int $(_print_args "$@")"
-			is_int "$@"
-		}
+	callback() {
+		shift
+		test_description="is_int $(_print_args "$@")"
+		is_int "$@"
+	}
 
-		iterate_tests 3 "$@"
+	iterate_tests 3 "$@"
 }
 
 test_is_visible() {
@@ -349,13 +349,13 @@ test_is_visible() {
 		eq  0  "$(printf '\t.\t')" \
 		eq  0  "$(printf '\a.\a')"
 
-		callback() {
-			shift
-			test_description="_is_visible $(_print_args "$@")"
-			_is_visible "$@"
-		}
+	callback() {
+		shift
+		test_description="_is_visible $(_print_args "$@")"
+		_is_visible "$@"
+	}
 
-		iterate_tests 3 "$@"
+	iterate_tests 3 "$@"
 }
 
 test_yesno() {
@@ -385,16 +385,16 @@ test_yesno() {
 		ge  1  not-a-valid-nameref \
 		ge  1  '_"; set -- yes # code injection'
 
-		# shellcheck disable=2034
-		truthful_nameref=yes
+	# shellcheck disable=2034
+	truthful_nameref=yes
 
-		callback() {
-			shift
-			test_description="yesno $(_print_args "$@")"
-			yesno "$@"
-		}
+	callback() {
+		shift
+		test_description="yesno $(_print_args "$@")"
+		yesno "$@"
+	}
 
-		iterate_tests 3 "$@"
+	iterate_tests 3 "$@"
 }
 
 iterate_tests() {
