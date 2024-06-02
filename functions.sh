@@ -474,6 +474,14 @@ vewend()
 }
 
 #
+# Prints a diagnostic message prefixed with the basename of the running script.
+#
+warn()
+{
+	printf '%s: %s\n' "${0##*/}" "$*" >&2
+}
+
+#
 # Determines whether the first parameter is truthy. The values taken to be true
 # are "yes", "true", "on" and "1", whereas their opposites are taken to be
 # false. The empty string is also taken to be false. All pattern matching is
