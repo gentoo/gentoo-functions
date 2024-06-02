@@ -1,6 +1,6 @@
 # Copyright 1999-2023 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
-# shellcheck shell=sh disable=3043
+# shellcheck shell=sh disable=2209,3043
 
 # This file contains a series of function declarations followed by some
 # initialisation code. Functions intended for internal use shall be prefixed
@@ -401,7 +401,7 @@ is_int()
 #
 is_older_than()
 {
-	local ref has_gfind
+	local ref
 
 	if [ "$#" -eq 0 ]; then
 		warn "is_older_than: too few arguments (got $#, expected at least 1)"
@@ -412,26 +412,39 @@ is_older_than()
 		ref=
 	fi
 	shift
+	{ test "$#" -gt 0 && printf '%s\0' "$@"; } \
+	| "${genfun_bin_find}" -L -files0-from - ${ref:+-newermm} ${ref:+"${ref}"} -printf '\n' -quit \
+	| read -r _
+}
 
-	# Check whether GNU find is installed by the name of "gfind". So as to
-	# avoid repeated PATH lookups, run the hash builtin in the present
-	# shell, prior to forking.
-	hash gfind 2>/dev/null; has_gfind=$(( $? == 0 ))
+#
+# Considers one or more pathnames and prints the one having the newest
+# modification time. If at least one parameter is provided, all parameters shall
+# be considered as pathnames to be compared to one another. Otherwise, the
+# pathnames to be compared shall be read from the standard input as
+# NUL-delimited records. If no pathnames are given, or those specified do not
+# exist, the return value shall be greater than 0. In the case that two or more
+# pathnames are candidates, the one having the lexicographically greatest value
+# shall be selected. Pathnames containing newline characters shall be ignored.
+#
+newest()
+{
+	_select_by_mtime -r "$@"
+}
 
-	for path; do
-		if [ -e "${path}" ]; then
-			printf '%s\0' "${path}"
-		fi
-	done |
-	{
-		set -- -L -files0-from - ${ref:+-newermm} ${ref:+"${ref}"} -printf '\n' -quit
-		if [ "${has_gfind}" -eq 1 ]; then
-			gfind "$@"
-		else
-			find "$@"
-		fi
-	} |
-	read -r _
+#
+# Considers one or more pathnames and prints the one having the oldest
+# modification time. If at least one parameter is provided, all parameters shall
+# be considered as pathnames to be compared to one another. Otherwise, the
+# pathnames to be compared shall be read from the standard input as
+# NUL-delimited records. If no pathnames are given, or those specified do not
+# exist, the return value shall be greater than 0. In the case that two or more
+# pathnames are candidates, the one having the lexicographically lesser value
+# shall be selected. Pathnames containing newline characters shall be ignored.
+#
+oldest()
+{
+	_select_by_mtime -- "$@"
 }
 
 #
@@ -727,6 +740,24 @@ _print_args()
 }
 
 #
+# See the definitions of oldest() and newest().
+#
+_select_by_mtime() {
+	local sort_opt
+
+	sort_opt=$1
+	shift
+	if [ "$#" -ge 0 ]; then
+		printf '%s\0' "$@"
+	else
+		cat
+	fi \
+	| "${genfun_bin_find}" -files0-from - -maxdepth 0 ! -path "*${genfun_newline}*" -printf '%T+ %p\n' \
+	| sort "${sort_opt}" \
+	| { IFS= read -r line && printf '%s\n' "${line#* }"; }
+}
+
+#
 # Determines whether the terminal on STDIN is able to report its dimensions.
 # Upon success, the number of columns shall be stored in genfun_cols.
 #
@@ -804,6 +835,9 @@ if [ "${BASH}" ]; then
 	# shellcheck disable=3045
 	genfun_bin_true=$(type -P true)
 fi
+
+# Store the name of the GNU find binary. Some platforms may have it as "gfind".
+hash gfind 2>/dev/null && genfun_bin_find=gfind || genfun_bin_find=find
 
 # Determine whether the use of color is to be wilfully avoided.
 if [ -n "${NO_COLOR}" ]; then
