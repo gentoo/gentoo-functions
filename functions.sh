@@ -496,6 +496,50 @@ oldest()
 }
 
 #
+# Executes a simple command in parallel. At least two parameters are expected.
+# The first parameter shall be taken as the maximum number of jobs to run
+# concurrently. If specified as less than or equal to 0, the number shall be
+# determined by running the nproc function. The second parameter shall be taken
+# as a command name. The remaining parameters shall be conveyed to the specified
+# command, one at a time. Should at least one command fail, the return value
+# shall be greater than 0.
+#
+parallel_run()
+{
+	local arg cmd i statedir w workers
+
+	if [ "$#" -lt 3 ]; then
+		warn "parallel_run: too few arguments (got $#, expected at least 3)"
+		return 1
+	elif ! is_int "$1"; then
+		_warn_for_args parallel_run "$1"
+		return 1
+	elif [ "$1" -le 0 ] && ! workers=$(get_nprocs); then
+		return 1
+	elif ! statedir=${TMPDIR:-/tmp}/parallel_run.$$.$(srandom); then
+		return 1
+	fi
+	workers=${workers:-$1} cmd=$2
+	shift 2
+	w=0
+	i=0
+	(
+		while [ "$(( w += 1 ))" -le "${workers}" ]; do
+			i=$w
+			while [ "$i" -le "$#" ]; do
+				eval "arg=\$${i}"
+				if ! "${cmd}" "${arg}"; then
+					mkdir -p -- "${statedir}"
+				fi
+				i=$(( i + workers ))
+			done &
+		done
+		wait
+	)
+	! rmdir -- "${statedir}" 2>/dev/null
+}
+
+#
 # Declare the vebegin, veerror, veindent, veinfo, veinfon, veoutdent and vewarn
 # functions. These differ from their non-v-prefixed counterparts in that they
 # only have an effect where EINFO_VERBOSE is true.

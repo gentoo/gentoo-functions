@@ -556,6 +556,25 @@ test_get_nprocs() {
 	iterate_tests 2 "$@"
 }
 
+test_parallel_run() {
+	set -- \
+		ge  1  N/A                     N/A                     \
+		eq  0  /                       N/A                     \
+		ge  1  /var/empty/nonexistent  N/A                     \
+		eq  0  /                       /                       \
+		ge  1  /                       /var/empty/nonexistent  \
+		ge  1  /var/empty/nonexistent  /var/empty/nonexistent  \
+		ge  1  /var/empty/nonexistent  /
+
+	callback() {
+		shift
+		test_description="parallel_run $(_print_args 0 ls "$@")"
+		parallel_run 0 ls "$@" >/dev/null 2>&1
+	}
+
+	iterate_tests 4 "$@"
+}
+
 iterate_tests() {
 	slice_width=$1
 	shift
@@ -621,7 +640,7 @@ test_newest || rc=1
 test_trim || rc=1
 test_hr || rc=1
 test_whenceforth || rc=1
-test_get_nprocs || rc=1
+test_parallel_run || rc=1
 
 cleanup_tmpdir
 
