@@ -514,6 +514,22 @@ srandom()
 }
 
 #
+# Trims leading and trailing whitespace from one or more lines. If at least one
+# parameter is provided, each positional parameter shall be considered as a line
+# to be processed. Otherwise, the lines to be processed shall be read from the
+# standard input. The trimmed lines shall be printed to the standard output.
+#
+trim()
+{
+	if [ "$#" -gt 0 ]; then
+		printf '%s\n' "$@"
+	else
+		cat
+	fi |
+	sed -e 's/^[[:space:]]\{1,\}//' -e 's/[[:space:]]\{1,\}$//'
+}
+
+#
 # Prints a diagnostic message prefixed with the basename of the running script.
 #
 warn()

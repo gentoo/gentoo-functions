@@ -456,6 +456,34 @@ test_newest() {
 	iterate_tests 4 "$@"
 }
 
+test_trim() {
+	set -- \
+		eq  0  ''                       ''     \
+		eq  0  ' '                      ''     \
+		eq  0  '  '                     ''     \
+		eq  0  ' X'                     'X'    \
+		eq  0  '  X'                    'X'    \
+		eq  0  'X  '                    'X'    \
+		eq  0  ' X Y'                   'X Y'  \
+		eq  0  '  X Y'                  'X Y'  \
+		eq  0  'X Y '                   'X Y'  \
+		eq  0  'X Y  '                  'X Y'  \
+		eq  0  "$(printf ' \tX')"       'X'    \
+		eq  0  "$(printf ' \tX\t ')"    'X'    \
+		eq  0  "$(printf    'X\t ')"    'X'    \
+		eq  0  "$(printf ' \tX Y')"     'X Y'  \
+		eq  0  "$(printf ' \tX Y\t ')"  'X Y'  \
+		eq  0  "$(printf    'X Y\t ')"  'X Y'
+
+	callback() {
+		shift
+		test_description="trim $(_print_args "$1") (expecting $(_print_args "$2"))"
+		test "$(trim "$1")" = "$2"
+	}
+
+	iterate_tests 4 "$@"
+}
+
 iterate_tests() {
 	slice_width=$1
 	shift
@@ -518,6 +546,7 @@ test_die || rc=1
 test_edo || rc=1
 test_srandom || rc=1
 test_newest || rc=1
+test_trim || rc=1
 
 cleanup_tmpdir
 
