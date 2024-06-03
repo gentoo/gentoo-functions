@@ -970,6 +970,11 @@ _warn_for_args()
 # shellcheck disable=2034
 RC_GOT_FUNCTIONS=yes
 
+# This shall be incremented by one upon any change being made to the public API.
+# It was introduced by gentoo-functions-1.7 with an initial value of 1.
+# shellcheck disable=2034
+GENFUN_API_LEVEL=1
+
 # Assign the LF ('\n') character for later expansion. POSIX Issue 8 permits
 # $'\n' but it may take years for it to be commonly implemented.
 genfun_newline='
