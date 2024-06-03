@@ -200,7 +200,7 @@ eqatag()
 			if command -v jq >/dev/null; then
 				genfun_has_jq=1
 			else
-				ewarn "The eqatag() function requires that jq be installed"
+				warn "eqatag: this function requires that jq be installed"
 				genfun_has_jq=0
 				return 1
 			fi
