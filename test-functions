@@ -484,6 +484,29 @@ test_trim() {
 	iterate_tests 4 "$@"
 }
 
+test_hr() {
+	# shellcheck disable=2183
+	set -- \
+		eq  0  "$(printf '%80s' | tr ' ' -)"  N/A  N/A  \
+		eq  0  "$(printf '%80s' | tr ' ' -)"  -    N/A  \
+		eq  0  ''                             -    0    \
+		eq  0  -                              -    1    \
+		eq  0  -----                          -    5    \
+		eq  0  ''                             xyz  0    \
+		eq  0  x                              xyz  1    \
+		eq  0  xyzxy                          xyz  5
+
+	callback() {
+		shift
+		expected=$1
+		shift
+		test_description="hr $(_print_args "$@")"
+		test "$(hr "$@")" = "${expected}"
+	}
+
+	iterate_tests 5 "$@"
+}
+
 iterate_tests() {
 	slice_width=$1
 	shift
@@ -547,6 +570,7 @@ test_edo || rc=1
 test_srandom || rc=1
 test_newest || rc=1
 test_trim || rc=1
+test_hr || rc=1
 
 cleanup_tmpdir
 

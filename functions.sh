@@ -364,6 +364,34 @@ has_systemd()
 }
 
 #
+# Prints a horizontal rule. If specified, the first parameter shall be taken as
+# a string to be repeated in the course of composing the rule. Otherwise, it
+# shall default to the <hyphen-minus>. If specified, the second parameter shall
+# define the length of the rule in characters. Otherwise, it shall default to
+# the width of the terminal if such can be determined, or 80 if it cannot be.
+#
+hr()
+{
+	local length
+
+	if is_int "$2"; then
+		length=$2
+	elif _update_tty_level <&1; [ "${genfun_tty}" -eq 2 ]; then
+		length=${genfun_cols}
+	else
+		length=80
+	fi
+	PATTERN=${1:--} awk -v "width=${length}" -f - <<-'EOF'
+		BEGIN {
+			while (length(rule) < width) {
+				rule = rule substr(ENVIRON["PATTERN"], 1, width - length(rule))
+			}
+			print rule
+		}
+	EOF
+}
+
+#
 # Determines whether the first parameter is a valid identifier (variable name).
 #
 is_identifier()
