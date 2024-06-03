@@ -507,6 +507,44 @@ test_hr() {
 	iterate_tests 5 "$@"
 }
 
+test_whenceforth() {
+	set -- \
+		ge  1  PATH                        N/A                       \
+		ge  1  PATH                        .                         \
+		ge  1  PATH                        rather-unlikely-to-exist  \
+		ge  1  PATH                        /var/empty                \
+		ge  1  PATH                        /var/empty/nofile         \
+		eq  0  PATH                        /bin/sh                   \
+		eq  0  PATH                        sh                        \
+		eq  0  ''                          newer/file                \
+		eq  0  .                           newer/file                \
+		eq  0  :/var/empty/x               newer/file                \
+		eq  0  /var/empty/x:               newer/file                \
+		eq  0  /var/empty/x::/var/empty/y  newer/file                \
+		ge  1  ''                          older/file                \
+		ge  1  .                           older/file                \
+		ge  1  :/var/empty/x               older/file                \
+		ge  1  /var/empty/x:               older/file                \
+		ge  1  /var/empty/x::/var/empty/y  older/file
+
+	chmod +x newer/file
+
+	callback() {
+		shift
+		path=$1
+		shift
+		test_description="whenceforth $(_print_args "$@")"
+		if [ "${path}" = PATH ]; then
+			whenceforth "$@" >/dev/null
+		else
+			PATH=${path} whenceforth "$@" >/dev/null
+		fi
+	}
+
+	iterate_tests 4 "$@"
+}
+
+
 iterate_tests() {
 	slice_width=$1
 	shift
@@ -571,6 +609,7 @@ test_srandom || rc=1
 test_newest || rc=1
 test_trim || rc=1
 test_hr || rc=1
+test_whenceforth || rc=1
 
 cleanup_tmpdir
 

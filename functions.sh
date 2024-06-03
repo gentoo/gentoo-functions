@@ -566,6 +566,51 @@ warn()
 }
 
 #
+# Considers the first parameter as the potential name of an executable regular
+# file before attempting to locate it. If not specifed as an absolute pathname,
+# a PATH search shall be performed in accordance with the Environment Variables
+# section of the Base Definitions. If an executable is found, its path shall be
+# printed. Otherwise, the return value shall be 1. This function is intended as
+# an alternative to type -P in bash. That is, it is useful for determining the
+# existence and location of an external utility without potentially matching
+# against aliases, builtins and functions (as command -v can).
+#
+whenceforth()
+(
+	local bin path prefix
+
+	case $1 in
+		/*)
+			# Absolute command paths must be directly checked.
+			[ -f "$1" ] && [ -x "$1" ] && bin=$1
+			;;
+		*)
+			# Relative command paths must be searched for in PATH.
+			# https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap08.html#tag_08_03
+			case ${PATH} in
+				''|*:)
+					path=${PATH}:
+					;;
+				*)
+					path=${PATH}
+			esac
+			IFS=:
+			set -f
+			for prefix in ${path}; do
+				case ${prefix} in
+					*/)
+						bin=${prefix}$1
+						;;
+					*)
+						bin=${prefix:-.}/$1
+				esac
+				[ -f "${bin}" ] && [ -x "${bin}" ] && break
+			done
+	esac \
+	&& printf '%s\n' "${bin}"
+)
+
+#
 # Determines whether the first parameter is truthy. The values taken to be true
 # are "yes", "true", "on" and "1", whereas their opposites are taken to be
 # false. The empty string is also taken to be false. All pattern matching is
@@ -876,8 +921,7 @@ fi
 
 # Store the path to the true binary. It is potentially used by _update_columns.
 if [ "${BASH}" ]; then
-	# shellcheck disable=3045
-	genfun_bin_true=$(type -P true)
+	genfun_bin_true=$(whenceforth true)
 fi
 
 # Store the name of the GNU find binary. Some platforms may have it as "gfind".
