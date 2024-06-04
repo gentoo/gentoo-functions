@@ -540,6 +540,59 @@ parallel_run()
 }
 
 #
+# Prints the positional parameters in a manner that approximates the behaviour
+# of the ${*@Q} expansion in bash. The output shall be POSIX sh compatible as of
+# Issue 8. This should probably be made to exist as a standalone awk script.
+#
+quote_args()
+{
+	awk -v q=\' -f - -- "$@" <<-'EOF'
+		BEGIN {
+			argc = ARGC
+			ARGC = 1
+			for (arg_idx = 1; arg_idx < argc; arg_idx++) {
+				arg = ARGV[arg_idx]
+				if (arg !~ /[\001-\037\177]/) {
+					gsub(q, q "\\" q q, arg)
+					word = q arg q
+				} else {
+					# Use $'' quoting per Issue 8
+					if (ord_by["\001"] == "") {
+						for (i = 1; i < 32; i++) {
+							char = sprintf("%c", i)
+							ord_by[char] = i
+						}
+						ord_by["\177"] = 127
+					}
+					word = "$'"
+					for (i = 1; i <= length(arg); i++) {
+						char = substr(arg, i, 1)
+						if (char == "\\") {
+							word = word "\\\\"
+						} else if (char == q) {
+							word = word "\\'"
+						} else {
+							ord = ord_by[char]
+							if (ord != "") {
+								word = word "\\" sprintf("%03o", ord)
+							} else {
+								word = word char
+							}
+						}
+					}
+					word = word q
+				}
+				line = line word
+				if (arg_idx < argc - 1) {
+					line = line " "
+				}
+			}
+			print line
+		}
+	EOF
+}
+
+#
 # Declare the vebegin, veerror, veindent, veinfo, veinfon, veoutdent and vewarn
 # functions. These differ from their non-v-prefixed counterparts in that they
 # only have an effect where EINFO_VERBOSE is true.
@@ -837,59 +890,6 @@ _has_dumb_terminal()
 _is_visible()
 {
 	! case $1 in *[[:graph:]]*) false ;; esac
-}
-
-#
-# Prints the positional parameters in a manner that approximates the behaviour
-# of the ${*@Q} expansion in bash. The output shall be POSIX sh compatible as of
-# Issue 8. This should probably be made to exist as a standalone awk script.
-#
-quote_args()
-{
-	awk -v q=\' -f - -- "$@" <<-'EOF'
-		BEGIN {
-			argc = ARGC
-			ARGC = 1
-			for (arg_idx = 1; arg_idx < argc; arg_idx++) {
-				arg = ARGV[arg_idx]
-				if (arg !~ /[\001-\037\177]/) {
-					gsub(q, q "\\" q q, arg)
-					word = q arg q
-				} else {
-					# Use $'' quoting per Issue 8
-					if (ord_by["\001"] == "") {
-						for (i = 1; i < 32; i++) {
-							char = sprintf("%c", i)
-							ord_by[char] = i
-						}
-						ord_by["\177"] = 127
-					}
-					word = "$'"
-					for (i = 1; i <= length(arg); i++) {
-						char = substr(arg, i, 1)
-						if (char == "\\") {
-							word = word "\\\\"
-						} else if (char == q) {
-							word = word "\\'"
-						} else {
-							ord = ord_by[char]
-							if (ord != "") {
-								word = word "\\" sprintf("%03o", ord)
-							} else {
-								word = word char
-							}
-						}
-					}
-					word = word q
-				}
-				line = line word
-				if (arg_idx < argc - 1) {
-					line = line " "
-				}
-			}
-			print line
-		}
-	EOF
 }
 
 #
