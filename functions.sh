@@ -194,14 +194,9 @@ eqatag()
 		0)
 			return 1
 			;;
-		1)
-			;;
-		*)
-			if command -v jq >/dev/null; then
-				genfun_has_jq=1
-			else
+		'')
+			if ! hash jq 2>/dev/null; [ "$(( genfun_has_jq = $? ))" -eq 0 ]; then
 				warn "eqatag: this function requires that jq be installed"
-				genfun_has_jq=0
 				return 1
 			fi
 	esac
