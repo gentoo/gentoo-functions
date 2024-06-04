@@ -773,7 +773,7 @@ yesno()
 #
 _eend()
 {
-	local efunc msg retval
+	local col efunc msg retval
 
 	efunc=$1
 	shift
@@ -815,7 +815,8 @@ _eend()
 		# Save the cursor position with DECSC, move it up by one line
 		# with CUU, position it horizontally with CHA, print the
 		# indicator, then restore the cursor position with DECRC.
-		printf '\0337\033[1A\033[%dG %s\0338' "$(( genfun_cols - 6 + genfun_offset ))" "${msg}"
+		col=$(( genfun_cols > 6 ? genfun_cols - 6 : 1 ))
+		printf '\0337\033[1A\033[%dG %s\0338' "$(( col + genfun_offset ))" "${msg}"
 	else
 		# The standard output does not refer to a sufficiently capable
 		# terminal. Print only the indicator.
