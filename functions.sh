@@ -95,7 +95,7 @@ ebegin()
 #
 edo()
 {
-	genfun_cmd=$(_print_args "$@")
+	genfun_cmd=$(quote_args "$@")
 	einfo "Executing: ${genfun_cmd}"
 	"$@" || die "Failed to execute command: ${genfun_cmd}"
 }
@@ -844,7 +844,7 @@ _is_visible()
 # of the ${*@Q} expansion in bash. The output shall be POSIX sh compatible as of
 # Issue 8. This should probably be made to exist as a standalone awk script.
 #
-_print_args()
+quote_args()
 {
 	awk -v q=\' -f - -- "$@" <<-'EOF'
 		BEGIN {
@@ -963,7 +963,7 @@ _warn_for_args()
 	ident=$1
 	shift
 	[ "$#" -gt 1 ] && plural=s || plural=
-	warn "${ident}: invalid argument${plural}: $(_print_args "$@")"
+	warn "${ident}: invalid argument${plural}: $(quote_args "$@")"
 }
 
 # All function declarations end here! Initialisation code only from hereon.

@@ -41,7 +41,7 @@ test_chdir() {
 
 	callback() {
 		shift
-		test_description="chdir $(_print_args "$@")"
+		test_description="chdir $(quote_args "$@")"
 		if [ "$BASH" ]; then
 			# shellcheck disable=3044
 			shopt -s cdable_vars
@@ -60,7 +60,7 @@ test_chdir_noop() {
 
 	callback() {
 		shift
-		test_description="chdir $(_print_args "$@")"
+		test_description="chdir $(quote_args "$@")"
 		chdir "$@" \
 		&& test "$PWD" = "$OLDPWD" \
 		|| { cd - >/dev/null; false; }
@@ -194,7 +194,7 @@ test_is_older_than() {
 
 	callback() {
 		shift
-		test_description="is_older_than $(_print_args "$@")"
+		test_description="is_older_than $(quote_args "$@")"
 		is_older_than "$@"
 	}
 
@@ -220,7 +220,7 @@ test_get_bootparam() {
 	callback() {
 		cmdline=$2
 		shift 2
-		test_description="get_bootparam $(_print_args "$@")"
+		test_description="get_bootparam $(quote_args "$@")"
 		printf '%s\n' "${cmdline}" | get_bootparam "$@"
 	}
 
@@ -244,7 +244,7 @@ test_esyslog() {
 	callback() {
 		should_log=$2
 		shift 2
-		test_description="esyslog $(_print_args "$@")"
+		test_description="esyslog $(quote_args "$@")"
 		logged=$(EINFO_LOG=1 esyslog "$@")
 		case $? in
 			0)
@@ -306,7 +306,7 @@ test_is_identifier() {
 
 	callback() {
 		shift
-		test_description="is_identifier $(_print_args "$@")"
+		test_description="is_identifier $(quote_args "$@")"
 		is_identifier "$@"
 	}
 
@@ -331,7 +331,7 @@ test_is_int() {
 
 	callback() {
 		shift
-		test_description="is_int $(_print_args "$@")"
+		test_description="is_int $(quote_args "$@")"
 		is_int "$@"
 	}
 
@@ -351,7 +351,7 @@ test_is_visible() {
 
 	callback() {
 		shift
-		test_description="_is_visible $(_print_args "$@")"
+		test_description="_is_visible $(quote_args "$@")"
 		_is_visible "$@"
 	}
 
@@ -390,7 +390,7 @@ test_yesno() {
 
 	callback() {
 		shift
-		test_description="yesno $(_print_args "$@")"
+		test_description="yesno $(quote_args "$@")"
 		yesno "$@"
 	}
 
@@ -441,7 +441,7 @@ test_newest() {
 
 	callback() {
 		shift
-		test_description="newest $(_print_args "$@")"
+		test_description="newest $(quote_args "$@")"
 		row=$(( row + 1 ))
 		true |
 		if [ "${row}" -le 2 ]; then
@@ -477,7 +477,7 @@ test_trim() {
 
 	callback() {
 		shift
-		test_description="trim $(_print_args "$1") (expecting $(_print_args "$2"))"
+		test_description="trim $(quote_args "$1") (expecting $(quote_args "$2"))"
 		test "$(trim "$1")" = "$2"
 	}
 
@@ -500,7 +500,7 @@ test_hr() {
 		shift
 		expected=$1
 		shift
-		test_description="hr $(_print_args "$@")"
+		test_description="hr $(quote_args "$@")"
 		test "$(hr "$@")" = "${expected}"
 	}
 
@@ -533,7 +533,7 @@ test_whenceforth() {
 		shift
 		path=$1
 		shift
-		test_description="whenceforth $(_print_args "$@")"
+		test_description="whenceforth $(quote_args "$@")"
 		if [ "${path}" = PATH ]; then
 			whenceforth "$@" >/dev/null
 		else
@@ -568,7 +568,7 @@ test_parallel_run() {
 
 	callback() {
 		shift
-		test_description="parallel_run $(_print_args 0 ls "$@")"
+		test_description="parallel_run $(quote_args 0 ls "$@")"
 		parallel_run 0 ls "$@" >/dev/null 2>&1
 	}
 
