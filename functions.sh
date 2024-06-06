@@ -540,19 +540,29 @@ parallel_run()
 }
 
 #
-# Prints the positional parameters in a manner that approximates the behaviour
-# of the ${*@Q} expansion in bash. The output shall be POSIX sh compatible as of
-# Issue 8. This should probably be made to exist as a standalone awk script.
+# Prints the positional parameters in a format that may be reused as shell
+# input. For each considered, it shall be determined whether its value contains
+# any non-printable characters in lieu of the US-ASCII character set. If no such
+# characters are found, the value shall have each instance of <apostrophe> be
+# replaced by <apostrophe><backslash><apostrophe><apostrophe> before being
+# enclosed by a pair of <apostrophe> characters. Otherwise, non-printable
+# characters shall be replaced by octal escape sequences, <apostrophe> by
+# <backslash><apostrophe> and <backslash> by <backslash><backslash>, prior to
+# the value being given a prefix of <dollar-sign><apostrophe> and a suffix of
+# <apostrophe>, per Issue 8. Finally, the resulting values shall be printed as
+# <space> separated. The latter quoting strategy can be suppressed by setting
+# the POSIXLY_CORRECT variable as non-empty in the environment.
 #
 quote_args()
 {
 	awk -v q=\' -f - -- "$@" <<-'EOF'
 		BEGIN {
+			strictly_posix = length(ENVIRON["POSIXLY_CORRECT"])
 			argc = ARGC
 			ARGC = 1
 			for (arg_idx = 1; arg_idx < argc; arg_idx++) {
 				arg = ARGV[arg_idx]
-				if (arg !~ /[\001-\037\177]/) {
+				if (strictly_posix || arg !~ /[\001-\037\177]/) {
 					gsub(q, q "\\" q q, arg)
 					word = q arg q
 				} else {
