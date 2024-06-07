@@ -544,6 +544,17 @@ test_whenceforth() {
 	iterate_tests 4 "$@"
 }
 
+test_get_nprocs() {
+	set -- eq 0
+
+	callback() {
+		shift
+		test_description="get_nprocs"
+		nproc=$(get_nprocs) && is_int "${nproc}" && test "${nproc}" -gt 0
+	}
+
+	iterate_tests 2 "$@"
+}
 
 iterate_tests() {
 	slice_width=$1
@@ -610,6 +621,7 @@ test_newest || rc=1
 test_trim || rc=1
 test_hr || rc=1
 test_whenceforth || rc=1
+test_get_nprocs || rc=1
 
 cleanup_tmpdir
 

@@ -461,6 +461,26 @@ newest()
 }
 
 #
+# Tries to determine the number of available processors. Falls back to trying to
+# determine the number of online processors in a way that is somewhat portable.
+#
+get_nprocs()
+{
+	if nproc 2>/dev/null; then
+		# The nproc(1) utility is provided by GNU coreutils. It has the
+		# advantage of acknowledging the effect of sched_setaffinity(2).
+		true
+	elif getconf _NPROCESSORS_ONLN 2>/dev/null; then
+		# This is a non-standard extension. Nevertheless, it works for
+		# glibc, musl-utils, macOS, FreeBSD, NetBSD and OpenBSD.
+		true
+	else
+		warn "get_nprocs: failed to determine the number of processors"
+		false
+	fi
+}
+
+#
 # Considers one or more pathnames and prints the one having the oldest
 # modification time. If at least one parameter is provided, all parameters shall
 # be considered as pathnames to be compared to one another. Otherwise, the
