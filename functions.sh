@@ -19,6 +19,7 @@
 # EINFO_LOG     : whether printing functions should call esyslog()
 # EINFO_QUIET   : whether info message printing functions should be silenced
 # EINFO_VERBOSE : whether v-prefixed functions should do anything
+# EPOCHREALTIME : potentially used by _update_time() to get the time
 # IFS           : multiple message operands are joined by its first character
 # INSIDE_EMACS  : whether to work around an emacs-specific bug in _eend()
 # NO_COLOR      : whether colored output should be suppressed
@@ -920,15 +921,36 @@ _select_by_mtime() {
 }
 
 #
+# Considers the first parameter as a number of deciseconds and determines
+# whether fewer have elapsed since the last occasion on which the function was
+# called.
+#
+_should_throttle()
+{
+	_update_time || return
+	if [ "$(( genfun_time - genfun_last_time > $1 ))" -eq 1 ]; then
+		genfun_last_time=${genfun_time}
+		false
+	fi
+}
+
+#
 # Determines whether the terminal on STDIN is able to report its dimensions.
 # Upon success, the number of columns shall be stored in genfun_cols.
 #
 _update_columns()
 {
-	# Command substitutions are rather slow in bash. Using the COLUMNS
-	# variable helps but checkwinsize won't work properly in subshells.
+	# Two optimisations are applied. Firstly, the rate at which updates can
+	# be performed is throttled to intervals of 5 deciseconds. Secondly, if
+	# running on bash then the COLUMNS variable may be gauged, albeit only
+	# in situations where doing so can be expected to work reliably; not if
+	# in a subshell. Note that executing true(1) is faster than executing
+	# stty(1) within a comsub.
 	# shellcheck disable=3028,3044
-	if [ "$$" = "${BASHPID}" ] && shopt -q checkwinsize; then
+	if _should_throttle 5; then
+		test "${genfun_cols}"
+		return
+	elif [ "$$" = "${BASHPID}" ] && shopt -q checkwinsize; then
 		"${genfun_bin_true}"
 		set -- 0 "${COLUMNS}"
 	else
@@ -940,6 +962,59 @@ _update_columns()
 		IFS=${genfun_ifs}
 	fi
 	[ "$#" -eq 2 ] && is_int "$2" && [ "$2" -gt 0 ] && genfun_cols=$2
+}
+
+#
+# Determines either the number of deciseconds elapsed since the unix epoch or
+# the number of deciseconds that the operating system has been online, depending
+# on the capabilities of the shell and/or platform. Upon success, the obtained
+# value shall be assigned to genfun_time. Otherwise, the return value shall be
+# greater than 0.
+#
+_update_time()
+{
+	genfun_last_time=0
+
+	# shellcheck disable=3028
+	if [ "${BASH_VERSINFO:-0}" -ge 5 ]; then
+		# shellcheck disable=2034,3045
+		_update_time()
+		{
+			local ds s timeval
+
+			timeval=${EPOCHREALTIME}
+			s=${timeval%.*}
+			printf -v ds '%.1f' ".${timeval#*.}"
+			if [ "${ds}" = "1.0" ]; then
+				ds=10
+			else
+				ds=${ds#0.}
+			fi
+			genfun_time=$(( s * 10 + ds ))
+		}
+	elif [ -f /proc/uptime ]; then
+		_update_time()
+		{
+			local ds s timeval
+
+			IFS=' ' read -r timeval _ < /proc/uptime || return
+			s=${timeval%.*}
+			printf -v ds '%.1f' ".${timeval#*.}"
+			if [ "${ds}" = "1.0" ]; then
+				ds=10
+			else
+				ds=${ds#0.}
+			fi
+			genfun_time=$(( s * 10 + ds ))
+		}
+	else
+		_update_time()
+		{
+			false
+		}
+	fi
+
+	_update_time
 }
 
 #
