@@ -818,9 +818,12 @@ _eend()
 		col=$(( genfun_cols > 6 ? genfun_cols - 6 : 1 ))
 		printf '\0337\033[1A\033[%dG %s\0338' "$(( col + genfun_offset ))" "${msg}"
 	else
-		# The standard output does not refer to a sufficiently capable
-		# terminal. Print only the indicator.
-		printf ' %s\n' "${msg}"
+		# The standard output refers either to an insufficiently capable
+		# terminal or to something other than a terminal. Print the
+		# indicator, using <space> characters to indent to the extent
+		# that the last character falls on the 80th column. This hinges
+		# on the fair assumption that a newline was already printed.
+		printf '%80s\n' "${msg}"
 	fi
 
 	return "${retval}"
