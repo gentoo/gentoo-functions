@@ -1036,7 +1036,7 @@ _update_tty_level()
 }
 
 #
-# Prints a diganostic message concerning invalid function arguments. The first
+# Prints a diagnostic message concerning invalid function arguments. The first
 # argument shall be taken as a function identifier. The remaining arguments
 # shall be safely rendered as a part of the diagnostic.
 #
