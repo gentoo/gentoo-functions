@@ -11,21 +11,22 @@
 
 # The following variables affect initialisation and/or function behaviour.
 
-# BASH          : whether bash-specific features may be employed
-# BASH_VERSINFO : whether bash-specific features may be employed
-# BASHPID       : potentially used by _update_columns() to detect subshells
-# COLUMNS       : potentially used by _update_columns() to get the column count
-# EERROR_QUIET  : whether error printing functions should be silenced
-# EINFO_LOG     : whether printing functions should call esyslog()
-# EINFO_QUIET   : whether info message printing functions should be silenced
-# EINFO_VERBOSE : whether v-prefixed functions should do anything
-# EPOCHREALTIME : potentially used by _update_time() to get the time
-# IFS           : multiple message operands are joined by its first character
-# INSIDE_EMACS  : whether to work around an emacs-specific bug in _eend()
-# NO_COLOR      : whether colored output should be suppressed
-# RC_NOCOLOR    : like NO_COLOR but deprecated
-# TEST_GENFUNCS : used for testing the behaviour of get_bootparam()
-# TERM          : may influence message formatting and whether color is used
+# BASH             : whether bash-specific features may be employed
+# BASH_VERSINFO    : whether bash-specific features may be employed
+# BASHPID          : may be used by _update_columns() to detect subshells
+# COLUMNS          : may be used by _update_columns() to get the column count
+# EERROR_QUIET     : whether error printing functions should be silenced
+# EINFO_LOG        : whether printing functions should call esyslog()
+# EINFO_QUIET      : whether info message printing functions should be silenced
+# EINFO_VERBOSE    : whether v-prefixed functions should do anything
+# EPOCHREALTIME    : potentially used by _update_time() to get the time
+# IFS              : multiple message operands are joined by its first character
+# INSIDE_EMACS     : whether to work around an emacs-specific bug in _eend()
+# NO_COLOR         : whether colored output should be suppressed
+# PORTAGE_BIN_PATH : used by from_portage()
+# RC_NOCOLOR       : like NO_COLOR but deprecated
+# TEST_GENFUNCS    : used for testing the behaviour of get_bootparam()
+# TERM             : may influence message formatting and whether color is used
 
 ################################################################################
 
@@ -304,6 +305,14 @@ ewarnn()
 ewend()
 {
 	GENFUN_CALLER=${GENFUN_CALLER:-ewend} _eend ewarn "$@"
+}
+
+#
+# Determines whether the current shell is a subprocess of portage.
+#
+from_portage()
+{
+	test "${PORTAGE_BIN_PATH}"
 }
 
 #
