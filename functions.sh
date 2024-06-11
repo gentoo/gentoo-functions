@@ -316,6 +316,15 @@ from_portage()
 }
 
 #
+# Determines whether the current shell is executing an OpenRC runscript, or is
+# a subprocess of one.
+#
+from_runscript()
+{
+	has_openrc && test "${RC_OPENRC_PID}"
+}
+
+#
 # Determines whether the kernel cmdline contains the specified parameter as a
 # component of a comma-separated list specified in the format of gentoo=<list>.
 #
