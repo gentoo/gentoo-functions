@@ -575,6 +575,53 @@ test_parallel_run() {
 	iterate_tests 4 "$@"
 }
 
+test_is_anyof() {
+	set -- \
+		ge  1  N/A  N/A  N/A  \
+		ge  1  x    N/A  N/A  \
+		ge  1  x    y    N/A  \
+		ge  1  x    y    z    \
+		eq  0  x    x    N/A  \
+		eq  0  x    x    y    \
+		eq  0  x    y    x
+
+	callback() {
+		shift
+		test_description="is_anyof $(quote_args "$@")"
+		is_anyof "$@"
+	}
+
+	iterate_tests 5 "$@"
+}
+
+test_is_subset() {
+	set -- \
+		ge  1  N/A  N/A  N/A  N/A  N/A  \
+		ge  1  --   N/A  N/A  N/A  N/A  \
+		ge  1  --   --   N/A  N/A  N/A  \
+		ge  1  --   x    N/A  N/A  N/A  \
+		ge  1  x    --   N/A  N/A  N/A  \
+		ge  1  x    y    N/A  N/A  N/A  \
+		ge  1  x    y    x    N/A  N/A  \
+		eq  0  x    --   x    N/A  N/A  \
+		eq  0  x    --   x    y    N/A  \
+		eq  0  x    --   y    x    N/A  \
+		eq  0  x    y    --   x    y    \
+		eq  0  x    y    --   y    x    \
+		ge  1  x    y    --   x    z    \
+		ge  1  y    x    --   z    x    \
+		ge  1  x    z    --   x    y    \
+		ge  1  z    x    --   y    x
+
+	callback() {
+		shift
+		test_description="is_subset $(quote_args "$@")"
+		is_subset "$@"
+	}
+
+	iterate_tests 7 "$@"
+}
+
 iterate_tests() {
 	slice_width=$1
 	shift
@@ -641,6 +688,8 @@ test_trim || rc=1
 test_hr || rc=1
 test_whenceforth || rc=1
 test_parallel_run || rc=1
+test_is_anyof || rc=1
+test_is_subset || rc=1
 
 cleanup_tmpdir
 
