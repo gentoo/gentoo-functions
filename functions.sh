@@ -325,6 +325,15 @@ from_runscript()
 }
 
 #
+# Determines whether the current shell is a subprocess of a systemd unit that
+# handles a service, socket, mount point or swap device, per systemd.exec(5).
+#
+from_unit()
+{
+	has_systemd && test "${SYSTEMD_EXEC_PID}" && test "${INVOCATION_ID}"
+}
+
+#
 # Determines whether the kernel cmdline contains the specified parameter as a
 # component of a comma-separated list specified in the format of gentoo=<list>.
 #
