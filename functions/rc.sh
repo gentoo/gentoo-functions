@@ -422,13 +422,16 @@ _is_visible()
 #------------------------------------------------------------------------------#
 
 # Determine whether the use of color is to be wilfully avoided.
-if [ -n "${NO_COLOR}" ]; then
+if [ "${RC_NOCOLOR+set}" ]; then
+	warn "the RC_NOCOLOR variable is deprecated by gentoo-functions; please set NO_COLOR instead"
+elif [ -n "${NO_COLOR}" ]; then
 	# See https://no-color.org/.
 	RC_NOCOLOR=yes
 else
 	for _; do
 		case $_ in
 			--nocolor|--nocolour|-C)
+				warn "the $_ option is deprecated by gentoo-functions; please set NO_COLOR=1 instead"
 				RC_NOCOLOR=yes
 				break
 		esac
