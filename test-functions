@@ -664,7 +664,11 @@ export TZ=UTC
 testnum=0
 rc=0
 
-if ! . ./functions.sh; then
+if [ "${PORTAGE_BIN_PATH}" ] && [ "${S}" ]; then
+	genfun_basedir=${S}
+fi
+
+if ! GENFUN_MODULES="portage rc" . ./functions.sh; then
 	bailout "Couldn't source ./functions.sh"
 fi
 

@@ -13,6 +13,11 @@ install_data(
   install_dir: 'lib/gentoo'
 )
 
+install_subdir(
+  'functions',
+  install_dir: '/lib/gentoo'
+)
+
 cc = meson.get_compiler('c')
 
 executable(
