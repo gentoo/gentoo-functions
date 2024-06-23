@@ -132,7 +132,7 @@ is_identifier()
 
 #
 # Determines whether the first parameter is a valid integer. A leading
-# <hypen-minus> shall be permitted. Thereafter, leading zeroes shall not be
+# <hyphen-minus> shall be permitted. Thereafter, leading zeroes shall not be
 # permitted because the string might later be considered to be octal in an
 # arithmetic context, causing the shell to exit if the number be invalid.
 #
@@ -176,10 +176,10 @@ is_anyof()
 #
 # Collects the intersection of the parameters up to - but not including - a
 # sentinel value then determines whether the resulting set is a subset of the
-# interection of the remaining parameters. If the SENTINEL variable is set and
+# intersection of the remaining parameters. If the SENTINEL variable is set and
 # non-empty, it shall be taken as the value of the sentinel. Otherwise, the
 # value of the sentinel shall be defined as <hyphen-dash><hyphen-dash>. If the
-# sentinel value is not encountered or if either set is empty then the returm
+# sentinel value is not encountered or if either set is empty then the return
 # value shall be greater than 1.
 #
 is_subset()
@@ -422,7 +422,7 @@ warn()
 
 #
 # Considers the first parameter as the potential name of an executable regular
-# file before attempting to locate it. If not specifed as an absolute pathname,
+# file before attempting to locate it. If not specified as an absolute pathname,
 # a PATH search shall be performed in accordance with the Environment Variables
 # section of the Base Definitions. If an executable is found, its path shall be
 # printed. Otherwise, the return value shall be 1. This function is intended as
