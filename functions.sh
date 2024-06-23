@@ -176,15 +176,15 @@ is_anyof()
 #
 # Collects the intersection of the parameters up to - but not including - a
 # sentinel value then determines whether the resulting set is a subset of the
-# intersection of the remaining parameters. If the SENTINEL variable is set and
-# non-empty, it shall be taken as the value of the sentinel. Otherwise, the
-# value of the sentinel shall be defined as <hyphen-dash><hyphen-dash>. If the
-# sentinel value is not encountered or if either set is empty then the return
-# value shall be greater than 1.
+# intersection of the remaining parameters. If the SENTINEL variable is set, it
+# shall be taken as the value of the sentinel. Otherwise, the value of the
+# sentinel shall be defined as <hyphen-dash><hyphen-dash>. If the sentinel value
+# is not encountered or if either set is empty then the return value shall be
+# greater than 1.
 #
 is_subset()
 {
-	SENTINEL=${SENTINEL:-'--'} awk -f - -- "$@" <<-'EOF'
+	SENTINEL=${SENTINEL-'--'} awk -f - -- "$@" <<-'EOF'
 		BEGIN {
 			argc = ARGC
 			ARGC = 1
