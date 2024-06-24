@@ -622,6 +622,48 @@ test_is_subset() {
 	iterate_tests 7 "$@"
 }
 
+test_trueof_all() {
+	set -- \
+		ge  1  N/A   N/A  N/A  N/A        N/A        \
+		ge  1  test  -d   N/A  N/A        N/A        \
+		ge  1  test  -d   --   N/A        N/A        \
+		ge  1  test  -d   --   /dev/null  N/A        \
+		ge  1  test  -d   --   /dev/null  /dev/null  \
+		eq  0  test  -d   --   /          N/A        \
+		eq  0  test  -d   --   /          /          \
+		ge  1  test  -d   --   /          /dev/null  \
+		ge  1  test  -d   --   /dev/null  /
+
+	callback() {
+		shift
+		test_description="trueof_all $(quote_args "$@")"
+		trueof_all "$@"
+	}
+
+	iterate_tests 7 "$@"
+}
+
+test_trueof_any() {
+	set -- \
+		ge  1  N/A   N/A  N/A  N/A        N/A        \
+		ge  1  test  -d   N/A  N/A        N/A        \
+		ge  1  test  -d   --   N/A        N/A        \
+		ge  1  test  -d   --   /dev/null  N/A        \
+		ge  1  test  -d   --   /dev/null  /dev/null  \
+		eq  0  test  -d   --   /          N/A        \
+		eq  0  test  -d   --   /          /          \
+		eq  0  test  -d   --   /          /dev/null  \
+		eq  0  test  -d   --   /dev/null  /
+
+	callback() {
+		shift
+		test_description="trueof_any $(quote_args "$@")"
+		trueof_any "$@"
+	}
+
+	iterate_tests 7 "$@"
+}
+
 iterate_tests() {
 	slice_width=$1
 	shift
@@ -694,6 +736,8 @@ test_whenceforth || rc=1
 test_parallel_run || rc=1
 test_is_anyof || rc=1
 test_is_subset || rc=1
+test_trueof_all || rc=1
+test_trueof_any || rc=1
 
 cleanup_tmpdir
 

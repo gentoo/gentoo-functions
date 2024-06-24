@@ -455,6 +455,70 @@ trim()
 }
 
 #
+# Considers the parameters up to - but not including - a sentinel value as the
+# words comprising a simple command then determines whether said command
+# succeeds for all of the remaining parameters, passing them one at a time. If
+# the SENTINEL variable is set, it shall be taken as the value of the sentinel.
+# Otherwise, the value of the sentinel shall be defined as <hyphen-dash>
+# <hyphen-dash>. If the composed command is empty, the sentinel value is not
+# encountered or there are no parameters following the sentinel, the return
+# value shall be greater than 0.
+#
+trueof_all()
+{
+	local arg arg_idx i j
+
+	arg_idx=0
+	i=0
+	j=0
+	for arg; do
+		if [ "$(( arg_idx += 1 ))" -eq 1 ]; then
+			set --
+		fi
+		if [ "$i" -gt 1 ]; then
+			"$@" "${arg}" || return
+			j=${arg_idx}
+		elif [ "${arg}" = "${SENTINEL-"--"}" ]; then
+			i=${arg_idx}
+		else
+			set -- "$@" "${arg}"
+		fi
+	done
+	test "$i" -gt 1 && test "$j" -gt "$i"
+}
+
+#
+# Considers the parameters up to - but not including - a sentinel value as the
+# words comprising a simple command then determines whether said command
+# succeeds for at least one of the remaining parameters, passing them one at a
+# time. If the SENTINEL variable is set, it shall be taken as the value of the
+# sentinel. Otherwise, the value of the sentinel shall be defined as
+# <hyphen-dash> <hyphen-dash>. If the composed command is empty, the sentinel
+# value is not encountered or there are no parameters following the sentinel,
+# the return value shall be greater than 0.
+#
+trueof_any()
+{
+	local arg arg_idx i
+
+	arg_idx=0
+	i=0
+	for arg; do
+		if [ "$(( arg_idx += 1 ))" -eq 1 ]; then
+			set --
+		fi
+		if [ "$i" -gt 1 ]; then
+			"$@" "${arg}" && return
+		elif [ "${arg}" = "${SENTINEL-"--"}" ]; then
+			i=${arg_idx}
+		else
+			set -- "$@" "${arg}"
+		fi
+	done
+	false
+}
+
+#
 # Prints a diagnostic message prefixed with the basename of the running script.
 #
 warn()
