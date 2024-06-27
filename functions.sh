@@ -702,7 +702,7 @@ _update_time()
 
 			IFS=' ' read -r timeval _ < /proc/uptime || return
 			s=${timeval%.*}
-			printf -v ds '%.1f' ".${timeval#*.}"
+			ds=$(printf '%.1f' ".${timeval#*.}")
 			if [ "${ds}" = "1.0" ]; then
 				ds=10
 			else
