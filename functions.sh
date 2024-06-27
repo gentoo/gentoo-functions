@@ -152,12 +152,12 @@ hr()
 		length=80
 	fi
 	PATTERN=${1:--} awk -v "width=${length}" -f - <<-'EOF'
-		BEGIN {
-			while (length(rule) < width) {
-				rule = rule substr(ENVIRON["PATTERN"], 1, width - length(rule))
-			}
-			print rule
+	BEGIN {
+		while (length(rule) < width) {
+			rule = rule substr(ENVIRON["PATTERN"], 1, width - length(rule))
 		}
+		print rule
+	}
 	EOF
 }
 
@@ -227,31 +227,31 @@ is_anyof()
 is_subset()
 {
 	SENTINEL=${SENTINEL-'--'} awk -f - -- "$@" <<-'EOF'
-		BEGIN {
-			argc = ARGC
-			ARGC = 1
-			for (i = 1; i < argc; i++) {
-				word = ARGV[i]
-				if (word == ENVIRON["SENTINEL"]) {
-					break
-				} else {
-					set1[word]
-				}
-			}
-			if (i == 1 || argc - i < 2) {
-				exit 1
-			}
-			for (i++; i < argc; i++) {
-				word = ARGV[i]
-				set2[word]
-			}
-			for (word in set2) {
-				delete set1[word]
-			}
-			for (word in set1) {
-				exit 1
+	BEGIN {
+		argc = ARGC
+		ARGC = 1
+		for (i = 1; i < argc; i++) {
+			word = ARGV[i]
+			if (word == ENVIRON["SENTINEL"]) {
+				break
+			} else {
+				set1[word]
 			}
 		}
+		if (i == 1 || argc - i < 2) {
+			exit 1
+		}
+		for (i++; i < argc; i++) {
+			word = ARGV[i]
+			set2[word]
+		}
+		for (word in set2) {
+			delete set1[word]
+		}
+		for (word in set1) {
+			exit 1
+		}
+	}
 	EOF
 }
 
@@ -366,49 +366,49 @@ parallel_run()
 quote_args()
 {
 	awk -v q=\' -f - -- "$@" <<-'EOF'
-		BEGIN {
-			strictly_posix = length(ENVIRON["POSIXLY_CORRECT"])
-			argc = ARGC
-			ARGC = 1
-			for (arg_idx = 1; arg_idx < argc; arg_idx++) {
-				arg = ARGV[arg_idx]
-				if (strictly_posix || arg !~ /[\001-\037\177]/) {
-					gsub(q, q "\\" q q, arg)
-					word = q arg q
-				} else {
-					# Use $'' quoting per Issue 8
-					if (ord_by["\001"] == "") {
-						for (i = 1; i < 32; i++) {
-							char = sprintf("%c", i)
-							ord_by[char] = i
-						}
-						ord_by["\177"] = 127
+	BEGIN {
+		strictly_posix = length(ENVIRON["POSIXLY_CORRECT"])
+		argc = ARGC
+		ARGC = 1
+		for (arg_idx = 1; arg_idx < argc; arg_idx++) {
+			arg = ARGV[arg_idx]
+			if (strictly_posix || arg !~ /[\001-\037\177]/) {
+				gsub(q, q "\\" q q, arg)
+				word = q arg q
+			} else {
+				# Use $'' quoting per Issue 8
+				if (ord_by["\001"] == "") {
+					for (i = 1; i < 32; i++) {
+						char = sprintf("%c", i)
+						ord_by[char] = i
 					}
-					word = "$'"
-					for (i = 1; i <= length(arg); i++) {
-						char = substr(arg, i, 1)
-						if (char == "\\") {
-							word = word "\\\\"
-						} else if (char == q) {
-							word = word "\\'"
+					ord_by["\177"] = 127
+				}
+				word = "$'"
+				for (i = 1; i <= length(arg); i++) {
+					char = substr(arg, i, 1)
+					if (char == "\\") {
+						word = word "\\\\"
+					} else if (char == q) {
+						word = word "\\'"
+					} else {
+						ord = ord_by[char]
+						if (ord != "") {
+							word = word "\\" sprintf("%03o", ord)
 						} else {
-							ord = ord_by[char]
-							if (ord != "") {
-								word = word "\\" sprintf("%03o", ord)
-							} else {
-								word = word char
-							}
+							word = word char
 						}
 					}
-					word = word q
 				}
-				line = line word
-				if (arg_idx < argc - 1) {
-					line = line " "
-				}
+				word = word q
 			}
-			print line
+			line = line word
+			if (arg_idx < argc - 1) {
+				line = line " "
+			}
 		}
+		print line
+	}
 	EOF
 }
 
