@@ -51,3 +51,31 @@ prepend_ts()
 
 	prepend_ts
 }
+
+#
+# Takes the first parameter as either a relative pathname or an integer
+# referring to a number of iterations. To be recognised as a pathname, the first
+# four characters must form the special prefix, ".../". It recurses upwards from
+# the current directory until either the relative pathname is found to exist,
+# the specified number of iterations has occurred, or the root directory is
+# encountered. In the event that the root directory is reached without either of
+# the first two conditions being satisfied, the return value shall be 1.
+# Otherwise, the value of PWD shall be printed to the standard output.
+#
+up()
+{
+	local i
+
+	i=0
+	while [ "${PWD}" != / ]; do
+		chdir ../
+		case $1 in
+			.../*)
+				test -e "${1#.../}"
+				;;
+			*)
+				test "$(( i += 1 ))" -eq "$1"
+		esac \
+		&& pwd && return
+	done
+}
