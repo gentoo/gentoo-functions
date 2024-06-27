@@ -565,23 +565,37 @@ warn()
 }
 
 #
-# Considers the first parameter as the potential name of an executable regular
-# file before attempting to locate it. If not specified as an absolute pathname,
-# a PATH search shall be performed in accordance with the Environment Variables
-# section of the Base Definitions. If an executable is found, its path shall be
-# printed. Otherwise, the return value shall be 1. This function is intended as
-# an alternative to type -P in bash. That is, it is useful for determining the
+# Considers the first parameter as a command name before trying to locate it as
+# a regular file. If not specified as an absolute pathname, a PATH search shall
+# be performed in accordance with the Environment Variables section of the Base
+# Definitions. If a file is found, its path shall be printed. Otherwise, the
+# return value shall be 1. If the -x option is specified then the file must
+# also be executable by the present user in order to be matched. This function
+# serves as an alternative to type -P in bash. It is useful for determining the
 # existence and location of an external utility without potentially matching
 # against aliases, builtins and functions (as command -v can).
 #
 whenceforth()
 (
-	local bin path prefix
+	local bin executable opt path prefix
+
+	executable=
+	while getopts :x opt; do
+		case ${opt} in
+			x)
+				executable=1
+				;;
+			'?')
+				_warn_for_args whenceforth "-${OPTARG}"
+				return 1
+		esac
+	done
+	shift "$(( OPTIND - 1 ))"
 
 	case $1 in
 		/*)
 			# Absolute command paths must be directly checked.
-			[ -f "$1" ] && [ -x "$1" ] && bin=$1
+			test -f "$1" && test ${executable:+-x} "$1" && bin=$1
 			;;
 		*)
 			# Relative command paths must be searched for in PATH.
@@ -603,7 +617,7 @@ whenceforth()
 					*)
 						bin=${prefix:-.}/$1
 				esac
-				[ -f "${bin}" ] && [ -x "${bin}" ] && break
+				test -f "${bin}" && test ${executable:+-x} "${bin}" && break
 			done
 	esac \
 	&& printf '%s\n' "${bin}"

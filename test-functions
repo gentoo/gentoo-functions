@@ -508,24 +508,40 @@ test_hr() {
 }
 
 test_whenceforth() {
-	set -- \
-		ge  1  PATH                        N/A                       \
-		ge  1  PATH                        .                         \
-		ge  1  PATH                        rather-unlikely-to-exist  \
-		ge  1  PATH                        /var/empty                \
-		ge  1  PATH                        /var/empty/nofile         \
-		eq  0  PATH                        /bin/sh                   \
-		eq  0  PATH                        sh                        \
-		eq  0  ''                          newer/file                \
-		eq  0  .                           newer/file                \
-		eq  0  :/var/empty/x               newer/file                \
-		eq  0  /var/empty/x:               newer/file                \
-		eq  0  /var/empty/x::/var/empty/y  newer/file                \
-		ge  1  ''                          older/file                \
-		ge  1  .                           older/file                \
-		ge  1  :/var/empty/x               older/file                \
-		ge  1  /var/empty/x:               older/file                \
-		ge  1  /var/empty/x::/var/empty/y  older/file
+	set  --  \
+		ge  1  PATH                        N/A                N/A                \
+		ge  1  PATH                        .                  N/A                \
+		ge  1  PATH                        unlikely-to-exist  N/A                \
+		ge  1  PATH                        /var/empty         N/A                \
+		ge  1  PATH                        /var/empty/nofile  N/A                \
+		eq  0  PATH                        /bin/sh            N/A                \
+		eq  0  PATH                        sh                 N/A                \
+		ge  1  PATH                        -x                 .                  \
+		ge  1  PATH                        -x                 unlikely-to-exist  \
+		ge  1  PATH                        -x                 /var/empty         \
+		ge  1  PATH                        -x                 /var/empty/nofile  \
+		eq  0  PATH                        -x                 /bin/sh            \
+		eq  0  PATH                        -x                 sh                 \
+		eq  0  ''                          -x                 newer/file         \
+		eq  0  .                           -x                 newer/file         \
+		eq  0  :/var/empty/x               -x                 newer/file         \
+		eq  0  /var/empty/x:               -x                 newer/file         \
+		eq  0  /var/empty/x::/var/empty/y  -x                 newer/file         \
+		eq  0  ''                          -x                 newer/file         \
+		eq  0  .                           -x                 newer/file         \
+		eq  0  :/var/empty/x               -x                 newer/file         \
+		eq  0  /var/empty/x:               -x                 newer/file         \
+		eq  0  /var/empty/x::/var/empty/y  -x                 newer/file         \
+		eq  0  ''                          older/file         N/A                \
+		eq  0  .                           older/file         N/A                \
+		eq  0  :/var/empty/x               older/file         N/A                \
+		eq  0  /var/empty/x:               older/file         N/A                \
+		eq  0  /var/empty/x::/var/empty/y  older/file         N/A                \
+		ge  1  ''                          -x                 older/file         \
+		ge  1  .                           -x                 older/file         \
+		ge  1  :/var/empty/x               -x                 older/file         \
+		ge  1  /var/empty/x:               -x                 older/file         \
+		ge  1  /var/empty/x::/var/empty/y  -x                 older/file
 
 	chmod +x newer/file
 
@@ -533,15 +549,16 @@ test_whenceforth() {
 		shift
 		path=$1
 		shift
-		test_description="whenceforth $(quote_args "$@")"
 		if [ "${path}" = PATH ]; then
+			test_description="whenceforth $(quote_args "$@")"
 			whenceforth "$@" >/dev/null
 		else
+			test_description="PATH=${path} whenceforth $(quote_args "$@")"
 			PATH=${path} whenceforth "$@" >/dev/null
 		fi
 	}
 
-	iterate_tests 4 "$@"
+	iterate_tests 5 "$@"
 }
 
 test_get_nprocs() {
