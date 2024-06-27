@@ -377,7 +377,7 @@ quote_args()
 				word = q arg q
 			} else {
 				# Use $'' quoting per Issue 8
-				if (ord_by["\001"] == "") {
+				if (! ("\001" in ord_by)) {
 					for (i = 1; i < 32; i++) {
 						char = sprintf("%c", i)
 						ord_by[char] = i
@@ -391,13 +391,10 @@ quote_args()
 						word = word "\\\\"
 					} else if (char == q) {
 						word = word "\\'"
+					} else if (char in ord_by) {
+						word = word "\\" sprintf("%03o", ord_by[char])
 					} else {
-						ord = ord_by[char]
-						if (ord != "") {
-							word = word "\\" sprintf("%03o", ord)
-						} else {
-							word = word char
-						}
+						word = word char
 					}
 				}
 				word = word q
