@@ -664,6 +664,44 @@ test_trueof_any() {
 	iterate_tests 7 "$@"
 }
 
+test_substr() {
+	set -- \
+		ge  1  -       foobar  N/A  N/A  \
+		ge  1  -       foobar  ''   N/A  \
+		ge  1  -       foobar  x    N/A  \
+		ge  1  -       foobar  ''   ''   \
+		ge  1  -       foobar  x    y    \
+		eq  0  foobar  foobar  1    N/A  \
+		eq  0  foobar  foobar  -1   N/A  \
+		eq  0  foobar  foobar  1    7    \
+		eq  0  foobar  foobar  -1   7    \
+		eq  0  foo     foobar  1    3    \
+		eq  0  foo     foobar  -1   3    \
+		eq  0  f       foobar  1    1    \
+		eq  0  f       foobar  -1   1    \
+		eq  0  ''      foobar  1    0    \
+		eq  0  ''      foobar  1    -1   \
+		eq  0  ''      foobar  0    0    \
+		eq  0  ''      foobar  0    -1   \
+		eq  0  ''      foobar  -1   0    \
+		eq  0  ''      foobar  -1   -1   \
+		eq  0  bar     foobar  4    N/A  \
+		eq  0  bar     foobar  4    4    \
+		eq  0  b       foobar  4    1    \
+		eq  0  ''      foobar  4    0    \
+		eq  0  ''      foobar  4    -1
+
+	callback() {
+		shift
+		expected=$1
+		shift
+		test_description="substr $(quote_args "$@")"
+		str=$(substr "$@") && test "${str}" = "${expected}"
+	}
+
+	iterate_tests 6 "$@"
+}
+
 iterate_tests() {
 	slice_width=$1
 	shift
@@ -738,6 +776,7 @@ test_is_anyof || rc=1
 test_is_subset || rc=1
 test_trueof_all || rc=1
 test_trueof_any || rc=1
+test_substr || rc=1
 
 cleanup_tmpdir
 
