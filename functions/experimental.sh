@@ -13,6 +13,24 @@
 warn "sourcing the experimental module from gentoo-functions; no stability guarantee is provided"
 
 #
+# Expects three parameters, all of which must be integers, and determines
+# whether the first is numerically greater than or equal to the second, and
+# numerically lower than or equal to the third.
+#
+int_between()
+{
+	if [ "$#" -lt 3 ]; then
+		warn "int_between: too few arguments (got $#, expected 3)"
+		false
+	elif ! is_int "$2" || ! is_int "$3"; then
+		_warn_for_args int_between "$@"
+		false
+	else
+		is_int "$1" && [ "$1" -ge "$2" ] && [ "$1" -le "$3" ]
+	fi
+}
+
+#
 # Returns 0 provided that two conditions hold. Firstly, that the standard input
 # is connected to a tty. Secondly, that the standard output has not been closed.
 # This technique is loosely based on the IO::Interactive::Tiny module from CPAN.
@@ -50,6 +68,30 @@ prepend_ts()
 	fi
 
 	prepend_ts
+}
+
+#
+# Expects three parameters and determines whether the first is lexicographically
+# greater than or equal to the second, and lexicographically lower than or equal
+# to the third. The effective system collation shall affect the results, given
+# the involvement of the sort(1) utility.
+#
+str_between()
+{
+	local i
+
+	if [ "$#" -ne 3 ]; then
+		warn "str_between: wrong number of arguments (got $#, expected 3)"
+		false
+	else
+		set -- "$2" "$1" "$3"
+		i=0
+		printf '%s\n' "$@" |
+		sort |
+		while IFS= read -r line; do
+			eval "[ \"\${line}\" = \"\$$(( i += 1 ))\" ]" || ! break
+		done
+	fi
 }
 
 #
