@@ -235,7 +235,7 @@ is_subset()
 				if (word == ENVIRON["SENTINEL"]) {
 					break
 				} else {
-					set1[word] = ""
+					set1[word]
 				}
 			}
 			if (i == 1 || argc - i < 2) {
@@ -243,7 +243,7 @@ is_subset()
 			}
 			for (i++; i < argc; i++) {
 				word = ARGV[i]
-				set2[word] = ""
+				set2[word]
 			}
 			for (word in set2) {
 				delete set1[word]
