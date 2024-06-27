@@ -82,7 +82,7 @@ fetch()
 			wget -nv -O - --connect-timeout 10 -- "$@"
 		}
 	else
-		warn "fetch: this function requires that curl or wget to be installed"
+		warn "fetch: this function requires that curl or wget be installed"
 		return 127
 	fi
 
