@@ -21,6 +21,7 @@
 # INVOCATION_ID    : used by from_unit()
 # PORTAGE_BIN_PATH : used by from_portage()
 # RC_OPENRC_PID    : used by from_runscript()
+# SENTINEL         : can define a value separating two distinct argument lists
 # SYSTEMD_EXEC_PID : used by from_unit()
 # TERM             : used to detect dumb terminals
 
