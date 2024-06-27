@@ -37,7 +37,7 @@
 #
 chdir()
 {
-	if [ "$BASH" ]; then
+	if [ "${BASH}" ]; then
 		# shellcheck disable=3044
 		shopt -u cdable_vars
 	fi
