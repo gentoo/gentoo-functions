@@ -95,6 +95,47 @@ str_between()
 }
 
 #
+# Takes the first parameter as a string (s), the second parameter as a numerical
+# position (m) and, optionally, the third parameter as a numerical length (n).
+# It shall then print a <newline> terminated substring of s that is at most, n
+# characters in length and which begins at position m, numbering from 1. If n is
+# omitted, or if n specifies more characters than are left in the string, the
+# length of the substring shall be limited by the length of s. The function
+# shall return 0 provided that none of the parameters are invalid.
+#
+substr()
+{
+	local i str
+
+	if [ "$#" -lt 2 ]; then
+		warn "substr: too few arguments (got $#, expected at least 2)"
+		return 1
+	elif ! is_int "$2"; then
+		_warn_for_args substr "$2"
+		return 1
+	elif [ "$#" -ge 3 ]; then
+		if ! is_int "$3"; then
+			_warn_for_args substr "$3"
+			return 1
+		elif [ "$3" -lt 0 ]; then
+			set -- "$1" "$2" 0
+		fi
+	fi
+	str=$1
+	i=0
+	while [ "$(( i += 1 ))" -lt "$2" ]; do
+		str=${str#?}
+	done
+	i=0
+	while [ "${#str}" -gt "${3-${#str}}" ]; do
+		str=${str%?}
+	done
+	if [ "${#str}" -gt 0 ]; then
+		printf '%s\n' "${str}"
+	fi
+}
+
+#
 # Takes the first parameter as either a relative pathname or an integer
 # referring to a number of iterations. To be recognised as a pathname, the first
 # four characters must form the special prefix, ".../". It recurses upwards from
