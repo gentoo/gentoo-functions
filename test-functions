@@ -719,6 +719,84 @@ test_substr() {
 	iterate_tests 6 "$@"
 }
 
+test_contains_all() {
+	set -- \
+		ge  1  N/A         N/A         N/A         N/A  \
+		ge  1  'foo  bar'  ''          N/A         N/A  \
+		ge  1  'foo  bar'  ''          ' '         N/A  \
+		ge  1  'foo  bar'  ''          ' bar'      N/A  \
+		ge  1  'foo  bar'  ''          ' bar'      N/A  \
+		ge  1  'foo  bar'  ''          'foo '      N/A  \
+		ge  1  'foo  bar'  ''          'foo  bar'  N/A  \
+		ge  1  'foo  bar'  ' '         ''          N/A  \
+		ge  1  'foo  bar'  ' '         ' '         N/A  \
+		ge  1  'foo  bar'  ' '         N/A         N/A  \
+		ge  1  'foo  bar'  ' bar'      ''          N/A  \
+		ge  1  'foo  bar'  ' bar'      N/A         N/A  \
+		ge  1  'foo  bar'  'foo '      ''          N/A  \
+		ge  1  'foo  bar'  'foo '      ' bar'      N/A  \
+		ge  1  'foo  bar'  'foo '      N/A         N/A  \
+		ge  1  'foo  bar'  'foo  bar'  ''          N/A  \
+		ge  1  'foo  bar'  'foo  bar'  N/A         N/A  \
+		ge  1  'foo  bar'  N/A         N/A         N/A  \
+		ge  1  'foo  bar'  bar         foo         ''   \
+		ge  1  'foo  bar'  bar         foo         ' '  \
+		ge  1  'foo  bar'  baz         bar         foo  \
+		ge  1  'foo  bar'  fo          ba          N/A  \
+		ge  1  'foo  bar'  foo         bar         ''   \
+		ge  1  'foo  bar'  foo         bar         ' '  \
+		ge  1  'foo  bar'  foo         bar         baz  \
+		ge  1  'foo  bar'  o           a           N/A  \
+		ge  1  'foo  bar'  oo          ar          N/A  \
+		eq  0  'foo  bar'  foo         bar         N/A  \
+		eq  0  'foo  bar'  bar         foo         N/A
+
+	callback() {
+		shift
+		test_description="contains_all $(quote_args "$@")"
+		contains_all "$@"
+	}
+
+	iterate_tests 6 "$@"
+}
+
+test_contains_any() {
+	set -- \
+		ge  1  N/A        N/A        N/A        \
+		ge  1  'foo bar'  N/A        N/A        \
+		ge  1  'foo bar'  fo         ba         \
+		ge  1  'foo bar'  oo         ar         \
+		ge  1  'foo bar'  o          a          \
+		ge  1  'foo bar'  'foo bar'  'foo bar'  \
+		ge  1  'foo bar'  'foo bar'  _          \
+		ge  1  'foo bar'  _          'foo bar'  \
+		ge  1  'foo bar'  'foo '     ' bar'     \
+		ge  1  'foo bar'  'foo '     _          \
+		ge  1  'foo bar'  _          ' bar'     \
+		ge  1  'foo bar'  ' bar'     _          \
+		ge  1  'foo bar'  _          'foo '     \
+		ge  1  'foo bar'  ''         ''         \
+		ge  1  'foo bar'  ''         _          \
+		ge  1  'foo bar'  _          ''         \
+		ge  1  'foo bar'  ' '        ' '        \
+		ge  1  'foo bar'  ' '        _          \
+		ge  1  'foo bar'  _          ' '        \
+		eq  0  'foo bar'  foo        bar        \
+		eq  0  'foo bar'  bar        foo        \
+		eq  0  'foo bar'  foo        _          \
+		eq  0  'foo bar'  _          bar        \
+		eq  0  'foo bar'  bar        _          \
+		eq  0  'foo bar'  _          foo
+
+	callback() {
+		shift
+		test_description="contains_any $(quote_args "$@")"
+		contains_any "$@"
+	}
+
+	iterate_tests 5 "$@"
+}
+
 iterate_tests() {
 	slice_width=$1
 	shift
@@ -794,6 +872,8 @@ test_is_subset || rc=1
 test_trueof_all || rc=1
 test_trueof_any || rc=1
 #test_substr || rc=1
+test_contains_all || rc=1
+test_contains_any || rc=1
 
 cleanup_tmpdir
 

@@ -17,7 +17,7 @@
 # COLUMNS          : may be used by _update_columns() to get the column count
 # EPOCHREALTIME    : potentially used by _update_time() to get the time
 # GENFUN_MODULES   : which of the optional function collections must be sourced
-# IFS              : multiple warn() operands are joined by its first character
+# IFS              : affects contains_all(), contains_any() and warn()
 # INVOCATION_ID    : used by from_unit()
 # PORTAGE_BIN_PATH : used by from_portage()
 # RC_OPENRC_PID    : used by from_runscript()
@@ -46,6 +46,96 @@ chdir()
 	fi
 	# shellcheck disable=1007,2164
 	CDPATH= cd -- "$@"
+}
+
+#
+# Takes the first parameter as a string comprising zero or more words, composes
+# a set consisting of the intersection of those words, then determines whether
+# the intersection of the remaining parameters forms a subset thereof. The
+# words shall be collected by splitting the string into individual fields, in
+# accordance with section 2.6.5 of the Shell Command Language specification.
+# Therefore, the value of IFS shall be taken into account. If fewer than two
+# parameters are provided, or if the first parameter yields no fields, or if the
+# second set is disjoint from - or a superset of - the first, the return value
+# shall be greater than 0.
+#
+contains_all()
+{
+	[ "$#" -ge 2 ] && IFS=${IFS} awk -f - -- "$@" <<-'EOF'
+	BEGIN {
+		ifs = ENVIRON["IFS"]
+		haystack = ARGV[1]
+		argc = ARGC
+		ARGC = 1
+		if (length(ifs) == 0) {
+			FS = "^"
+		} else if (length(ifs) != 3 || ifs ~ /[^ \t\n]/) {
+			# Split by the first character of IFS.
+			FS = "[" substr(ifs, 1, 1) "]"
+		} else {
+			# Mimic default field splitting behaviour, per section 2.6.5.
+			FS = "[ \t\n]+"
+			sub("^" FS, "", haystack)
+		}
+		# In sh, fields are terminated, not separated.
+		sub(FS "$", "", haystack)
+		len = split(haystack, words)
+		for (i = 1; i <= len; i++) {
+			set2[words[i]]
+		}
+		for (i = 2; i < argc; i++) {
+			set1[ARGV[i]]
+		}
+		for (word in set2) {
+			delete set1[word]
+		}
+		for (word in set1) {
+			exit 1
+		}
+	}
+	EOF
+}
+
+#
+# Takes the first parameter as a string comprising zero or more words then
+# determines whether at least one of the remaining parameters can be matched
+# against any of those words. The words shall be collected by splitting the
+# string into individual fields, in accordance with section 2.6.5 of the Shell
+# Command Language specification. Therefore, the value of IFS shall be taken
+# into account. If fewer than two parameters are provided, or if the first
+# parameter yields no fields, or if none of the following parameters can be
+# matched, the return value shall be greater than 0.
+#
+contains_any()
+{
+	local had_noglob haystack i item needle retval
+
+	[ "$#" -ge 2 ] || return
+	haystack=$1
+	shift
+	i=0
+	case $- in
+		*f*)
+			had_noglob=1
+			;;
+		*)
+			had_noglob=0
+	esac
+	set -f
+	for needle; do
+		if [ "$(( i += 1 ))" -eq 1 ]; then
+			# shellcheck disable=2086
+			set -- ${haystack}
+		fi
+		for item; do
+			[ "${item}" = "${needle}" ] && break 2
+		done
+	done
+	retval=$?
+	if [ "${had_noglob}" -eq 0 ]; then
+		set +f
+	fi
+	return "${retval}"
 }
 
 #
@@ -586,29 +676,6 @@ whenceforth()
 #------------------------------------------------------------------------------#
 
 #
-# Considers the first parameter as containing zero or more blank-separated words
-# then determines whether any of the remaining parameters can be matched in
-# their capacity as discrete words.
-#
-_contains_word()
-{
-	local word wordlist
-
-	wordlist=$1 word=$2
-	case ${word} in
-		''|*[[:blank:]]*)
-			;;
-		*)
-			case " ${wordlist} " in
-				*[[:blank:]]"${word}"[[:blank:]]*)
-					return
-					;;
-			esac
-	esac
-	false
-}
-
-#
 # Determines whether the terminal is a dumb one.
 #
 _has_dumb_terminal()
@@ -761,7 +828,7 @@ _want_module()
 	local basename
 
 	basename=${1##*/}
-	_contains_word "${GENFUN_MODULES}" "${basename%.sh}"
+	contains_any "${GENFUN_MODULES}" "${basename%.sh}"
 }
 
 #
