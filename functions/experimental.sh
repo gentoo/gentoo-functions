@@ -13,6 +13,48 @@
 warn "sourcing the experimental module from gentoo-functions; no stability guarantee is provided"
 
 #
+# Considers the first parameter as an URL then attempts to fetch it with either
+# curl(1) or wget(1). If the URL does not contain a scheme then the https://
+# scheme shall be presumed. Both utilities shall be invoked in a manner that
+# suppresses all output unless an error occurs, and whereby HTTP redirections
+# are honoured. Upon success, the body of the response shall be printed to the
+# standard output. Otherwise, the return value shall be greater than 0.
+#
+fetch()
+{
+	if hash curl 2>/dev/null; then
+		fetch()
+		{
+			if [ "$#" -gt 0 ]; then
+				# Discard any extraneous parameters.
+				set -- "$1"
+			fi
+			curl -f -sS -L --connect-timeout 10 --proto-default https -- "$@"
+		}
+	elif hash wget 2>/dev/null; then
+		fetch()
+		{
+			if [ "$#" -gt 0 ]; then
+				# Discard any extraneous parameters.
+				case $1 in
+					''|ftp://*|ftps://*|https://*)
+						set -- "$1"
+						;;
+					*)
+						set -- "https://$1"
+				esac
+			fi
+			wget -nv -O - --connect-timeout 10 -- "$@"
+		}
+	else
+		warn "fetch: this function requires that curl or wget be installed"
+		return 127
+	fi
+
+	fetch "$@"
+}
+
+#
 # Expects three parameters, all of which must be integers, and determines
 # whether the first is numerically greater than or equal to the second, and
 # numerically lower than or equal to the third.
