@@ -61,21 +61,41 @@ chdir()
 #
 contains_all()
 {
-	[ "$#" -ge 2 ] && IFS=${IFS} awk -f - -- "$@" <<-'EOF'
+	# shellcheck disable=2097,2098
+	[ "$#" -ge 2 ] &&
+	IFS=${IFS} awk -v ifs_set=${IFS+1} -f - -- "$@" <<-'EOF'
 	BEGIN {
-		ifs = ENVIRON["IFS"]
 		haystack = ARGV[1]
 		argc = ARGC
 		ARGC = 1
+		if (ifs_set) {
+			ifs = ENVIRON["IFS"]
+		} else {
+			ifs = " \t\n"
+		}
+		# Translate IFS to FS, in accordance with section 2.6.5.
 		if (length(ifs) == 0) {
 			FS = "^"
-		} else if (length(ifs) != 3 || ifs ~ /[^ \t\n]/) {
-			# Split by the first character of IFS.
-			FS = "[" substr(ifs, 1, 1) "]"
 		} else {
-			# Mimic default field splitting behaviour, per section 2.6.5.
-			FS = "[ \t\n]+"
-			sub("^" FS, "", haystack)
+			whitespace = ""
+			FS = "("
+			for (i = 1; i <= length(ifs); i++) {
+				char = substr(ifs, i, 1)
+				if (seen[char]++) {
+					continue
+				} else if (char ~ /[ \t\n]/) {
+					whitespace = whitespace char
+					FS = FS "[" char "]+|"
+				} else {
+					FS = FS "[" char "]|"
+				}
+			}
+			sub(/\|$/, "", FS)
+			FS = FS ")"
+		}
+		# Leading whitespace characters must be removed.
+		if (length(whitespace) > 0) {
+			sub("^[" whitespace "]+", "", haystack)
 		}
 		# In sh, fields are terminated, not separated.
 		sub(FS "$", "", haystack)

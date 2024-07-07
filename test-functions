@@ -721,43 +721,105 @@ test_substr() {
 
 test_contains_all() {
 	set -- \
-		ge  1  N/A         N/A         N/A         N/A  \
-		ge  1  'foo  bar'  ''          N/A         N/A  \
-		ge  1  'foo  bar'  ''          ' '         N/A  \
-		ge  1  'foo  bar'  ''          ' bar'      N/A  \
-		ge  1  'foo  bar'  ''          ' bar'      N/A  \
-		ge  1  'foo  bar'  ''          'foo '      N/A  \
-		ge  1  'foo  bar'  ''          'foo  bar'  N/A  \
-		ge  1  'foo  bar'  ' '         ''          N/A  \
-		ge  1  'foo  bar'  ' '         ' '         N/A  \
-		ge  1  'foo  bar'  ' '         N/A         N/A  \
-		ge  1  'foo  bar'  ' bar'      ''          N/A  \
-		ge  1  'foo  bar'  ' bar'      N/A         N/A  \
-		ge  1  'foo  bar'  'foo '      ''          N/A  \
-		ge  1  'foo  bar'  'foo '      ' bar'      N/A  \
-		ge  1  'foo  bar'  'foo '      N/A         N/A  \
-		ge  1  'foo  bar'  'foo  bar'  ''          N/A  \
-		ge  1  'foo  bar'  'foo  bar'  N/A         N/A  \
-		ge  1  'foo  bar'  N/A         N/A         N/A  \
-		ge  1  'foo  bar'  bar         foo         ''   \
-		ge  1  'foo  bar'  bar         foo         ' '  \
-		ge  1  'foo  bar'  baz         bar         foo  \
-		ge  1  'foo  bar'  fo          ba          N/A  \
-		ge  1  'foo  bar'  foo         bar         ''   \
-		ge  1  'foo  bar'  foo         bar         ' '  \
-		ge  1  'foo  bar'  foo         bar         baz  \
-		ge  1  'foo  bar'  o           a           N/A  \
-		ge  1  'foo  bar'  oo          ar          N/A  \
-		eq  0  'foo  bar'  foo         bar         N/A  \
-		eq  0  'foo  bar'  bar         foo         N/A
+		ge  1  default  N/A           N/A         N/A         N/A  \
+		ge  1  default  ' foo  bar '  ''          N/A         N/A  \
+		ge  1  default  ' foo  bar '  ''          ' '         N/A  \
+		ge  1  default  ' foo  bar '  ''          ' bar'      N/A  \
+		ge  1  default  ' foo  bar '  ''          'foo '      N/A  \
+		ge  1  default  ' foo  bar '  ''          'foo  bar'  N/A  \
+		ge  1  default  ' foo  bar '  ' '         ''          N/A  \
+		ge  1  default  ' foo  bar '  ' '         ' '         N/A  \
+		ge  1  default  ' foo  bar '  ' '         N/A         N/A  \
+		ge  1  default  ' foo  bar '  ' bar'      ''          N/A  \
+		ge  1  default  ' foo  bar '  ' bar'      N/A         N/A  \
+		ge  1  default  ' foo  bar '  'foo '      ''          N/A  \
+		ge  1  default  ' foo  bar '  'foo '      ' bar'      N/A  \
+		ge  1  default  ' foo  bar '  'foo '      N/A         N/A  \
+		ge  1  default  ' foo  bar '  'foo  bar'  ''          N/A  \
+		ge  1  default  ' foo  bar '  'foo  bar'  N/A         N/A  \
+		ge  1  default  ' foo  bar '  N/A         N/A         N/A  \
+		ge  1  default  ' foo  bar '  bar         foo         ''   \
+		ge  1  default  ' foo  bar '  bar         foo         ' '  \
+		ge  1  default  ' foo  bar '  baz         bar         foo  \
+		ge  1  default  ' foo  bar '  fo          ba          N/A  \
+		ge  1  default  ' foo  bar '  foo         bar         ''   \
+		ge  1  default  ' foo  bar '  foo         bar         ' '  \
+		ge  1  default  ' foo  bar '  foo         bar         baz  \
+		ge  1  default  ' foo  bar '  o           a           N/A  \
+		ge  1  default  ' foo  bar '  oo          ar          N/A  \
+		eq  0  default  ' foo  bar '  foo         bar         N/A  \
+		eq  0  default  ' foo  bar '  bar         foo         N/A  \
+		ge  1  ', '     N/A           N/A         N/A         N/A  \
+		ge  1  ', '     ' foo  bar '  ''          N/A         N/A  \
+		ge  1  ', '     ' foo  bar '  ''          ' '         N/A  \
+		ge  1  ', '     ' foo ,bar, ' ''          ','         N/A  \
+		ge  1  ', '     ' foo  bar '  ''          ' bar'      N/A  \
+		ge  1  ', '     ' foo ,bar '  ''          ',bar'      N/A  \
+		ge  1  ', '     ' foo  bar '  ''          'foo '      N/A  \
+		ge  1  ', '     ' foo, bar '  ''          'foo,'      N/A  \
+		ge  1  ', '     ' foo  bar '  ''          'foo  bar'  N/A  \
+		ge  1  ', '     ' foo  bar '  ' '         ''          N/A  \
+		ge  1  ', '     ' foo,bar, '  ','         ''          N/A  \
+		ge  1  ', '     ' foo  bar '  ' '         ' '         N/A  \
+		ge  1  ', '     ',foo,,bar,'  ','         ','         N/A  \
+		ge  1  ', '     ' foo  bar '  ' '         N/A         N/A  \
+		ge  1  ', '     ',foo,,bar,'  ','         N/A         N/A  \
+		ge  1  ', '     ' foo  bar '  ' bar'      ''          N/A  \
+		ge  1  ', '     'foo,bar,'    ',bar'      ''          N/A  \
+		ge  1  ', '     ' foo  bar '  ' bar'      N/A         N/A  \
+		ge  1  ', '     ',foo,,bar,'  ',bar'      N/A         N/A  \
+		ge  1  ', '     ' foo  bar '  'foo '      ''          N/A  \
+		ge  1  ', '     'foo,bar,'    'foo,'      ''          N/A  \
+		ge  1  ', '     ' foo  bar '  'foo '      ' bar'      N/A  \
+		ge  1  ', '     ',foo,,bar,'  'foo,'      ',bar'      N/A  \
+		ge  1  ', '     ' foo  bar '  'foo '      N/A         N/A  \
+		ge  1  ', '     ',foo,,bar,'  'foo,'      N/A         N/A  \
+		ge  1  ', '     ' foo  bar '  'foo  bar'  ''          N/A  \
+		ge  1  ', '     'foo,bar,'    'foo,bar'   ''          N/A  \
+		ge  1  ', '     ' foo  bar '  'foo  bar'  N/A         N/A  \
+		ge  1  ', '     ',foo,,bar,'  'foo,,bar'  N/A         N/A  \
+		ge  1  ', '     ' foo  bar '  N/A         N/A         N/A  \
+		ge  1  ', '     ' foo  bar '  bar         foo         ''   \
+		ge  1  ', '     ' foo,bar  '  bar         foo         ''   \
+		ge  1  ', '     ' foo  bar '  bar         foo         ' '  \
+		ge  1  ', '     ' foo,,bar '  bar         foo         ','  \
+		ge  1  ', '     ' foo  bar '  baz         bar         foo  \
+		ge  1  ', '     ',foo,,bar,'  baz         bar         foo  \
+		ge  1  ', '     ' foo  bar '  fo          ba          N/A  \
+		ge  1  ', '     ',foo,,bar,'  fo          ba          N/A  \
+		ge  1  ', '     ' foo  bar '  foo         bar         ''   \
+		ge  1  ', '     ' foo,bar '   foo         bar         ''   \
+		ge  1  ', '     ' foo  bar '  foo         bar         ' '  \
+		ge  1  ', '     ' foo,,bar '  foo         bar         ','  \
+		ge  1  ', '     ' foo  bar '  foo         bar         baz  \
+		ge  1  ', '     ',foo,,bar,'  foo         bar         baz  \
+		ge  1  ', '     ' foo  bar '  o           a           N/A  \
+		ge  1  ', '     ',foo,,bar,'  o           a           N/A  \
+		ge  1  ', '     ' foo  bar '  oo          ar          N/A  \
+		ge  1  ', '     ',foo,,bar,'  oo          ar          N/A  \
+		eq  0  ', '     ' foo  bar '  foo         bar         N/A  \
+		eq  0  ', '     ',foo  bar,'  foo         bar         N/A  \
+		eq  0  ', '     ' foo,,bar '  foo         bar         N/A  \
+		eq  0  ', '     ',foo,,bar,'  foo         bar         N/A  \
+		eq  0  ', '     ' foo  bar '  bar         foo         N/A  \
+		eq  0  ', '     ',foo  bar,'  bar         foo         N/A  \
+		eq  0  ', '     ' foo,,bar '  bar         foo         N/A  \
+		eq  0  ', '     ',foo,,bar,'  bar         foo         N/A
 
 	callback() {
 		shift
-		test_description="contains_all $(quote_args "$@")"
-		contains_all "$@"
+		ifs=$1
+		shift
+		if [ "${ifs}" = "default" ]; then
+			test_description="contains_all $(quote_args "$@")"
+			contains_all "$@"
+		else
+			test_description="IFS='${ifs}' contains_all $(quote_args "$@")"
+			IFS=${ifs} contains_all "$@"
+		fi
 	}
 
-	iterate_tests 6 "$@"
+	iterate_tests 7 "$@"
 }
 
 test_contains_any() {
