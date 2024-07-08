@@ -755,16 +755,18 @@ _update_time()
 	elif [ -f /proc/uptime ]; then
 		_update_time()
 		{
-			local ds s timeval
+			local cs ds s timeval
 
 			IFS=' ' read -r timeval _ < /proc/uptime || return
 			s=${timeval%.*}
-			ds=$(printf '%.1f' ".${timeval#*.}")
-			if [ "${ds}" = "1.0" ]; then
-				ds=10
-			else
-				ds=${ds#0.}
-			fi
+			cs=${timeval#*.}
+			case ${cs} in
+				?[0-4])
+					ds=${cs%?}
+					;;
+				?[5-9])
+					ds=$(( ${cs%?} + 1 ))
+			esac
 			genfun_time=$(( s * 10 + ds ))
 		}
 	else
