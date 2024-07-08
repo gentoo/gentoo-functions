@@ -653,6 +653,33 @@ whenceforth()
 #------------------------------------------------------------------------------#
 
 #
+# See the definitions of _select_by_mtime() and is_older_than().
+#
+_find0()
+{
+	# Store the name of the GNU find binary, which may be "gfind".
+	hash gfind 2>/dev/null && genfun_bin_find=gfind || genfun_bin_find=find
+
+	_find0()
+	{
+		local opt
+
+		case $1 in
+			-[HL])
+				opt=$1
+				shift
+				set -- "${opt}" -files0-from - "$@"
+				;;
+			*)
+				set -- -files0-from - "$@"
+		esac
+		"${genfun_bin_find}" "$@"
+	}
+
+	_find0 "$@"
+}
+
+#
 # Determines whether the terminal is a dumb one.
 #
 _has_dumb_terminal()
@@ -660,7 +687,6 @@ _has_dumb_terminal()
 	! case ${TERM} in *dumb*) false ;; esac
 }
 
-#
 #
 # See the definitions of oldest() and newest().
 #
@@ -674,7 +700,7 @@ _select_by_mtime() {
 	else
 		cat
 	fi \
-	| "${genfun_bin_find}" -files0-from - -maxdepth 0 ! -path "*${genfun_newline}*" -printf '%T+ %p\n' \
+	| _find0 -maxdepth 0 ! -path "*${genfun_newline}*" -printf '%T+ %p\n' \
 	| sort "${sort_opt}" \
 	| { IFS= read -r line && printf '%s\n' "${line#* }"; }
 }
@@ -840,9 +866,6 @@ if [ ! "${genfun_basedir+set}" ]; then
 	genfun_prefix=
 	genfun_basedir=${genfun_prefix}/lib/gentoo
 fi
-
-# Store the name of the GNU find binary. Some platforms may have it as "gfind".
-hash gfind 2>/dev/null && genfun_bin_find=gfind || genfun_bin_find=find
 
 # Assign the LF ('\n') character for later expansion. POSIX Issue 8 permits
 # $'\n' but it may take years for it to be commonly implemented.

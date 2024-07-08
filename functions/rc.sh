@@ -213,7 +213,7 @@ is_older_than()
 	fi
 	shift
 	{ test "$#" -gt 0 && printf '%s\0' "$@"; } \
-	| "${genfun_bin_find}" -L -files0-from - ${ref:+-newermm} ${ref:+"${ref}"} -printf '\n' -quit \
+	| _find0 -L ${ref:+-newermm} ${ref:+"${ref}"} -printf '\n' -quit \
 	| read -r _
 }
 
