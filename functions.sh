@@ -725,28 +725,39 @@ _should_throttle()
 #
 _update_columns()
 {
-	# Two optimisations are applied. Firstly, the rate at which updates can
-	# be performed is throttled to intervals of 5 deciseconds. Secondly, if
-	# running on bash then the COLUMNS variable may be gauged, albeit only
-	# in situations where doing so can be expected to work reliably; not if
-	# in a subshell. Note that executing true(1) is faster than executing
-	# stty(1) within a comsub.
-	# shellcheck disable=3028,3044
-	if _should_throttle 5; then
-		test "${genfun_cols}"
-		return
-	elif [ "$$" = "${BASHPID}" ] && shopt -q checkwinsize; then
-		"${genfun_bin_true}"
-		set -- 0 "${COLUMNS}"
-	else
-		# The following use of stty(1) is portable as of POSIX Issue 8.
-		genfun_ifs=${IFS}
-		IFS=' '
-		# shellcheck disable=2046
-		set -- $(stty size 2>/dev/null)
-		IFS=${genfun_ifs}
+	# shellcheck disable=3044
+	if [ "${BASH}" ] && shopt -q checkwinsize; then
+		genfun_bin_true=$(whenceforth -x true)
 	fi
-	[ "$#" -eq 2 ] && is_int "$2" && [ "$2" -gt 0 ] && genfun_cols=$2
+
+	_update_columns()
+	{
+		# Two optimisations are applied. Firstly, the rate at which
+		# updates can be performed is throttled to intervals of 5
+		# deciseconds. Secondly, if running on bash then the COLUMNS
+		# variable may be gauged, albeit only in situations where doing
+		# so can be expected to work reliably; it is an unreliable
+		# method where operating from a subshell. Note that executing
+		# true(1) is faster than executing stty(1) within a comsub.
+		# shellcheck disable=3028
+		if _should_throttle 5; then
+			test "${genfun_cols}"
+			return
+		elif [ "${genfun_bin_true}" ] && [ "$$" = "${BASHPID}" ]; then
+			"${genfun_bin_true}"
+			set -- 0 "${COLUMNS}"
+		else
+			# This use of stty(1) is portable as of POSIX-1.2024.
+			genfun_ifs=${IFS}
+			IFS=' '
+			# shellcheck disable=2046
+			set -- $(stty size 2>/dev/null)
+			IFS=${genfun_ifs}
+		fi
+		[ "$#" -eq 2 ] && is_int "$2" && [ "$2" -gt 0 ] && genfun_cols=$2
+	}
+
+	_update_columns
 }
 
 #
@@ -871,11 +882,6 @@ fi
 # $'\n' but it may take years for it to be commonly implemented.
 genfun_newline='
 '
-
-# Store the path to the true binary. It is potentially used by _update_columns.
-if [ "${BASH}" ]; then
-	genfun_bin_true=$(whenceforth true)
-fi
 
 # The GENFUN_MODULES variable acts as a means of selecting modules, which are
 # merely optional collections of functions. If unset then set it now.
