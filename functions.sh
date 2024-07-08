@@ -77,21 +77,20 @@ contains_all()
 		if (length(ifs) == 0) {
 			FS = "^"
 		} else {
-			whitespace = ""
-			FS = "("
+			fs = "("
 			for (i = 1; i <= length(ifs); i++) {
 				char = substr(ifs, i, 1)
 				if (seen[char]++) {
 					continue
 				} else if (char ~ /[ \t\n]/) {
 					whitespace = whitespace char
-					FS = FS "[" char "]+|"
+					fs = fs "[" char "]+|"
 				} else {
-					FS = FS "[" char "]|"
+					fs = fs "[" char "]|"
 				}
 			}
-			sub(/\|$/, "", FS)
-			FS = FS ")"
+			sub(/\|$/, "", fs)
+			FS = fs = fs ")"
 		}
 		# Leading whitespace characters must be removed.
 		if (length(whitespace) > 0) {
