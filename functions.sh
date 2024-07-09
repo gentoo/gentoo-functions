@@ -706,7 +706,7 @@ _select_by_mtime() {
 }
 
 #
-# Considers the first parameter as a number of deciseconds and determines
+# Considers the first parameter as a number of centiseconds and determines
 # whether fewer have elapsed since the last occasion on which the function was
 # called.
 #
@@ -733,14 +733,14 @@ _update_columns()
 	_update_columns()
 	{
 		# Two optimisations are applied. Firstly, the rate at which
-		# updates can be performed is throttled to intervals of 5
-		# deciseconds. Secondly, if running on bash then the COLUMNS
-		# variable may be gauged, albeit only in situations where doing
-		# so can be expected to work reliably; it is an unreliable
-		# method where operating from a subshell. Note that executing
-		# true(1) is faster than executing stty(1) within a comsub.
+		# updates can be performed is throttled to intervals of half a
+		# second. Secondly, if running on bash then the COLUMNS variable
+		# may be gauged, albeit only in situations where doing so can be
+		# expected to work reliably; it is an unreliable method where
+		# operating from a subshell. Note that executing true(1) is
+		# faster than executing stty(1) within a comsub.
 		# shellcheck disable=3028
-		if _should_throttle 5; then
+		if _should_throttle 50; then
 			test "${genfun_cols}"
 			return
 		elif [ "${genfun_bin_true}" ] && [ "$$" = "${BASHPID}" ]; then
@@ -761,11 +761,11 @@ _update_columns()
 }
 
 #
-# Determines either the number of deciseconds elapsed since the unix epoch or
-# the number of deciseconds that the operating system has been online, depending
-# on the capabilities of the shell and/or platform. Upon success, the obtained
-# value shall be assigned to genfun_time. Otherwise, the return value shall be
-# greater than 0.
+# Determines either the number of centiseconds elapsed since the unix epoch or
+# the number of centiseconds that the operating system has been online,
+# depending on the capabilities of the shell and/or platform. Upon success, the
+# obtained value shall be assigned to genfun_time. Otherwise, the return value
+# shall be greater than 0.
 #
 _update_time()
 {
@@ -776,34 +776,25 @@ _update_time()
 		# shellcheck disable=2034,3045
 		_update_time()
 		{
-			local ds s timeval
+			local cs s timeval
 
 			timeval=${EPOCHREALTIME}
 			s=${timeval%.*}
-			printf -v ds '%.1f' ".${timeval#*.}"
-			if [ "${ds}" = "1.0" ]; then
-				ds=10
+			printf -v cs '%.2f' ".${timeval#*.}"
+			if [ "${cs}" = "1.00" ]; then
+				cs=100
 			else
-				ds=${ds#0.}
+				cs=${cs#0.} cs=${cs#0}
 			fi
-			genfun_time=$(( s * 10 + ds ))
+			genfun_time=$(( s * 100 + cs ))
 		}
 	elif [ -f /proc/uptime ]; then
 		_update_time()
 		{
-			local cs ds s timeval
+			local cs s
 
-			IFS=' ' read -r timeval _ < /proc/uptime || return
-			s=${timeval%.*}
-			cs=${timeval#*.}
-			case ${cs} in
-				?[0-4])
-					ds=${cs%?}
-					;;
-				?[5-9])
-					ds=$(( ${cs%?} + 1 ))
-			esac
-			genfun_time=$(( s * 10 + ds ))
+			IFS='. ' read -r s cs _ < /proc/uptime \
+			&& genfun_time=$(( s * 100 + ${cs#0} ))
 		}
 	else
 		_update_time()
