@@ -349,8 +349,8 @@ get_nprocs()
 		# advantage of acknowledging the effect of sched_setaffinity(2).
 		true
 	elif getconf _NPROCESSORS_ONLN 2>/dev/null; then
-		# This is a non-standard extension. Nevertheless, it works for
-		# glibc, musl-utils, macOS, FreeBSD, NetBSD and OpenBSD.
+		# This constant is standard as of POSIX-1.2024 and was already
+		# supported by glibc, musl-utils, macOS, FreeBSD, NetBSD and OpenBSD.
 		true
 	else
 		warn "get_nprocs: failed to determine the number of processors"
