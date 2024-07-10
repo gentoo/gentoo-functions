@@ -24,6 +24,29 @@ cleanup_tmpdir() {
 	fi
 }
 
+test_local() {
+	(
+		var=1
+		f() {
+			local var=2
+			g
+			test "${var}" = 3 || exit
+		}
+		g() {
+			test "${var}" = 2 || exit
+			var=3
+		}
+		f
+		test "${var}" = 1
+	) 2>/dev/null
+	retval=$?
+	if [ "${retval}" -ne 0 ]; then
+		printf 'not '
+	fi
+	printf 'ok %d - /bin/sh supports local\n' "$((testnum += 1))"
+	return "${retval}"
+}
+
 test_chdir() {
 	set -- \
 		ge  1  grandchild  \
@@ -905,37 +928,38 @@ if [ "${PORTAGE_BIN_PATH}" ] && [ "${S}" ]; then
 	genfun_basedir=${S}
 fi
 
-if ! GENFUN_MODULES="portage rc" . ./functions.sh; then
+if ! test_local; then
+	rc=1
+elif ! GENFUN_MODULES="portage rc" . ./functions.sh; then
 	bailout "Couldn't source ./functions.sh"
+else
+	assign_tmpdir
+	test_chdir || rc=1
+	test_chdir_noop || rc=1
+	( test_ebegin ) || rc=1; testnum=$((testnum + 1))
+	test_is_older_than || rc=1
+	test_get_bootparam || rc=1
+	test_esyslog || rc=1
+	test_is_identifier || rc=1
+	test_is_int || rc=1
+	test_is_visible || rc=1
+	test_yesno || rc=1
+	test_die || rc=1
+	test_edo || rc=1
+	test_srandom || rc=1
+	test_newest || rc=1
+	test_trim || rc=1
+	test_hr || rc=1
+	test_whenceforth || rc=1
+	test_parallel_run || rc=1
+	test_is_anyof || rc=1
+	test_is_subset || rc=1
+	test_trueof_all || rc=1
+	test_trueof_any || rc=1
+	#test_substr || rc=1
+	test_contains_all || rc=1
+	test_contains_any || rc=1
 fi
-
-assign_tmpdir
-
-test_chdir || rc=1
-test_chdir_noop || rc=1
-( test_ebegin ) || rc=1; testnum=$((testnum + 1))
-test_is_older_than || rc=1
-test_get_bootparam || rc=1
-test_esyslog || rc=1
-test_is_identifier || rc=1
-test_is_int || rc=1
-test_is_visible || rc=1
-test_yesno || rc=1
-test_die || rc=1
-test_edo || rc=1
-test_srandom || rc=1
-test_newest || rc=1
-test_trim || rc=1
-test_hr || rc=1
-test_whenceforth || rc=1
-test_parallel_run || rc=1
-test_is_anyof || rc=1
-test_is_subset || rc=1
-test_trueof_all || rc=1
-test_trueof_any || rc=1
-#test_substr || rc=1
-test_contains_all || rc=1
-test_contains_any || rc=1
 
 cleanup_tmpdir
 
