@@ -427,8 +427,8 @@ parallel_run()
 # characters shall be replaced by octal escape sequences, <apostrophe> by
 # <backslash><apostrophe> and <backslash> by <backslash><backslash>, prior to
 # the value being given a prefix of <dollar-sign><apostrophe> and a suffix of
-# <apostrophe>, per Issue 8. Finally, the resulting values shall be printed as
-# <space> separated. The latter quoting strategy can be suppressed by setting
+# <apostrophe>, per POSIX-1.2024. Finally, the resulting values shall be printed
+# as <space> separated. The latter quoting strategy can be suppressed by setting
 # the POSIXLY_CORRECT variable as non-empty in the environment.
 #
 quote_args()
@@ -444,7 +444,7 @@ quote_args()
 				gsub(q, q "\\" q q, arg)
 				word = q arg q
 			} else {
-				# Use $'' quoting per Issue 8
+				# Use $'' quoting per POSIX-1.2024
 				if (! ("\001" in ord_by)) {
 					for (i = 1; i < 32; i++) {
 						char = sprintf("%c", i)
@@ -869,8 +869,8 @@ if [ ! "${genfun_basedir+set}" ]; then
 	genfun_basedir=${genfun_prefix}/lib/gentoo
 fi
 
-# Assign the LF ('\n') character for later expansion. POSIX Issue 8 permits
-# $'\n' but it may take years for it to be commonly implemented.
+# Assign the LF ('\n') character for later expansion. POSIX-1.2024 permits $'\n'
+# but it may take years for it to be commonly implemented.
 genfun_newline='
 '
 
