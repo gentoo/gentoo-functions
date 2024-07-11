@@ -9,6 +9,11 @@
 # intended for internal use shall be prefixed with "genfun_" to indicate so,
 # and to reduce the probability of name space conflicts.
 
+# The functions shall be compatible with the POSIX-1.2018 Shell and Utilities
+# (XCU), except where otherwise noted, and with the additional exception that
+# the use of the local utility is permitted, despite the results of its
+# invocation being formally unspecified.
+
 # The following variables affect initialisation and/or function behaviour.
 
 # BASH             : whether bash-specific features may be employed
