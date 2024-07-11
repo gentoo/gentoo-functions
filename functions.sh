@@ -653,7 +653,8 @@ whenceforth()
 #------------------------------------------------------------------------------#
 
 #
-# See the definitions of _select_by_mtime() and is_older_than().
+# See the definitions of _select_by_mtime() and is_older_than(). This function
+# requires that GNU findutils >=4.9 be installed.
 #
 _find0()
 {
