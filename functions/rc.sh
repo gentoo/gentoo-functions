@@ -117,7 +117,11 @@ eoutdent()
 #
 # Invokes the logger(1) utility, provided that EINFO_LOG is true. The first
 # parameter shall be taken as a priority level, the second as the message tag,
-# and the remaining parameters as the message to be logged.
+# and the remaining parameters as the message to be logged. As a special case,
+# the value of EINFO_LOG shall be treated as if were false in the event that it
+# is equal to the value of RC_SERVICE. The reason for this is that, as of the
+# time of writing, openrc-run(8) defines and uses EINFO_LOG in a way that is
+# at odds with gentoo-functions.
 #
 esyslog()
 {
@@ -126,7 +130,7 @@ esyslog()
 	if [ "$#" -lt 2 ]; then
 		warn "esyslog: too few arguments (got $#, expected at least 2)"
 		return 1
-	elif yesno "${EINFO_LOG}" && hash logger 2>/dev/null; then
+	elif [ "${EINFO_LOG}" != "${RC_SERVICE}" ] && yesno "${EINFO_LOG}"; then
 		pri=$1 tag=$2
 		shift 2
 		msg=$*
