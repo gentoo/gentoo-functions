@@ -22,7 +22,7 @@
 # COLUMNS          : may be used by _update_columns() to get the column count
 # EPOCHREALTIME    : potentially used by _update_time() to get the time
 # GENFUN_MODULES   : which of the optional function collections must be sourced
-# IFS              : affects contains_all(), contains_any() and warn()
+# IFS              : warn() operands are joined by its first character
 # INVOCATION_ID    : used by from_unit()
 # PORTAGE_BIN_PATH : used by from_portage()
 # RC_OPENRC_PID    : used by from_runscript()
@@ -54,112 +54,60 @@ chdir()
 }
 
 #
-# Takes the first parameter as a string comprising zero or more words, composes
-# a set consisting of the intersection of those words, then determines whether
-# the intersection of the remaining parameters forms a subset thereof. The
-# words shall be collected by splitting the string into individual fields, in
-# accordance with section 2.6.5 of the Shell Command Language specification.
-# Therefore, the value of IFS shall be taken into account. If fewer than two
-# parameters are provided, or if the first parameter yields no fields, or if the
-# second set is disjoint from - or a superset of - the first, the return value
-# shall be greater than 0.
+# Considers the first parameter as a string comprising zero or more
+# whitespace-separated words then determines whether all of the remaining
+# parameters can be found within the resulting list in their capacity as
+# discrete words. If they cannot be, or if fewer than two parameters were given,
+# the return value shall be 1. Of the words to be searched for, any which are
+# empty or which contain whitespace characters shall be deemed unfindable.
 #
 contains_all()
 {
-	# shellcheck disable=2097,2098
-	[ "$#" -ge 2 ] &&
-	IFS=${IFS} awk -v ifs_set=${IFS+1} -f - -- "$@" <<-'EOF'
-	BEGIN {
-		haystack = ARGV[1]
-		argc = ARGC
-		ARGC = 1
-		if (ifs_set) {
-			ifs = ENVIRON["IFS"]
-		} else {
-			ifs = " \t\n"
-		}
-		# Translate IFS to FS, in accordance with section 2.6.5.
-		if (length(ifs) == 0) {
-			FS = "^"
-		} else {
-			fs = "("
-			for (i = 1; i <= length(ifs); i++) {
-				char = substr(ifs, i, 1)
-				if (seen[char]++) {
-					continue
-				} else if (char ~ /[ \t\n]/) {
-					whitespace = whitespace char
-					fs = fs "[" char "]+|"
-				} else {
-					fs = fs "[" char "]|"
-				}
-			}
-			sub(/\|$/, "", fs)
-			FS = fs = fs ")"
-		}
-		# Leading whitespace characters must be removed.
-		if (length(whitespace) > 0) {
-			sub("^[" whitespace "]+", "", haystack)
-		}
-		# In sh, fields are terminated, not separated.
-		sub(FS "$", "", haystack)
-		len = split(haystack, words)
-		for (i = 1; i <= len; i++) {
-			set2[words[i]]
-		}
-		for (i = 2; i < argc; i++) {
-			set1[ARGV[i]]
-		}
-		for (word in set2) {
-			delete set1[word]
-		}
-		for (word in set1) {
-			exit 1
-		}
-	}
-	EOF
+	local arg haystack
+
+	[ "$#" -gt 1 ] || return
+	haystack=" $1 "
+	shift
+	for arg; do
+		case ${arg} in
+			''|*[[:space:]]*)
+				return 1
+		esac
+		case ${haystack} in
+			*" ${arg} "*)
+				;;
+			*)
+				return 1
+		esac
+	done
 }
 
 #
-# Takes the first parameter as a string comprising zero or more words then
-# determines whether at least one of the remaining parameters can be matched
-# against any of those words. The words shall be collected by splitting the
-# string into individual fields, in accordance with section 2.6.5 of the Shell
-# Command Language specification. Therefore, the value of IFS shall be taken
-# into account. If fewer than two parameters are provided, or if the first
-# parameter yields no fields, or if none of the following parameters can be
-# matched, the return value shall be greater than 0.
+# Considers the first parameter as a string comprising zero or more
+# whitespace-separated words then determines whether any of the remaining
+# parameters can be found within the resulting list in their capacity as
+# discrete words. If none can be, or if no parameters were given, the return
+# value shall be greater than 0. Of the words to be searched for, any which are
+# empty or which contain whitespace characters shall be disregarded.
 #
 contains_any()
 {
-	local had_noglob haystack i item needle retval
+	local arg haystack
 
-	[ "$#" -ge 2 ] || return
-	haystack=$1
+	[ "$#" -gt 0 ] || return
+	haystack=" $1 "
 	shift
-	i=0
-	case $- in
-		*f*)
-			had_noglob=1
-			;;
-		*)
-			had_noglob=0
-	esac
-	set -f
-	for needle; do
-		if [ "$(( i += 1 ))" -eq 1 ]; then
-			# shellcheck disable=2086
-			set -- ${haystack}
-		fi
-		for item; do
-			[ "${item}" = "${needle}" ] && break 2
-		done
+	for arg; do
+		case ${arg} in
+			''|*[[:space:]]*)
+				continue
+		esac
+		case ${haystack} in
+			*" ${arg} "*)
+				return 0
+		esac
 	done
-	retval=$?
-	if [ "${had_noglob}" -eq 0 ]; then
-		set +f
-	fi
-	return "${retval}"
+	false
 }
 
 #
