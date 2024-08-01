@@ -882,6 +882,25 @@ test_contains_any() {
 	iterate_tests 5 "$@"
 }
 
+test_quote_args() {
+	testnum=$((testnum + 1))
+	retval=0
+	i=0
+	while [ "$(( i += 1 ))" -le 255 ]; do
+		fmt=$(printf '\%o' "$i")
+		str=$(printf "$fmt.")
+		POSIXLY_CORRECT= quote_args "${str%.}" || break
+	done | cksum | {
+		read -r cksum _
+		if [ "${cksum}" != "380900690" ]; then
+			printf 'not '
+			retval=1
+		fi
+		printf 'ok %d - quote_args output test (expected cksum 380900690, got %s)\n' "${testnum}" "${cksum}"
+		return "${retval}"
+	}
+}
+
 iterate_tests() {
 	slice_width=$1
 	shift
@@ -959,6 +978,7 @@ else
 	#test_substr || rc=1
 	test_contains_all || rc=1
 	test_contains_any || rc=1
+	test_quote_args || rc=1
 fi
 
 cleanup_tmpdir

@@ -425,47 +425,62 @@ parallel_run()
 #
 # Prints the positional parameters in a format that may be reused as shell
 # input. For each considered, it shall be determined whether its value contains
-# any non-printable characters in lieu of the US-ASCII character set. If no such
-# characters are found, the value shall have each instance of <apostrophe> be
-# replaced by <apostrophe><backslash><apostrophe><apostrophe> before being
-# enclosed by a pair of <apostrophe> characters. Otherwise, non-printable
-# characters shall be replaced by octal escape sequences, <apostrophe> by
-# <backslash><apostrophe> and <backslash> by <backslash><backslash>, prior to
-# the value being given a prefix of <dollar-sign><apostrophe> and a suffix of
-# <apostrophe>, per POSIX-1.2024. Finally, the resulting values shall be printed
-# as <space> separated. The latter quoting strategy can be suppressed by setting
-# the POSIXLY_CORRECT variable as non-empty in the environment.
+# any bytes that are either outside the scope of the US-ASCII character set or
+# which are considered as non-printable. If no such bytes are found, the value
+# shall have each instance of <apostrophe> be replaced by <apostrophe>
+# <backslash> <apostrophe> <apostrophe> before being enclosed by a pair of
+# <apostrophe> characters. However, as a special case, a value consisting of a
+# single <apostrophe> shall be replaced by <backslash> <apostrophe>.
+#
+# If any such bytes are found, the value shall instead be requoted in a manner
+# that conforms with section 2.2.4 of the Shell Command Language, wherein the
+# the use of dollar-single-quotes sequences is described. Such sequences are
+# standard as of POSIX-1.2024. However, as of August 2024, many implementations
+# lack support for this feature. So as to mitigate this state of affairs, the
+# use of dollar-single-quotes may be suppressed by setting POSIXLY_CORRECT as a
+# non-empty string.
 #
 quote_args()
 {
-	awk -v q=\' -f - -- "$@" <<-'EOF'
+	LC_ALL=C awk -v q=\' -f - -- "$@" <<-'EOF'
+	function init_table() {
+		# Iterate over ranges \001-\037 and \177-\377.
+		for (i = 1; i <= 255; i += (i == 31 ? 96 : 1)) {
+			char = sprintf("%c", i)
+			seq_by[char] = sprintf("%03o", i)
+		}
+		seq_by["\007"] = "a"
+		seq_by["\010"] = "b"
+		seq_by["\011"] = "t"
+		seq_by["\012"] = "n"
+		seq_by["\013"] = "v"
+		seq_by["\014"] = "f"
+		seq_by["\015"] = "r"
+		seq_by["\033"] = "e"
+		seq_by["\047"] = "'"
+		seq_by["\134"] = "\\"
+	}
 	BEGIN {
 		strictly_posix = length(ENVIRON["POSIXLY_CORRECT"])
 		argc = ARGC
 		ARGC = 1
 		for (arg_idx = 1; arg_idx < argc; arg_idx++) {
 			arg = ARGV[arg_idx]
-			if (strictly_posix || arg !~ /[\001-\037\177]/) {
+			if (arg == q) {
+				word = "\\" q
+			} else if (strictly_posix || arg !~ /[\001-\037\177-\377]/) {
 				gsub(q, q "\\" q q, arg)
 				word = q arg q
 			} else {
-				# Use $'' quoting per POSIX-1.2024
-				if (! ("\001" in ord_by)) {
-					for (i = 1; i < 32; i++) {
-						char = sprintf("%c", i)
-						ord_by[char] = i
-					}
-					ord_by["\177"] = 127
+				# Use $'' quoting per POSIX-1.2024.
+				if (! ("\001" in seq_by)) {
+					init_table()
 				}
 				word = "$'"
 				for (i = 1; i <= length(arg); i++) {
 					char = substr(arg, i, 1)
-					if (char == "\\") {
-						word = word "\\\\"
-					} else if (char == q) {
-						word = word "\\'"
-					} else if (char in ord_by) {
-						word = word "\\" sprintf("%03o", ord_by[char])
+					if (char in seq_by) {
+						word = word "\\" seq_by[char]
 					} else {
 						word = word char
 					}
