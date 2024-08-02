@@ -175,21 +175,15 @@ hr()
 	fi
 	char=${1--}
 	char=${char%"${char#?}"}
-	if [ "${BASH}" ]; then
-		# shellcheck disable=3045
-		printf -v hr '%*s' "${length}" ''
-		eval 'printf %s\\n "${hr//?/"$char"}"'
-	else
-		i=0
-		while [ "$(( i += 8 ))" -le "${length}" ]; do
-			hr=${hr}${char}${char}${char}${char}${char}${char}${char}${char}
-		done
-		i=${#hr}
-		while [ "$(( i += 1 ))" -le "${length}" ]; do
-			hr=${hr}${char}
-		done
-		printf '%s\n' "${hr}"
-	fi
+	i=0
+	while [ "$(( i += 8 ))" -le "${length}" ]; do
+		hr=${hr}${char}${char}${char}${char}${char}${char}${char}${char}
+	done
+	i=${#hr}
+	while [ "$(( i += 1 ))" -le "${length}" ]; do
+		hr=${hr}${char}
+	done
+	printf '%s\n' "${hr}"
 }
 
 #
