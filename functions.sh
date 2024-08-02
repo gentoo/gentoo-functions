@@ -629,7 +629,8 @@ _has_dumb_terminal()
 #
 # See the definitions of oldest() and newest().
 #
-_select_by_mtime() {
+_select_by_mtime()
+{
 	local sort_opt
 
 	sort_opt=$1
