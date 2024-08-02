@@ -181,6 +181,10 @@ hr()
 		eval 'printf %s\\n "${hr//?/"$char"}"'
 	else
 		i=0
+		while [ "$(( i += 8 ))" -le "${length}" ]; do
+			hr=${hr}${char}${char}${char}${char}${char}${char}${char}${char}
+		done
+		i=${#hr}
 		while [ "$(( i += 1 ))" -le "${length}" ]; do
 			hr=${hr}${char}
 		done

@@ -514,10 +514,10 @@ test_hr() {
 		eq  0  "$(printf '%80s' | tr ' ' -)"  -    N/A  \
 		eq  0  ''                             -    0    \
 		eq  0  -                              -    1    \
-		eq  0  -----                          -    5    \
+		eq  0  ---------                      -    9    \
 		eq  0  ''                             xyz  0    \
 		eq  0  x                              xyz  1    \
-		eq  0  xxxxx                          xyz  5
+		eq  0  xxxxxxxxx                      xyz  9
 
 	callback() {
 		shift
