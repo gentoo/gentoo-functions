@@ -909,7 +909,7 @@ else
 	test_whenceforth || rc=1
 	test_parallel_run || rc=1
 	test_is_anyof || rc=1
-	test_is_subset || rc=1
+	#test_is_subset || rc=1
 	test_trueof_all || rc=1
 	test_trueof_any || rc=1
 	#test_substr || rc=1

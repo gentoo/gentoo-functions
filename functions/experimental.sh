@@ -83,6 +83,46 @@ is_interactive()
 }
 
 #
+# Collects the intersection of the parameters up to - but not including - a
+# sentinel value then determines whether the resulting set is a subset of the
+# intersection of the remaining parameters. If the SENTINEL variable is set, it
+# shall be taken as the value of the sentinel. Otherwise, the value of the
+# sentinel shall be defined as <hyphen-dash><hyphen-dash>. If the sentinel value
+# is not encountered or if either set is empty then the return value shall be
+# greater than 1.
+#
+is_subset()
+{
+	SENTINEL=${SENTINEL-'--'} awk -f - -- "$@" <<-'EOF'
+	BEGIN {
+		argc = ARGC
+		ARGC = 1
+		for (i = 1; i < argc; i++) {
+			word = ARGV[i]
+			if (word == ENVIRON["SENTINEL"]) {
+				break
+			} else {
+				set1[word]
+			}
+		}
+		if (i == 1 || argc - i < 2) {
+			exit 1
+		}
+		for (i++; i < argc; i++) {
+			word = ARGV[i]
+			set2[word]
+		}
+		for (word in set2) {
+			delete set1[word]
+		}
+		for (word in set1) {
+			exit 1
+		}
+	}
+	EOF
+}
+
+#
 # Continuously reads lines from the standard input, prepending each with a
 # timestamp before printing to the standard output. Timestamps shall be in the
 # format of "%FT%T%z", per strftime(3). Output buffering shall not be employed.
