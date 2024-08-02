@@ -300,10 +300,10 @@ oldest()
 # Executes a simple command in parallel. At least two parameters are expected.
 # The first parameter shall be taken as the maximum number of jobs to run
 # concurrently. If specified as less than or equal to 0, the number shall be
-# determined by running the nproc function. The second parameter shall be taken
-# as a command name. The remaining parameters shall be conveyed to the specified
-# command, one at a time. Should at least one command fail, the return value
-# shall be greater than 0.
+# determined by calling the get_nprocs function. The second parameter shall be
+# taken as a command name. The remaining parameters shall be conveyed to the
+# specified command, one at a time. Should at least one command fail, the
+# return value shall be greater than 0.
 #
 parallel_run()
 {
