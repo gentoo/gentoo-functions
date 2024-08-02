@@ -42,12 +42,19 @@
 #
 chdir()
 {
+	if [ "$#" -eq 1 ]; then
+		case $1 in
+			'')
+				_warn_for_args chdir "$1"
+				return 1
+				;;
+			-)
+				set -- ./-
+		esac
+	fi
 	if [ "${BASH}" ]; then
 		# shellcheck disable=3044
 		shopt -u cdable_vars
-	fi
-	if [ "$1" = - ]; then
-		set -- ./-
 	fi
 	# shellcheck disable=1007,2164
 	CDPATH= cd -- "$@"

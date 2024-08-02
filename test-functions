@@ -49,6 +49,7 @@ test_local() {
 
 test_chdir() {
 	set -- \
+		ge  1          ''  \
 		ge  1  grandchild  \
 		ge  1         var  \
 		eq  0          -L  \
@@ -72,21 +73,6 @@ test_chdir() {
 		CDPATH=child var=child chdir "$@" \
 		&& test "$PWD" != "$OLDPWD" \
 		&& cd - >/dev/null
-	}
-
-	iterate_tests 3 "$@"
-}
-
-test_chdir_noop() {
-	set -- \
-		eq  0  ''
-
-	callback() {
-		shift
-		test_description="chdir $(quote_args "$@")"
-		chdir "$@" \
-		&& test "$PWD" = "$OLDPWD" \
-		|| { cd - >/dev/null; false; }
 	}
 
 	iterate_tests 3 "$@"
@@ -891,7 +877,6 @@ elif ! GENFUN_MODULES="portage rc" . ./functions.sh; then
 else
 	assign_tmpdir
 	test_chdir || rc=1
-	test_chdir_noop || rc=1
 	( test_ebegin ) || rc=1; testnum=$((testnum + 1))
 	test_is_older_than || rc=1
 	test_get_bootparam || rc=1
