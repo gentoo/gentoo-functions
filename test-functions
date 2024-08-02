@@ -517,7 +517,7 @@ test_hr() {
 		eq  0  -----                          -    5    \
 		eq  0  ''                             xyz  0    \
 		eq  0  x                              xyz  1    \
-		eq  0  xyzxy                          xyz  5
+		eq  0  xxxxx                          xyz  5
 
 	callback() {
 		shift

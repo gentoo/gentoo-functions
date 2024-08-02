@@ -156,30 +156,36 @@ has_systemd()
 
 #
 # Prints a horizontal rule. If specified, the first parameter shall be taken as
-# a string to be repeated in the course of composing the rule. Otherwise, it
-# shall default to the <hyphen-minus>. If specified, the second parameter shall
-# define the length of the rule in characters. Otherwise, it shall default to
-# the width of the terminal if such can be determined, or 80 if it cannot be.
+# a string whose first character is to be repeated in the course of composing
+# the rule. Otherwise, or if specified as the empty string, it shall default to
+# the <hyphen-minus>. If specified, the second parameter shall define the length
+# of the rule in characters. Otherwise, it shall default to the width of the
+# terminal if such can be determined, or 80 if it cannot be.
 #
 hr()
 {
-	local length
+	local char hr i length
 
-	if is_int "$2"; then
+	if [ "$#" -ge 2 ] && is_int "$2"; then
 		length=$2
 	elif _update_tty_level <&1; [ "${genfun_tty}" -eq 2 ]; then
 		length=${genfun_cols}
 	else
 		length=80
 	fi
-	PATTERN=${1:--} awk -v "width=${length}" -f - <<-'EOF'
-	BEGIN {
-		while (length(rule) < width) {
-			rule = rule substr(ENVIRON["PATTERN"], 1, width - length(rule))
-		}
-		print rule
-	}
-	EOF
+	char=${1--}
+	char=${char%"${char#?}"}
+	if [ "${BASH}" ]; then
+		# shellcheck disable=3045
+		printf -v hr '%*s' "${length}" ''
+		eval 'printf %s\\n "${hr//?/"$char"}"'
+	else
+		i=0
+		while [ "$(( i += 1 ))" -le "${length}" ]; do
+			hr=${hr}${char}
+		done
+		printf '%s\n' "${hr}"
+	fi
 }
 
 #
