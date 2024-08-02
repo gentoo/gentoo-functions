@@ -164,7 +164,7 @@ has_systemd()
 #
 hr()
 {
-	local char hr i length
+	local c hr i length
 
 	if [ "$#" -ge 2 ] && is_int "$2"; then
 		length=$2
@@ -173,15 +173,15 @@ hr()
 	else
 		length=80
 	fi
-	char=${1--}
-	char=${char%"${char#?}"}
+	c=${1--}
+	c=${c%"${c#?}"}
 	i=0
-	while [ "$(( i += 8 ))" -le "${length}" ]; do
-		hr=${hr}${char}${char}${char}${char}${char}${char}${char}${char}
+	while [ "$(( i += 16 ))" -le "${length}" ]; do
+		hr=${hr}${c}${c}${c}${c}${c}${c}${c}${c}${c}${c}${c}${c}${c}${c}${c}${c}
 	done
 	i=${#hr}
 	while [ "$(( i += 1 ))" -le "${length}" ]; do
-		hr=${hr}${char}
+		hr=${hr}${c}
 	done
 	printf '%s\n' "${hr}"
 }
