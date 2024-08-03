@@ -1,5 +1,5 @@
 #!/bin/sh
-# shellcheck disable=2015,2154,2164,2181,2317
+# shellcheck disable=2015,2164,2317
 
 # Requires mktemp(1), which is not a standard utility, but is commonly
 # available. The implementations provided by GNU coreutils, busybox and toybox
@@ -12,7 +12,6 @@ bailout() {
 }
 
 assign_tmpdir() {
-	# shellcheck disable=1007
 	dir=$(mktemp -d) \
 	&& chdir "${dir}" \
 	|| bailout "Couldn't create or change to the temp dir"
