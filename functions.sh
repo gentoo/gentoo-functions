@@ -380,14 +380,14 @@ quote_args()
 		seq_by["\134"] = "\\"
 	}
 	BEGIN {
-		strictly_posix = length(ENVIRON["POSIXLY_CORRECT"])
+		issue = length(ENVIRON["POSIXLY_CORRECT"]) ? 7 : 8;
 		argc = ARGC
 		ARGC = 1
 		for (arg_idx = 1; arg_idx < argc; arg_idx++) {
 			arg = ARGV[arg_idx]
 			if (arg == q) {
 				word = "\\" q
-			} else if (strictly_posix || arg !~ /[\001-\037\177-\377]/) {
+			} else if (issue < 8 || arg !~ /[\001-\037\177-\377]/) {
 				gsub(q, q "\\" q q, arg)
 				word = q arg q
 			} else {
