@@ -1,5 +1,5 @@
 #!/bin/sh
-# shellcheck disable=2015,2164,2317
+# shellcheck disable=1007,2015,2164,2317,3043
 
 # Requires mktemp(1), which is not a standard utility, but is commonly
 # available. The implementations provided by GNU coreutils, busybox and toybox
@@ -810,6 +810,7 @@ test_quote_args() {
 	i=0
 	while [ "$(( i += 1 ))" -le 255 ]; do
 		fmt=$(printf '\%o' "$i")
+		# shellcheck disable=2059
 		str=$(printf "$fmt.")
 		POSIXLY_CORRECT= quote_args "${str%.}" || break
 	done | cksum | {
@@ -866,6 +867,7 @@ testnum=0
 rc=0
 
 if [ "${PORTAGE_BIN_PATH}" ] && [ "${S}" ]; then
+	# shellcheck disable=2034
 	genfun_basedir=${S}
 fi
 
