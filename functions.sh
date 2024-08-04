@@ -33,6 +33,25 @@
 #------------------------------------------------------------------------------#
 
 #
+# Considers the first parameter as a reference to a variable by name and
+# assigns the second parameter as its value. If the first parameter is found
+# not to be a legal identifier, no assignment shall occur and the return value
+# shall be greater than 0.
+#
+assign()
+{
+	if [ "$#" -ne 2 ]; then
+		warn "assign: wrong number of arguments (got $#, expected 2)"
+		false
+	elif ! is_identifier "$1"; then
+		_warn_for_args assign "$@"
+		false
+	else
+		eval "$1=\$2"
+	fi
+}
+
+#
 # A safe wrapper for the cd builtin. To run cd "$dir" is problematic because:
 #
 # - it may consider its operand as an option
@@ -115,6 +134,31 @@ contains_any()
 		esac
 	done
 	false
+}
+
+#
+# Considers the first parameter as a reference to a variable by name and
+# attempts to retrieve its presently assigned value. If only one parameter is
+# specified, the retrieved value shall be printed to the standard output. If a
+# second parameter is also specified, it shall be be taken as the name of a
+# variable to which the retrieved value shall be assigned. If any parameter is
+# found not to be a legal identifier, or if the variable referenced by the
+# first parameter is unset, the return value shall be greater than 0.
+#
+deref()
+{
+	if [ "$#" -eq 0 ] || [ "$#" -gt 2 ]; then
+		warn "deref: wrong number of arguments (got $#, expected between 1 and 2)"
+	elif ! trueof_all is_identifier -- "$@"; then
+		_warn_for_args deref "$@"
+		false
+	elif ! eval "test \${$1+set}"; then
+		false
+	elif [ "$#" -eq 1 ]; then
+		eval "printf '%s\\n' \"\$$1\""
+	else
+		eval "$2=\$$1"
+	fi
 }
 
 #

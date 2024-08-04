@@ -824,6 +824,57 @@ test_quote_args() {
 	}
 }
 
+test_assign() {
+	set -- \
+		ge  1  N/A              N/A       \
+		ge  1  ''               N/A       \
+		ge  1  0                N/A       \
+		ge  1  valid_nameref    N/A       \
+		ge  1  ''               marmoset  \
+		ge  1  0                marmoset  \
+		ge  1  valid_nameref    N/A       \
+		ge  1  'injection=1 #'  comment   \
+		eq  0  valid_nameref    marmoset
+
+	callback() {
+		shift
+		test_description="assign $(quote_args "$@")"
+		injection=
+		assign "$@" 2>/dev/null || test "${injection}"
+	}
+
+	iterate_tests 4 "$@"
+}
+
+test_deref() {
+	set -- \
+		ge  1  N/A            N/A              \
+		ge  1  ''             N/A              \
+		ge  1  0              N/A              \
+		ge  1  ''             ''               \
+		ge  1  0              0                \
+		eq  0  valid_nameref  N/A              \
+		eq  0  valid_nameref  assignee         \
+		ge  1  PWD            'injection=1 #'
+
+	callback() {
+		shift
+		test_description="deref $(quote_args "$@")"
+		case $# in
+			2)
+				assignee= injection=
+				deref "$@" \
+				&& { test "${assignee}" = "marmoset" || test "${injection}"; }
+				;;
+			*)
+				stdout=$(deref "$@") && test "${stdout}" = "marmoset"
+				;;
+		esac 2>/dev/null
+	}
+
+	iterate_tests 4 "$@"
+}
+
 iterate_tests() {
 	slice_width=$1
 	shift
@@ -902,6 +953,8 @@ else
 	test_contains_all || rc=1
 	test_contains_any || rc=1
 	test_quote_args || rc=1
+	test_assign || rc=1
+	test_deref || rc=1
 fi
 
 cleanup_tmpdir
