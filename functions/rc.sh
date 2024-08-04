@@ -426,9 +426,7 @@ _is_visible()
 #------------------------------------------------------------------------------#
 
 # Determine whether the use of color is to be wilfully avoided.
-if [ "${RC_NOCOLOR+set}" ]; then
-	warn "the RC_NOCOLOR variable is deprecated by gentoo-functions; please set NO_COLOR instead"
-elif [ -n "${NO_COLOR}" ]; then
+if [ "${NO_COLOR}" ]; then
 	# See https://no-color.org/.
 	RC_NOCOLOR=yes
 else
