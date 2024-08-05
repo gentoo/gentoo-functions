@@ -761,7 +761,9 @@ _update_time()
 		# shellcheck disable=2034,3045
 		_update_time()
 		{
-			local cs s timeval
+			# Setting LC_NUMERIC as C ensures a radix character of
+			# U+2E, duly affecting both EPOCHREALTIME and printf.
+			local LC_ALL LC_NUMERIC=C cs s timeval
 
 			timeval=${EPOCHREALTIME}
 			s=${timeval%.*}
@@ -784,7 +786,7 @@ _update_time()
 	else
 		_update_time()
 		{
-			false
+			return 2
 		}
 	fi
 

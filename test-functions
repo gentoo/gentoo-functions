@@ -875,6 +875,27 @@ test_deref() {
 	iterate_tests 4 "$@"
 }
 
+test_update_time() {
+	retval=0
+	genfun_time=$(_update_time && printf %s "${genfun_time}")
+	case $? in
+		0)
+			is_int "${genfun_time}"
+			;;
+		2)
+			# Unsupported for the platform and therefore untestable.
+			;;
+		*)
+			false
+	esac ||
+	{
+		printf 'not '
+		retval=1
+	}
+	printf 'ok %d - _update_time (test %d -eq 0)\n' "$((testnum += 1))" "${retval}"
+	return "${retval}"
+}
+
 iterate_tests() {
 	slice_width=$1
 	shift
@@ -955,6 +976,7 @@ else
 	test_quote_args || rc=1
 	test_assign || rc=1
 	test_deref || rc=1
+	test_update_time || rc=1
 fi
 
 cleanup_tmpdir
