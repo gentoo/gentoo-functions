@@ -25,6 +25,7 @@
 # IFS              : warn() operands are joined by its first character
 # INVOCATION_ID    : used by from_unit()
 # PORTAGE_BIN_PATH : used by from_portage()
+# POSIXLY_CORRECT  : if unset/empty, quote_args() may emit dollar-single-quotes
 # RC_OPENRC_PID    : used by from_runscript()
 # SENTINEL         : can define a value separating two distinct argument lists
 # SYSTEMD_EXEC_PID : used by from_unit()
