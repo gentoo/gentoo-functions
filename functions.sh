@@ -680,7 +680,7 @@ _select_by_mtime()
 
 	sort_opt=$1
 	shift
-	if [ "$#" -ge 0 ]; then
+	if [ "$#" -gt 0 ]; then
 		printf '%s\0' "$@"
 	else
 		cat

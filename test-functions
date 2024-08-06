@@ -445,8 +445,6 @@ test_newest() {
 		eq  0  non-existent  older/file    \
 		ge  1  older/file    newer/file
 
-	row=0
-
 	callback() {
 		shift
 		test_description="newest $(quote_args "$@")"
@@ -461,6 +459,24 @@ test_newest() {
 		fi
 	}
 
+	row=0
+	iterate_tests 4 "$@"
+
+	callback() {
+		shift
+		test_description="printf '%s\\0' $(quote_args "$@") | newest"
+		row=$(( row + 1 ))
+		printf '%s\0' "$@" |
+		if [ "${row}" -le 2 ]; then
+			newest
+		elif [ "${row}" -le 8 ]; then
+			test "$(newest)" = "newer/file"
+		else
+			test "$(newest)" = "older/file"
+		fi
+	}
+
+	row=0
 	iterate_tests 4 "$@"
 }
 
