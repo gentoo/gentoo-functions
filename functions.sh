@@ -319,7 +319,8 @@ get_nprocs()
 		true
 	elif getconf _NPROCESSORS_ONLN 2>/dev/null; then
 		# This constant is standard as of POSIX-1.2024 and was already
-		# supported by glibc, musl-utils, macOS, FreeBSD, NetBSD and OpenBSD.
+		# supported by glibc, musl-utils, macOS, FreeBSD, NetBSD and
+		# OpenBSD.
 		true
 	else
 		warn "get_nprocs: failed to determine the number of processors"
