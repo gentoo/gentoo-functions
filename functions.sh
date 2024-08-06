@@ -242,12 +242,12 @@ hr()
 # Determines whether the first parameter is a valid identifier (variable name).
 #
 is_identifier()
-(
-	LC_ALL=C
+{
 	case $1 in
-		''|_|[[:digit:]]*|*[!_[:alnum:]]*) false
+		''|_|[0123456789]*|*[!_0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz]*)
+			false
 	esac
-)
+}
 
 #
 # Determines whether the first parameter is a valid integer. A leading

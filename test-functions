@@ -310,7 +310,15 @@ test_is_identifier() {
 		eq  0  a_a   \
 		eq  0  a_Z   \
 		eq  0  Z_a   \
-		eq  0  Z_Z
+		eq  0  Z_Z   \
+		eq  0   a0   \
+		eq  0   a9   \
+		eq  0   Z0   \
+		eq  0   Z9   \
+		eq  0  a_0   \
+		eq  0  a_9   \
+		eq  0  Z_0   \
+		eq  0  Z_9
 
 	callback() {
 		shift
