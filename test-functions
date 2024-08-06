@@ -480,6 +480,72 @@ test_newest() {
 	iterate_tests 4 "$@"
 }
 
+test_oldest() {
+	set -- \
+		ge  1  non-existent  non-existent  \
+		ge  1  N/A           N/A           \
+		                                   \
+		eq  0  newer/file    N/A           \
+		eq  0  newer/file    newer/file    \
+		eq  0  newer/file    non-existent  \
+		eq  0  non-existent  newer/file    \
+		                                   \
+		eq  0  newer/file    older/file    \
+		eq  0  non-existent  older/file    \
+		eq  0  older/file    N/A           \
+		eq  0  older/file    newer/file    \
+		eq  0  older/file    non-existent  \
+		eq  0  older/file    older/file    \
+		eq  0  newer/file    older/file    \
+		eq  0  older/file    newer/file
+
+	callback() {
+		shift
+		test_description="oldest $(quote_args "$@")"
+		row=$((row + 1))
+		true |
+		case ${row} in
+			[1-2])
+				oldest "$@"
+				;;
+			[3-6])
+				test "$(oldest "$@")" = "newer/file"
+				;;
+			*)
+				test "$(oldest "$@")" = "older/file"
+		esac
+	}
+
+	row=0
+	iterate_tests 4 "$@"
+
+	callback() {
+		shift
+		if [ "$#" -eq 0 ]; then
+			test_description=": | oldest"
+		else
+			test_description="printf '%s\\0' $(quote_args "$@") | oldest"
+		fi
+		row=$(( row + 1 ))
+		{
+			test "$#" -gt 0 && printf '%s\0' "$@"
+		} |
+		case ${row} in
+			[1-2])
+				oldest
+				;;
+			[3-6])
+				test "$(oldest)" = "newer/file"
+				;;
+			*)
+				test "$(oldest)" = "older/file"
+		esac
+	}
+
+	row=0
+	iterate_tests 4 "$@"
+}
+
 test_trim() {
 	set -- \
 		eq  0  ''                       ''     \
@@ -1001,6 +1067,7 @@ else
 	test_edo || rc=1
 	test_srandom || rc=1
 	test_newest || rc=1
+	test_oldest || rc=1
 	test_trim || rc=1
 	test_hr || rc=1
 	test_whenceforth || rc=1
