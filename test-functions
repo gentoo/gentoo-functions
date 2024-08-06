@@ -876,24 +876,47 @@ test_deref() {
 }
 
 test_update_time() {
-	retval=0
-	genfun_time=$(_update_time && printf %s "${genfun_time}")
-	case $? in
-		0)
-			is_int "${genfun_time}"
-			;;
-		2)
-			# Unsupported for the platform and therefore untestable.
-			;;
-		*)
-			false
-	esac ||
-	{
-		printf 'not '
-		retval=1
+	set -- \
+		de_BE de_DE es_ES fr_BE fr_CA fr_FR it_IT nl_BE nl_NL pl_PL \
+		pt_BR pt_PT ru_RU sv_SE
+
+	# Try to test a locale for which the radix character isn't U+2E.
+	locale=$(
+		IFS='|'
+		locale -a 2>/dev/null | awk "/^($*)\.(utf8|UTF-8)$/ { print; exit }"
+	)
+	if [ "${locale}" ]; then
+		set -- eq 0 "$locale"
+	else
+		set --
+	fi
+
+	# Also test the currently effective locale, whichever it may be.
+	set -- "$@" eq 0 ''
+
+	callback() {
+		shift
+		if [ "$1" ]; then
+			test_description="LC_ALL=$1 _update_time"
+			LC_ALL=$1 genfun_time=$(_update_time && printf %s "${genfun_time}")
+		else
+			test_description="_update_time"
+			genfun_time=$(_update_time && printf %s "${genfun_time}")
+		fi
+		case $? in
+			0)
+				is_int "${genfun_time}"
+				;;
+			2)
+				# Unsupported for the platform and therefore untestable.
+				true
+				;;
+			*)
+				false
+		esac
 	}
-	printf 'ok %d - _update_time (test %d -eq 0)\n' "$((testnum += 1))" "${retval}"
-	return "${retval}"
+
+	iterate_tests 3 "$@"
 }
 
 iterate_tests() {
