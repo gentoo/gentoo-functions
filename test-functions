@@ -46,6 +46,19 @@ test_local() {
 	return "${retval}"
 }
 
+test_simple_command() {
+	f() { :; }
+	LEAKED=
+	LEAKED=1 f
+	retval=0
+	if [ "${LEAKED}" ]; then
+		printf 'not '
+		retval=1
+	fi
+	printf "ok %d - /bin/sh refrains from leaking environmental changes for simple commands\\n" "$((testnum += 1))"
+	return "${retval}"
+}
+
 test_chdir() {
 	set -- \
 		ge  1          ''  \
@@ -1071,7 +1084,7 @@ if [ "${PORTAGE_BIN_PATH}" ] && [ "${S}" ]; then
 	genfun_basedir=${S}
 fi
 
-if ! test_local; then
+if ! test_local || ! test_simple_command; then
 	rc=1
 elif ! GENFUN_MODULES="portage rc" . ./functions.sh; then
 	bailout "Couldn't source ./functions.sh"
