@@ -914,7 +914,7 @@ test_quote_args() {
 	retval=0
 	i=0
 	while [ "$(( i += 1 ))" -le 255 ]; do
-		fmt=$(printf '\%o' "$i")
+		fmt=$(printf '\\%o' "$i")
 		# shellcheck disable=2059
 		str=$(printf "$fmt.")
 		POSIXLY_CORRECT= quote_args "${str%.}" || break
