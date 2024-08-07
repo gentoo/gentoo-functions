@@ -15,7 +15,7 @@ install_data(
 
 install_subdir(
   'functions',
-  install_dir: '/lib/gentoo'
+  install_dir: 'lib/gentoo'
 )
 
 cc = meson.get_compiler('c')
