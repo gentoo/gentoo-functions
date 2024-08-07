@@ -463,7 +463,10 @@ quote_args()
 }
 
 #
-# Generates a random uint32 with the assistance of the kernel CSPRNG.
+# Generates a random number between 0 and 2147483647 (2^31-1) with the
+# assistance of the kernel CSPRNG. Upon success, the number shall be printed to
+# the standard output along with a trailing <newline>. Otherwise, the return
+# value shall be greater than 0.
 #
 srandom()
 {
@@ -471,14 +474,43 @@ srandom()
 	if [ "${BASH_VERSINFO:-0}" -ge 5 ]; then
 		srandom()
 		{
-			printf '%d\n' "${SRANDOM}"
+			printf '%d\n' "$(( SRANDOM >> 1 ))"
+		}
+	elif [ -c /dev/urandom ] && [ "$(( 1 << 31 == -2147483648 ))" -eq 1 ]; then
+		# The shell implements integers as signed int rather than signed
+		# long, contrary to the specification. Therefore, bit shifting
+		# cannot be a viable strategy. Instead, use awk to generate a
+		# number that is immediately within range.
+		srandom()
+		{
+			local hex
+
+			hex=$(
+				LC_ALL=
+				LC_CTYPE=C
+				od -vAn -N256 -tx1 /dev/urandom | awk '
+					{
+						gsub(/[[:space:]]/, "")
+						hex = hex $0
+					}
+					END {
+						if (match(hex, /[0-7][[:xdigit:]]{7}/)) {
+							print substr(hex, RSTART, RLENGTH)
+						} else {
+							exit 1
+						}
+					}
+				'
+			) &&
+			printf '%d\n' "0x${hex}"
 		}
 	elif [ -c /dev/urandom ]; then
 		srandom()
 		{
-			printf '%d\n' "0x$(
-				LC_ALL=C od -vAn -N4 -tx1 /dev/urandom | tr -d '[:space:]'
-			)"
+			local hex
+
+			hex=$(LC_ALL=C od -vAn -N4 -tx1 /dev/urandom | tr -d '[:space:]')
+			[ "${hex}" ] && printf '%d\n' "$(( 0x${hex} >> 1 ))"
 		}
 	else
 		warn "srandom: /dev/urandom doesn't exist as a character device"

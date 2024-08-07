@@ -419,17 +419,21 @@ test_srandom() {
 		eq 0 \
 		eq 0 \
 		eq 0 \
+		eq 0 \
+		eq 0 \
+		eq 0 \
+		eq 0 \
+		eq 0 \
 		eq 0
-
-	row=0
 
 	callback() {
 		number=$(srandom)
-		test_description="srandom ($(( row += 1 ))/5: ${number:-blank})"
+		test_description="srandom ($(( row += 1 ))/10: ${number:-blank})"
 		is_int "${number}" \
-		&& awk -v "n=${number}" 'BEGIN { exit !(n >= 0 && n <= 4294967295) }'
+		&& awk -v "n=${number}" 'BEGIN { exit !(n >= 0 && n <= 2147483647) }'
 	}
 
+	row=0
 	iterate_tests 2 "$@"
 }
 
