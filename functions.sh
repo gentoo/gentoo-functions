@@ -756,15 +756,25 @@ _select_by_mtime()
 #
 # Considers the first parameter as a number of centiseconds and determines
 # whether fewer have elapsed since the last occasion on which the function was
-# called.
+# called, or whether the last genfun_time update resulted in integer overflow.
 #
 _should_throttle()
 {
 	_update_time || return
-	if [ "$(( genfun_time - genfun_last_time > $1 ))" -eq 1 ]; then
-		genfun_last_time=${genfun_time}
-		false
-	fi
+
+	_should_throttle()
+	{
+		_update_time || return
+		if [ "$(( (genfun_time < 0 && genfun_last_time >= 0) || genfun_time - genfun_last_time > $1 ))" -eq 1 ]
+		then
+			genfun_last_time=${genfun_time}
+			false
+		fi
+
+	}
+
+	genfun_last_time=${genfun_time}
+	false
 }
 
 #
@@ -817,8 +827,6 @@ _update_columns()
 #
 _update_time()
 {
-	genfun_last_time=0
-
 	# shellcheck disable=3028
 	if [ "${BASH_VERSINFO:-0}" -ge 5 ]; then
 		# shellcheck disable=2034,3045

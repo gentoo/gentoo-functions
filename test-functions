@@ -1069,6 +1069,52 @@ test_update_time() {
 	iterate_tests 3 "$@"
 }
 
+test_should_throttle() {
+	local bits max_int
+
+	genfun_time=
+	bits=30
+	while [ "${bits}" -lt 128 ]; do
+		# Dash is buggy and fails to handle $(( 1 << ++bits )).
+		bits=$(( bits + 1 ))
+		case $(( max_int = 1 << bits )) in
+			-*)
+				max_int=$(( max_int - 1 ))
+				genfun_time=$(( max_int - 4 ))
+				break
+		esac
+	done
+
+	if [ ! "${genfun_time}" ]; then
+		bailout "Failed to calculate the maximum possible integer value"
+	fi
+
+	# For the first test, genfun_last_time is not yet known. Therefore, the
+	# return value should always be 1. For the fifth test, integer overflow
+	# is expected to occur. Again, the return value should always be 1.
+	set -- \
+		ge  1  "${max_int}" \
+		eq  0  2            \
+		ge  1  1            \
+		ge  1  0            \
+		ge  1  2            \
+		eq  0  2            \
+		ge  1  1            \
+		ge  1  0
+
+	_update_time() {
+		true
+	}
+
+	callback() {
+		shift
+		test_description="_should_throttle $1 (${genfun_time}, $(( genfun_time += 1 )))"
+		_should_throttle "$1"
+	}
+
+	iterate_tests 3 "$@"
+}
+
 iterate_tests() {
 	local code i j passed slice_width total
 
@@ -1152,6 +1198,7 @@ else
 	test_assign || rc=1
 	test_deref || rc=1
 	test_update_time || rc=1
+	test_should_throttle || rc=1
 fi
 
 cleanup_tmpdir
