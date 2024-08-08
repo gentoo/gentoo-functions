@@ -90,6 +90,8 @@ test_die() {
 		eq  255  255
 
 	callback() {
+		local retval stderr
+
 		test_description="( exit $2 ); die"
 		( exit "$2" )
 		stderr=$(die "$2" 2>&1)
@@ -134,6 +136,8 @@ test_edo() {
 }
 
 test_is_older_than() {
+	local age tstamp
+
 	set -- \
 		ge  1  N/A           N/A \
 		ge  1  newer         N/A \
@@ -212,6 +216,8 @@ test_is_older_than() {
 }
 
 test_get_bootparam() {
+	local cmdline
+
 	cmdline="foo gentoo=bar,baz quux"
 	set -- \
 		ge  1  "${cmdline}"                   N/A \
@@ -228,6 +234,8 @@ test_get_bootparam() {
 		ge  1  "${cmdline}"                   quux
 
 	callback() {
+		local cmdline
+
 		cmdline=$2
 		shift 2
 		test_description="get_bootparam $(quote_args "$@")"
@@ -252,6 +260,8 @@ test_esyslog() {
 	}
 
 	callback() {
+		local logged should_log
+
 		should_log=$2
 		shift 2
 		test_description="esyslog $(quote_args "$@")"
@@ -429,6 +439,8 @@ test_srandom() {
 		eq 0
 
 	callback() {
+		local number
+
 		number=$(srandom)
 		test_description="srandom ($(( row += 1 ))/10: ${number:-blank})"
 		is_int "${number}" \
@@ -612,6 +624,8 @@ test_hr() {
 		eq  0  xxxxxxxxxxxxxxxxx              xyz  17
 
 	callback() {
+		local expected
+
 		shift
 		expected=$1
 		shift
@@ -661,6 +675,8 @@ test_whenceforth() {
 	chmod +x newer/file
 
 	callback() {
+		local path
+
 		shift
 		path=$1
 		shift
@@ -692,6 +708,8 @@ test_get_nprocs() {
 	set -- eq 0
 
 	callback() {
+		local nproc
+
 		shift
 		test_description="get_nprocs"
 		nproc=$(get_nprocs) && is_int "${nproc}" && test "${nproc}" -gt 0
@@ -836,6 +854,8 @@ test_substr() {
 		eq  0  ''      foobar  4    -1
 
 	callback() {
+		local expected str
+
 		shift
 		expected=$1
 		shift
@@ -927,7 +947,7 @@ test_quote_args() {
 	set -- eq 0
 
 	callback() {
-		local POSIXLY_CORRECT i
+		local POSIXLY_CORRECT cksum fmt i str
 
 		test_description="quote_args output test (expecting cksum 380900690)"
 		i=0
@@ -957,6 +977,8 @@ test_assign() {
 		eq  0  valid_nameref    marmoset
 
 	callback() {
+		local injection
+
 		shift
 		test_description="assign $(quote_args "$@")"
 		injection=
@@ -978,6 +1000,8 @@ test_deref() {
 		ge  1  PWD            'injection=1 #'
 
 	callback() {
+		local assignee injection stdout
+
 		shift
 		test_description="deref $(quote_args "$@")"
 		case $# in
@@ -996,6 +1020,8 @@ test_deref() {
 }
 
 test_update_time() {
+	local locale
+
 	set -- \
 		de_BE de_DE es_ES fr_BE fr_CA fr_FR it_IT nl_BE nl_NL pl_PL \
 		pt_BR pt_PT ru_RU sv_SE
@@ -1015,6 +1041,8 @@ test_update_time() {
 	set -- "$@" eq 0 ''
 
 	callback() {
+		local genfun_time
+
 		shift
 		if [ "$1" ]; then
 			test_description="LC_ALL=$1 _update_time"
@@ -1040,9 +1068,10 @@ test_update_time() {
 }
 
 iterate_tests() {
+	local code i j passed slice_width total
+
 	slice_width=$1
 	shift
-
 	total=$(( $# / slice_width ))
 	passed=0
 	i=0
