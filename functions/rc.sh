@@ -49,7 +49,8 @@ ebegin()
 #
 eend()
 {
-	GENFUN_CALLER=${GENFUN_CALLER:-eend} _eend eerror "$@"
+	: "${genfun_caller:=eend}"
+	_eend eerror "$@"
 }
 
 #
@@ -161,7 +162,8 @@ ewarnn()
 #
 ewend()
 {
-	GENFUN_CALLER=${GENFUN_CALLER:-ewend} _eend ewarn "$@"
+	: "${genfun_caller:=ewend}"
+	_eend ewarn "$@"
 }
 
 #
@@ -240,7 +242,8 @@ done
 veend()
 {
 	if yesno "${EINFO_VERBOSE}"; then
-		GENFUN_CALLER=veend eend "$@"
+		genfun_caller=veend
+		eend "$@"
 	elif [ "$#" -gt 0 ] && { ! is_int "$1" || [ "$1" -lt 0 ]; }; then
 		_warn_for_args veend "$1"
 		false
@@ -252,7 +255,8 @@ veend()
 vewend()
 {
 	if yesno "${EINFO_VERBOSE}"; then
-		GENFUN_CALLER=vewend ewend "$@"
+		genfun_caller=vewend
+		ewend "$@"
 	elif [ "$#" -gt 0 ] && { ! is_int "$1" || [ "$1" -lt 0 ]; }; then
 		_warn_for_args vewend "$1"
 		false
@@ -311,7 +315,7 @@ _eend()
 	if [ "$#" -eq 0 ]; then
 		retval=0
 	elif ! is_int "$1" || [ "$1" -lt 0 ]; then
-		_warn_for_args "${GENFUN_CALLER}" "$1"
+		_warn_for_args "${genfun_caller}" "$1"
 		retval=1
 		msg=
 	else
@@ -319,6 +323,8 @@ _eend()
 		shift
 		msg=$*
 	fi
+
+	genfun_caller=
 
 	if [ "${retval}" -ne 0 ]; then
 		# If a message was given, print it with the specified function.

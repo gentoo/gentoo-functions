@@ -46,19 +46,6 @@ test_local() {
 	return "${retval}"
 }
 
-test_simple_command() {
-	f() { :; }
-	LEAKED=
-	LEAKED=1 f
-	retval=0
-	if [ "${LEAKED}" ]; then
-		printf 'not '
-		retval=1
-	fi
-	printf "ok %d - /bin/sh refrains from leaking environmental changes for simple commands\\n" "$((testnum += 1))"
-	return "${retval}"
-}
-
 test_chdir() {
 	set -- \
 		ge  1          ''  \
@@ -76,13 +63,17 @@ test_chdir() {
 	fi
 
 	callback() {
+		local CDPATH var
+
 		shift
 		test_description="chdir $(quote_args "$@")"
 		if [ "$BASH" ]; then
 			# shellcheck disable=3044
 			shopt -s cdable_vars
 		fi
-		CDPATH=child var=child chdir "$@" \
+		CDPATH=child
+		var=child
+		chdir "$@" \
 		&& test "$PWD" != "$OLDPWD" \
 		&& cd - >/dev/null
 	}
@@ -266,7 +257,7 @@ test_esyslog() {
 		should_log=$2
 		shift 2
 		test_description="esyslog $(quote_args "$@")"
-		logged=$(EINFO_LOG=1 esyslog "$@")
+		logged=$(EINFO_LOG=1; esyslog "$@")
 		case $? in
 			0)
 				test "${logged:-0}" -eq "${should_log}"
@@ -680,10 +671,22 @@ test_whenceforth() {
 			whenceforth "$@" >/dev/null
 		else
 			test_description="PATH=${path} whenceforth $(quote_args "$@")"
-			PATH=${path} whenceforth "$@" >/dev/null
+			(
+				# If necessary, conduct the test with a printf
+				# function in effect, duly covering shells that
+				# do not implement it as a builtin. Otherwise,
+				# it could become unavailable on account of the
+				# various values of PATH being tested.
+				case ${printf_cmd} in
+					/*) printf() { "${printf_cmd}" "$@"; }
+				esac
+				PATH=${path}
+				whenceforth "$@" >/dev/null
+			)
 		fi
 	}
 
+	printf_cmd=$(command -v printf)
 	iterate_tests 5 "$@"
 }
 
@@ -923,6 +926,8 @@ test_contains_any() {
 }
 
 test_quote_args() {
+	local POSIXLY_CORRECT
+
 	testnum=$((testnum + 1))
 	retval=0
 	i=0
@@ -930,7 +935,7 @@ test_quote_args() {
 		fmt=$(printf '\\%o' "$i")
 		# shellcheck disable=2059
 		str=$(printf "$fmt.")
-		POSIXLY_CORRECT= quote_args "${str%.}" || break
+		quote_args "${str%.}" || break
 	done | cksum | {
 		read -r cksum _
 		if [ "${cksum}" != "380900690" ]; then
@@ -1016,7 +1021,7 @@ test_update_time() {
 		shift
 		if [ "$1" ]; then
 			test_description="LC_ALL=$1 _update_time"
-			LC_ALL=$1 genfun_time=$(_update_time && printf %s "${genfun_time}")
+			genfun_time=$(LC_ALL=$1; _update_time && printf %s "${genfun_time}")
 		else
 			test_description="_update_time"
 			genfun_time=$(_update_time && printf %s "${genfun_time}")
@@ -1084,7 +1089,7 @@ if [ "${PORTAGE_BIN_PATH}" ] && [ "${S}" ]; then
 	genfun_basedir=${S}
 fi
 
-if ! test_local || ! test_simple_command; then
+if ! test_local; then
 	rc=1
 elif ! GENFUN_MODULES="portage rc" . ./functions.sh; then
 	bailout "Couldn't source ./functions.sh"
