@@ -12,14 +12,14 @@ bailout() {
 }
 
 assign_tmpdir() {
-	dir=$(mktemp -d) \
-	&& chdir "${dir}" \
+	global_tmpdir=$(mktemp -d) \
+	&& chdir "${global_tmpdir}" \
 	|| bailout "Couldn't create or change to the temp dir"
 }
 
 cleanup_tmpdir() {
-	if [ -n "${dir}" ]; then
-		rm -rf -- "${dir}"
+	if [ "${global_tmpdir}" ]; then
+		rm -r -- "${global_tmpdir}"
 	fi
 }
 
@@ -1103,7 +1103,7 @@ iterate_tests() {
 
 printf 'TAP version 13\n'
 
-unset -v dir
+unset -v global_tmpdir
 
 # PATH is redefined to prevent ebuild-helpers such as die from interfering.
 export PATH=/sbin:/bin:/usr/sbin:/usr/bin:/opt/pkg/bin
