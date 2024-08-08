@@ -407,6 +407,12 @@ parallel_run()
 #
 quote_args()
 {
+	# Call into a bash-optimised implementation where appropriate.
+	# shellcheck disable=3028
+	if [ ! "${POSIXLY_CORRECT}" ] && [ "${BASH_VERSINFO-0}" -ge 5 ]; then
+		quote_args_bash "$@"
+		return
+	fi
 	LC_ALL=C awk -v q=\' -f - -- "$@" <<-'EOF'
 	function init_table() {
 		# Iterate over ranges \001-\037 and \177-\377.
@@ -461,6 +467,26 @@ quote_args()
 	}
 	EOF
 }
+
+# shellcheck disable=3028
+if [ "${BASH_VERSINFO-0}" -ge 5 ]; then
+	# Note that the ${parameter@Q} form of expansion is supported as of
+	# bash 4.4. However, it is simpler to test for 5.0 or greater in sh.
+	eval '
+		quote_args_bash() {
+			local IFS=" " args i
+
+			(( $# > 0 )) || return 0
+			args=("${@@Q}")
+			for i in "${!args[@]}"; do
+				if [[ ${args[i]} == \$* ]]; then
+					args[i]=${args[i]//\\E/\\e}
+				fi
+			done
+			printf "%s\\n" "${args[*]}"
+		}
+	'
+fi
 
 #
 # Generates a random number between 0 and 2147483647 (2^31-1) with the
