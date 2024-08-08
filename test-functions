@@ -24,26 +24,27 @@ cleanup_tmpdir() {
 }
 
 test_local() {
-	(
-		var=1
-		f() {
-			local var=2
-			g
-			test "${var}" = 3 || exit
-		}
-		g() {
-			test "${var}" = 2 || exit
-			var=3
-		}
-		f
-		test "${var}" = 1
-	) 2>/dev/null
-	retval=$?
-	if [ "${retval}" -ne 0 ]; then
-		printf 'not '
-	fi
-	printf 'ok %d - /bin/sh supports local\n' "$((testnum += 1))"
-	return "${retval}"
+	set -- eq 0
+
+	callback() {
+		test_description="/bin/sh supports local"
+		(
+			var=1
+			f() {
+				local var=2
+				g
+				test "${var}" = 3 || exit
+			}
+			g() {
+				test "${var}" = 2 || exit
+				var=3
+			}
+			f
+			test "${var}" = 1
+		) 2>/dev/null
+	}
+
+	iterate_tests 2 "$@"
 }
 
 test_chdir() {
@@ -104,21 +105,18 @@ test_die() {
 }
 
 test_ebegin() {
-	_eprint() {
-		shift
-		_ends_with_newline "$*"
-	}
+	set -- eq 0
 
-	set -- "message"
-	ebegin "$1"
-	retval=$?
+	callback() (
+		test_description="ebegin message (expecting terminating newline)"
+		_eprint() {
+			shift
+			_ends_with_newline "$*"
+		}
+		ebegin "message"
+	)
 
-	if [ "${retval}" -ne 0 ]; then
-		printf 'not '
-	fi
-	printf 'ok %d - ebegin %s (expecting terminating newline)\n' "$((testnum + 1))" "$1"
-
-	return "${retval}"
+	iterate_tests 2 "$@"
 }
 
 test_edo() {
@@ -926,25 +924,24 @@ test_contains_any() {
 }
 
 test_quote_args() {
-	local POSIXLY_CORRECT
+	set -- eq 0
 
-	testnum=$((testnum + 1))
-	retval=0
-	i=0
-	while [ "$(( i += 1 ))" -le 255 ]; do
-		fmt=$(printf '\\%o' "$i")
-		# shellcheck disable=2059
-		str=$(printf "$fmt.")
-		quote_args "${str%.}" || break
-	done | cksum | {
-		read -r cksum _
-		if [ "${cksum}" != "380900690" ]; then
-			printf 'not '
-			retval=1
-		fi
-		printf 'ok %d - quote_args output test (expected cksum 380900690, got %s)\n' "${testnum}" "${cksum}"
-		return "${retval}"
+	callback() {
+		local POSIXLY_CORRECT i
+
+		test_description="quote_args output test (expecting cksum 380900690)"
+		i=0
+		while [ "$((i += 1))" -le 255 ]; do
+			fmt=$(printf '\\%o' "$i")
+			# shellcheck disable=2059
+			str=$(printf "$fmt.")
+			quote_args "${str%.}" || break
+		done \
+		| cksum \
+		| { read -r cksum _ && test "${cksum}" = "380900690"; }
 	}
+
+	iterate_tests 2 "$@"
 }
 
 test_assign() {
@@ -1096,7 +1093,7 @@ elif ! GENFUN_MODULES="portage rc" . ./functions.sh; then
 else
 	assign_tmpdir
 	test_chdir || rc=1
-	( test_ebegin ) || rc=1; testnum=$((testnum + 1))
+	test_ebegin || rc=1; testnum=$((testnum + 1))
 	test_is_older_than || rc=1
 	test_get_bootparam || rc=1
 	test_esyslog || rc=1
