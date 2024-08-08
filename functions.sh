@@ -410,7 +410,7 @@ quote_args()
 	# Call into a bash-optimised implementation where appropriate.
 	# shellcheck disable=3028
 	if [ ! "${POSIXLY_CORRECT}" ] && [ "${BASH_VERSINFO-0}" -ge 5 ]; then
-		quote_args_bash "$@"
+		_quote_args_bash "$@"
 		return
 	fi
 	LC_ALL=C awk -v q=\' -f - -- "$@" <<-'EOF'
@@ -467,26 +467,6 @@ quote_args()
 	}
 	EOF
 }
-
-# shellcheck disable=3028
-if [ "${BASH_VERSINFO-0}" -ge 5 ]; then
-	# Note that the ${parameter@Q} form of expansion is supported as of
-	# bash 4.4. However, it is simpler to test for 5.0 or greater in sh.
-	eval '
-		quote_args_bash() {
-			local IFS=" " args i
-
-			(( $# > 0 )) || return 0
-			args=("${@@Q}")
-			for i in "${!args[@]}"; do
-				if [[ ${args[i]} == \$* ]]; then
-					args[i]=${args[i]//\\E/\\e}
-				fi
-			done
-			printf "%s\\n" "${args[*]}"
-		}
-	'
-fi
 
 #
 # Generates a random number between 0 and 2147483647 (2^31-1) with the
@@ -730,6 +710,29 @@ _has_dumb_terminal()
 {
 	! case ${TERM} in *dumb*) false ;; esac
 }
+
+#
+# Potentially called by quote_args(), duly acting as a bash-optimised variant.
+# It leverages the ${paramater@Q} form of expansion, which is supported as of
+# bash 4.4. However, it is simpler just to test for 5.0 or greater in sh.
+#
+# shellcheck disable=3028
+if [ "${BASH_VERSINFO-0}" -ge 5 ]; then
+	eval '
+		_quote_args_bash() {
+			local IFS=" " args i
+
+			(( $# > 0 )) || return 0
+			args=("${@@Q}")
+			for i in "${!args[@]}"; do
+				if [[ ${args[i]} == \$* ]]; then
+					args[i]=${args[i]//\\E/\\e}
+				fi
+			done
+			printf "%s\\n" "${args[*]}"
+		}
+	'
+fi
 
 #
 # See the definitions of oldest() and newest().
