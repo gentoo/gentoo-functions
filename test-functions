@@ -1,5 +1,5 @@
 #!/bin/sh
-# shellcheck disable=1007,2015,2164,2317,3043
+# shellcheck disable=1007,2015,2031,2164,2317,3043
 
 # Requires mktemp(1), which is not a standard utility, but is commonly
 # available. The implementations provided by GNU coreutils, busybox and toybox
@@ -265,6 +265,7 @@ test_esyslog() {
 		should_log=$2
 		shift 2
 		test_description="esyslog $(quote_args "$@")"
+		# shellcheck disable=2034
 		logged=$(EINFO_LOG=1; esyslog "$@")
 		case $? in
 			0)
@@ -694,6 +695,7 @@ test_whenceforth() {
 				case ${printf_cmd} in
 					/*) printf() { "${printf_cmd}" "$@"; }
 				esac
+				# shellcheck disable=2030
 				PATH=${path}
 				whenceforth "$@" >/dev/null
 			)
