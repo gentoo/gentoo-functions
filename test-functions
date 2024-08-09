@@ -687,13 +687,16 @@ test_whenceforth() {
 		else
 			test_description="PATH=${path} whenceforth $(quote_args "$@")"
 			(
-				# If necessary, conduct the test with a printf
-				# function in effect, duly covering shells that
-				# do not implement it as a builtin. Otherwise,
-				# it could become unavailable on account of the
-				# various values of PATH being tested.
+				# If necessary, declare functions to cover the
+				# utilities that might otherwise be unavailable
+				# on account of the various values of PATH
+				# being tested. It cannot be assumed that the
+				# utilities in question are builtins.
 				case ${printf_cmd} in
 					/*) printf() { "${printf_cmd}" "$@"; }
+				esac
+				case ${test_cmd} in
+					/*) test() { "${test_cmd}" "$@"; }
 				esac
 				# shellcheck disable=2030
 				PATH=${path}
@@ -703,6 +706,7 @@ test_whenceforth() {
 	}
 
 	printf_cmd=$(command -v printf)
+	test_cmd=$(command -v test)
 	iterate_tests 5 "$@"
 }
 
