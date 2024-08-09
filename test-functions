@@ -1180,6 +1180,14 @@ if [ "${PORTAGE_BIN_PATH}" ] && [ "${S}" ]; then
 fi
 
 if ! test_local; then
+	# Currently, this test is known to fail for ksh93 and yash. As regards
+	# the former, the commonly implemented behaviour of "local" can be
+	# approximated with "typeset". However, to use typeset in this way
+	# requires the use of the function f { ...; } syntax instead of the
+	# POSIX-compatible f() compound-command syntax. Further, ksh93
+	# implements static scoping. As regards the latter, yash is rather
+	# stringent and simply disables its local builtin if in its posix mode.
+	# Running yash as "sh" would be one way of activating said mode.
 	rc=1
 elif ! GENFUN_MODULES="portage rc" . ./functions.sh; then
 	bailout "Couldn't source ./functions.sh"
