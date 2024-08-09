@@ -846,7 +846,8 @@ _update_time()
 			fi
 			genfun_time=$(( s * 100 + cs ))
 		}
-	elif [ -f /proc/uptime ]; then
+	elif [ -f /proc/uptime ] && [ ! "${YASH_VERSION}" ]; then
+		# Yash is blacklisted because it dies upon integer overflow.
 		_update_time()
 		{
 			local cs s

@@ -1024,6 +1024,12 @@ test_deref() {
 test_update_time() {
 	local locale
 
+	# The yash shell dies upon integer overflow and _update_time() ends up
+	# being deactivated for it. Hence, there is no reason to run this test.
+	if [ "${YASH_VERSION}" ]; then
+		return
+	fi
+
 	set -- \
 		de_BE de_DE es_ES fr_BE fr_CA fr_FR it_IT nl_BE nl_NL pl_PL \
 		pt_BR pt_PT ru_RU sv_SE
@@ -1071,6 +1077,12 @@ test_update_time() {
 
 test_should_throttle() {
 	local bits max_int
+
+	# The yash shell dies upon integer overflow and _update_time() ends up
+	# being deactivated for it. Hence, there is no reason to run this test.
+	if [ "${YASH_VERSION}" ]; then
+		return
+	fi
 
 	genfun_time=
 	bits=30
