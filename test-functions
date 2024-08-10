@@ -84,9 +84,9 @@ test_chdir() {
 
 test_die() {
 	set -- \
-		eq    1    0 \
-		eq    2    2 \
-		eq  126  126 \
+		eq    1    0  \
+		eq    2    2  \
+		eq  126  126  \
 		eq  255  255
 
 	callback() {
@@ -141,59 +141,59 @@ test_is_older_than() {
 	local age tstamp
 
 	set -- \
-		ge  1  N/A           N/A \
-		ge  1  newer         N/A \
-		ge  1  newer-empty   N/A \
-		ge  1  newer/file    N/A \
-		ge  1  non-existent  N/A \
-		eq  0  newer         newer \
-		ge  1  newer         newer-empty \
-		eq  0  newer         newer/file \
-		ge  1  newer         non-existent \
-		ge  1  newer         older \
-		ge  1  newer         older-empty \
-		ge  1  newer         older/file \
-		eq  0  newer-empty   newer \
-		ge  1  newer-empty   newer-empty \
-		eq  0  newer-empty   newer/file \
-		ge  1  newer-empty   non-existent \
-		ge  1  newer-empty   older \
-		ge  1  newer-empty   older-empty \
-		ge  1  newer-empty   older/file \
-		ge  1  newer/file    newer \
-		ge  1  newer/file    newer-empty \
-		ge  1  newer/file    newer/file \
-		ge  1  newer/file    non-existent \
-		ge  1  newer/file    older \
-		ge  1  newer/file    older-empty \
-		ge  1  newer/file    older/file \
-		eq  0  non-existent  newer \
-		eq  0  non-existent  newer-empty \
-		eq  0  non-existent  newer/file \
-		ge  1  non-existent  non-existent \
-		eq  0  non-existent  older \
-		eq  0  non-existent  older-empty \
-		eq  0  non-existent  older/file \
-		eq  0  older         newer \
-		eq  0  older         newer-empty \
-		eq  0  older         newer/file \
-		ge  1  older         non-existent \
-		eq  0  older         older \
-		ge  1  older         older-empty \
-		eq  0  older         older/file \
-		eq  0  older-empty   newer \
-		eq  0  older-empty   newer-empty \
-		eq  0  older-empty   newer/file \
-		ge  1  older-empty   non-existent \
-		eq  0  older-empty   older \
-		ge  1  older-empty   older-empty \
-		eq  0  older-empty   older/file \
-		eq  0  older/file    newer \
-		eq  0  older/file    newer-empty \
-		eq  0  older/file    newer/file \
-		ge  1  older/file    non-existent \
-		ge  1  older/file    older \
-		ge  1  older/file    older-empty \
+		ge  1  N/A           N/A           \
+		ge  1  newer         N/A           \
+		ge  1  newer-empty   N/A           \
+		ge  1  newer/file    N/A           \
+		ge  1  non-existent  N/A           \
+		eq  0  newer         newer         \
+		ge  1  newer         newer-empty   \
+		eq  0  newer         newer/file    \
+		ge  1  newer         non-existent  \
+		ge  1  newer         older         \
+		ge  1  newer         older-empty   \
+		ge  1  newer         older/file    \
+		eq  0  newer-empty   newer         \
+		ge  1  newer-empty   newer-empty   \
+		eq  0  newer-empty   newer/file    \
+		ge  1  newer-empty   non-existent  \
+		ge  1  newer-empty   older         \
+		ge  1  newer-empty   older-empty   \
+		ge  1  newer-empty   older/file    \
+		ge  1  newer/file    newer         \
+		ge  1  newer/file    newer-empty   \
+		ge  1  newer/file    newer/file    \
+		ge  1  newer/file    non-existent  \
+		ge  1  newer/file    older         \
+		ge  1  newer/file    older-empty   \
+		ge  1  newer/file    older/file    \
+		eq  0  non-existent  newer         \
+		eq  0  non-existent  newer-empty   \
+		eq  0  non-existent  newer/file    \
+		ge  1  non-existent  non-existent  \
+		eq  0  non-existent  older         \
+		eq  0  non-existent  older-empty   \
+		eq  0  non-existent  older/file    \
+		eq  0  older         newer         \
+		eq  0  older         newer-empty   \
+		eq  0  older         newer/file    \
+		ge  1  older         non-existent  \
+		eq  0  older         older         \
+		ge  1  older         older-empty   \
+		eq  0  older         older/file    \
+		eq  0  older-empty   newer         \
+		eq  0  older-empty   newer-empty   \
+		eq  0  older-empty   newer/file    \
+		ge  1  older-empty   non-existent  \
+		eq  0  older-empty   older         \
+		ge  1  older-empty   older-empty   \
+		eq  0  older-empty   older/file    \
+		eq  0  older/file    newer         \
+		eq  0  older/file    newer-empty   \
+		eq  0  older/file    newer/file    \
+		ge  1  older/file    non-existent  \
+		ge  1  older/file    older         \
+		ge  1  older/file    older-empty   \
 		ge  1  older/file    older/file
 
 	# The mtimes need to be explicitly assigned. Empirical evidence has
@@ -222,17 +222,17 @@ test_get_bootparam() {
 
 	cmdline="foo gentoo=bar,baz quux"
 	set -- \
-		ge  1  "${cmdline}"                   N/A \
-		ge  1  "${cmdline}"                   '' \
-		ge  1  "gentoo="                      '' \
-		ge  1  "${cmdline}"                   foo \
-		eq  0  "${cmdline}"                   bar \
-		eq  0  "foo gentoo=gentoo=1,bar baz"  bar \
-		eq  0  "foo gentoo=bar,gentoo=1 baz"  bar \
-		eq  0  "${cmdline}"                   baz \
-		ge  1  "${cmdline}"                   bar,baz \
-		eq  0  "foo gentoo=bar,gentoo=1 baz"  gentoo=1 \
-		eq  0  "foo gentoo=gentoo=1,bar baz"  gentoo=1 \
+		ge  1  "${cmdline}"                   N/A       \
+		ge  1  "${cmdline}"                   ''        \
+		ge  1  "gentoo="                      ''        \
+		ge  1  "${cmdline}"                   foo       \
+		eq  0  "${cmdline}"                   bar       \
+		eq  0  "foo gentoo=gentoo=1,bar baz"  bar       \
+		eq  0  "foo gentoo=bar,gentoo=1 baz"  bar       \
+		eq  0  "${cmdline}"                   baz       \
+		ge  1  "${cmdline}"                   bar,baz   \
+		eq  0  "foo gentoo=bar,gentoo=1 baz"  gentoo=1  \
+		eq  0  "foo gentoo=gentoo=1,bar baz"  gentoo=1  \
 		ge  1  "${cmdline}"                   quux
 
 	callback() {
@@ -249,10 +249,10 @@ test_get_bootparam() {
 
 test_esyslog() {
 	set -- \
-		ge  1  0  N/A    N/A   N/A \
-		ge  1  0  debug  N/A   N/A \
-		eq  0  0  debug  user  N/A \
-		eq  0  0  debug  user  '' \
+		ge  1  0  N/A    N/A   N/A      \
+		ge  1  0  debug  N/A   N/A      \
+		eq  0  0  debug  user  N/A      \
+		eq  0  0  debug  user  ''       \
 		eq  0  1  debug  user  message
 
 	logger() {
@@ -295,7 +295,7 @@ test_is_identifier() {
 		ge  1   /Z   \
 		ge  1   .a   \
 		ge  1   .Z   \
-		ge  1  '[a'   \
+		ge  1  '[a'  \
 		ge  1  '[Z'  \
 		ge  1  '`a'  \
 		ge  1  '`Z'  \
@@ -346,18 +346,18 @@ test_is_identifier() {
 
 test_is_int() {
 	set -- \
-		ge  1  N/A \
-		ge  1  ' ' \
-		ge  1  ' 1 ' \
-		ge  1  '' \
-		ge  1  +1 \
-		ge  1  +008 \
-		ge  1  -008 \
-		ge  1  008 \
-		ge  1  x \
-		eq  0  0 \
-		eq  0  1 \
-		eq  0  -1 \
+		ge  1  N/A        \
+		ge  1  ' '        \
+		ge  1  ' 1 '      \
+		ge  1  ''         \
+		ge  1  +1         \
+		ge  1  +008       \
+		ge  1  -008       \
+		ge  1  008        \
+		ge  1  x          \
+		eq  0  0          \
+		eq  0  1          \
+		eq  0  -1         \
 		eq  0  123456789
 
 	callback() {
@@ -371,13 +371,13 @@ test_is_int() {
 
 test_is_visible() {
 	set -- \
-		ge  1  '' \
-		ge  1  ' ' \
-		ge  1  "$(printf '\t')" \
-		ge  1  "$(printf '\a')" \
-		eq  0  . \
-		eq  0  ' . ' \
-		eq  0  "$(printf '\t.\t')" \
+		ge  1  ''                   \
+		ge  1  ' '                  \
+		ge  1  "$(printf '\t')"     \
+		ge  1  "$(printf '\a')"     \
+		eq  0  .                    \
+		eq  0  ' . '                \
+		eq  0  "$(printf '\t.\t')"  \
 		eq  0  "$(printf '\a.\a')"
 
 	callback() {
@@ -391,29 +391,29 @@ test_is_visible() {
 
 test_yesno() {
 	set -- \
-		eq  0  yes \
-		eq  0  YES \
-		eq  0  Yes \
-		eq  0  true \
-		eq  0  TRUE \
-		eq  0  true \
-		eq  0  on \
-		eq  0  ON \
-		eq  0  On \
-		eq  0  1 \
-		eq  0  truthful_nameref \
-		ge  1  no \
-		ge  1  NO \
-		ge  1  No \
-		ge  1  false \
-		ge  1  FALSE \
-		ge  1  False \
-		ge  1  off \
-		ge  1  OFF \
-		ge  1  Off \
-		ge  1  0 \
-		ge  1  not_a_nameref \
-		ge  1  not-a-valid-nameref \
+		eq  0  yes                                \
+		eq  0  YES                                \
+		eq  0  Yes                                \
+		eq  0  true                               \
+		eq  0  TRUE                               \
+		eq  0  true                               \
+		eq  0  on                                 \
+		eq  0  ON                                 \
+		eq  0  On                                 \
+		eq  0  1                                  \
+		eq  0  truthful_nameref                   \
+		ge  1  no                                 \
+		ge  1  NO                                 \
+		ge  1  No                                 \
+		ge  1  false                              \
+		ge  1  FALSE                              \
+		ge  1  False                              \
+		ge  1  off                                \
+		ge  1  OFF                                \
+		ge  1  Off                                \
+		ge  1  0                                  \
+		ge  1  not_a_nameref                      \
+		ge  1  not-a-valid-nameref                \
 		ge  1  '_"; set -- yes # code injection'
 
 	# shellcheck disable=2034
@@ -430,16 +430,16 @@ test_yesno() {
 
 test_srandom() {
 	set -- \
-		eq 0 \
-		eq 0 \
-		eq 0 \
-		eq 0 \
-		eq 0 \
-		eq 0 \
-		eq 0 \
-		eq 0 \
-		eq 0 \
-		eq 0
+		eq  0  \
+		eq  0  \
+		eq  0  \
+		eq  0  \
+		eq  0  \
+		eq  0  \
+		eq  0  \
+		eq  0  \
+		eq  0  \
+		eq  0
 
 	callback() {
 		local number
@@ -621,7 +621,7 @@ test_hr() {
 		eq  0  "$(printf '%80s' | tr ' ' -)"  -    N/A  \
 		eq  0  ''                             -    0    \
 		eq  0  -                              -    1    \
-		eq  0  -----------------              -    17    \
+		eq  0  -----------------              -    17   \
 		eq  0  ''                             xyz  0    \
 		eq  0  x                              xyz  1    \
 		eq  0  xxxxxxxxxxxxxxxxx              xyz  17
@@ -1117,13 +1117,13 @@ test_should_throttle() {
 	# return value should always be 1. For the fifth test, integer overflow
 	# is expected to occur. Again, the return value should always be 1.
 	set -- \
-		ge  1  "${max_int}" \
-		eq  0  2            \
-		ge  1  1            \
-		ge  1  0            \
-		ge  1  2            \
-		eq  0  2            \
-		ge  1  1            \
+		ge  1  "${max_int}"  \
+		eq  0  2             \
+		ge  1  1             \
+		ge  1  0             \
+		ge  1  2             \
+		eq  0  2             \
+		ge  1  1             \
 		ge  1  0
 
 	_update_time() {
