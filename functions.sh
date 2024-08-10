@@ -958,11 +958,6 @@ if [ ! "${genfun_basedir+set}" ]; then
 	genfun_basedir=${genfun_prefix}/lib/gentoo
 fi
 
-# Assign the LF ('\n') character for later expansion. POSIX-1.2024 permits $'\n'
-# but it may take years for it to be commonly implemented.
-genfun_newline='
-'
-
 # The GENFUN_MODULES variable acts as a means of selecting modules, which are
 # merely optional collections of functions. If unset then set it now.
 if [ ! "${GENFUN_MODULES+set}" ]; then

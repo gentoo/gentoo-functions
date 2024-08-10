@@ -168,6 +168,7 @@ str_between()
 	else
 		set -- "$2" "$1" "$3"
 		i=0
+		# shellcheck disable=2034
 		printf '%s\n' "$@" |
 		sort |
 		while IFS= read -r line; do

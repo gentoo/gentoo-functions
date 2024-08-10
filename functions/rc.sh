@@ -347,6 +347,7 @@ _eend()
 			"${efunc}" "${msg}"
 		fi
 		# Generate an indicator for ebegin's unsuccessful conclusion.
+		# shellcheck disable=2154
 		if _update_tty_level <&1; [ "${genfun_tty}" -eq 0 ]; then
 			msg="[ !! ]"
 		else
@@ -356,6 +357,7 @@ _eend()
 		return "${retval}"
 	else
 		# Generate an indicator for ebegin's successful conclusion.
+		# shellcheck disable=2154
 		if _update_tty_level <&1; [ "${genfun_tty}" -eq 0 ]; then
 			msg="[ ok ]"
 		else
@@ -367,6 +369,7 @@ _eend()
 		# Save the cursor position with DECSC, move it up by one line
 		# with CUU, position it horizontally with CHA, print the
 		# indicator, then restore the cursor position with DECRC.
+		# shellcheck disable=2154
 		col=$(( genfun_cols > 6 ? genfun_cols - 6 : 1 ))
 		printf '\0337\033[1A\033[%dG %s\0338' "$(( col + genfun_offset ))" "${msg}"
 	else
@@ -483,6 +486,11 @@ if [ "${INSIDE_EMACS}" ] && [ "${TERM}" = "eterm-color" ]; then
 else
 	genfun_offset=0
 fi
+
+# Assign the LF ('\n') character for later expansion. POSIX-1.2024 permits $'\n'
+# but it may take years for it to be commonly implemented.
+genfun_newline='
+'
 
 # shellcheck disable=2034
 RC_GOT_FUNCTIONS=yes
