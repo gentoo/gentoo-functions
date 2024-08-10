@@ -957,6 +957,12 @@ test_quote_args() {
 
 		test_description="quote_args output test (expecting cksum 380900690)"
 		i=0
+		# The generator fails to produce the correct ouput in yash
+		# unless the effective character type is C/POSIX. However, once
+		# launched, yash ignores assignments to the LC_CTYPE variable
+		# if in its posix mode. As things stand, there is little point
+		# in fixing it because yash also disables the local builtin in
+		# its posix mode, causing test-functions to bail out sooner.
 		while [ "$((i += 1))" -le 255 ]; do
 			fmt=$(printf '\\%o' "$i")
 			# shellcheck disable=2059
