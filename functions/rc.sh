@@ -1,6 +1,6 @@
 # Copyright 1999-2024 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
-# shellcheck shell=sh disable=3043
+# shellcheck shell=sh disable=3013,3043
 
 # This file contains alternative implementations for some of the functions and
 # utilities provided by OpenRC. Please refer to ../functions.sh for coding
@@ -205,9 +205,13 @@ get_bootparam()
 # Takes the first parameter as a reference file/directory then determines
 # whether any of the following parameters refer to newer files/directories.
 #
+# The test utility is required to support the -nt primary, per POSIX-1.2024.
+# However, measures are in place to to achieve compatibility with shells that
+# implement the primary without yet fully adhering to the specification.
+#
 is_older_than()
 {
-	local ref
+	local path ref
 
 	if [ "$#" -eq 0 ]; then
 		warn "is_older_than: too few arguments (got $#, expected at least 1)"
@@ -218,9 +222,20 @@ is_older_than()
 		ref=
 	fi
 	shift
-	{ test "$#" -gt 0 && printf '%s\0' "$@"; } \
-	| _find0 -L ${ref:+-newermm} ${ref:+"${ref}"} -printf '\n' -quit \
-	| read -r _
+	for path; do
+		# The first branch addresses a conformance issue whereby
+		# [ existent -nt nonexistent ] is incorrectly false. As of
+		# August 2024, busybox ash, dash, FreeBSD sh and NetBSD sh are
+		# known to be non-conforming in this respect.
+		if [ ! "${ref}" ] && [ -e "${path}" ]; then
+			return
+		elif [ "${path}" -nt "${ref}" ]; then
+			return
+		elif [ -d "${path}" ] && is_older_than "${ref}" "${path}"/*; then
+			return
+		fi
+	done
+	false
 }
 
 #

@@ -1,6 +1,6 @@
 # Copyright 1999-2024 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
-# shellcheck shell=sh disable=2209,3043
+# shellcheck shell=sh disable=2209,3013,3043
 
 # This file contains a series of function declarations followed by some
 # initialisation code. Functions intended for internal use shall be prefixed
@@ -294,17 +294,55 @@ is_anyof()
 
 #
 # Considers one or more pathnames and prints the one having the newest
-# modification time. If at least one parameter is provided, all parameters shall
-# be considered as pathnames to be compared to one another. Otherwise, the
-# pathnames to be compared shall be read from the standard input as
-# NUL-delimited records. If no pathnames are given, or those specified do not
-# exist, the return value shall be greater than 0. In the case that two or more
-# pathnames are candidates, the one having the lexicographically greatest value
-# shall be selected. Pathnames containing newline characters shall be ignored.
+# modification time. If at least one parameter is provided, all parameters
+# shall be considered as pathnames to be compared to one another. Otherwise,
+# the pathnames to be compared shall be read from the standard input as
+# null-terminated records. In the case that two or more pathnames are
+# candidates, whichever was first specified shall take precedence over the
+# other. If no pathnames are given, or those specified do not exist, the return
+# value shall be greater than 0.
+#
+# Pathnames containing <newline> characters shall be handled correctly if
+# conveyed as positional parameters. Otherwise, the behaviour for such
+# pathnames is unspecified. Users of the function are duly expected to refrain
+# from conveying such pathnames for consumption from the standard input; for
+# example, by specifying a predicate of ! -path $'*\n*' to the find utility.
+# This constraint is expected to be eliminated by a future amendment to the
+# function, once support for read -d becomes sufficiently widespread.
+#
+# The test utility is required to support the -nt primary, per POSIX-1.2024.
+# However, measures are in place to to achieve compatibility with shells that
+# implement the primary without yet fully adhering to the specification.
 #
 newest()
 {
-	_select_by_mtime -r "$@"
+	local path newest
+
+	newest=
+	if [ "$#" -gt 0 ]; then
+		for path; do
+			# The tests within curly braces address a conformance
+			# issue whereby [ existent -nt nonexistent ] is
+			# incorrectly false. As of August 2024, busybox ash,
+			# dash, FreeBSD sh and NetBSD sh are known to be
+			# non-conforming in this respect.
+			if { [ ! "${newest}" ] && [ -e "${path}" ]; } || [ "${path}" -nt "${newest}" ]; then
+				newest=$path
+			fi
+		done
+		test "${newest}" && printf '%s\n' "${newest}"
+	else
+		# Support for read -d '' is not yet sufficiently widespread.
+		tr '\0' '\n' |
+		{
+		while IFS= read -r path; do
+			if { [ ! "${newest}" ] && [ -e "${path}" ]; } || [ "${path}" -nt "${newest}" ]; then
+				newest=$path
+			fi
+		done
+		test "${newest}" && printf '%s\n' "${newest}"
+		}
+	fi
 }
 
 #
@@ -330,17 +368,55 @@ get_nprocs()
 
 #
 # Considers one or more pathnames and prints the one having the oldest
-# modification time. If at least one parameter is provided, all parameters shall
-# be considered as pathnames to be compared to one another. Otherwise, the
-# pathnames to be compared shall be read from the standard input as
-# NUL-delimited records. If no pathnames are given, or those specified do not
-# exist, the return value shall be greater than 0. In the case that two or more
-# pathnames are candidates, the one having the lexicographically lesser value
-# shall be selected. Pathnames containing newline characters shall be ignored.
+# modification time. If at least one parameter is provided, all parameters
+# shall be considered as pathnames to be compared to one another. Otherwise,
+# the pathnames to be compared shall be read from the standard input as
+# null-terminated records. In the case that two or more pathnames are
+# candidates, whichever was first specified shall take precedence over the
+# other. If no pathnames are given, or those specified do not exist, the return
+# value shall be greater than 0.
+#
+# Pathnames containing <newline> characters shall be handled correctly if
+# conveyed as positional parameters. Otherwise, the behaviour for such
+# pathnames is unspecified. Users of the function are duly expected to refrain
+# from conveying such pathnames for consumption from the standard input; for
+# example, by specifying a predicate of ! -path $'*\n*' to the find utility.
+# This constraint is expected to be eliminated by a future amendment to the
+# function, once support for read -d becomes sufficiently widespread.
+#
+# The test utility is required to support the -ot primary, per POSIX-1.2024.
 #
 oldest()
 {
-	_select_by_mtime -- "$@"
+	local path oldest
+
+	oldest=
+	if [ "$#" -gt 0 ]; then
+		for path; do
+			# The specification has [ nonexistent -ot existent ] as
+			# being true. Such is a nuisance in this case but the
+			# preceding tests suffice as a workaround.
+			if [ ! -e "${path}" ]; then
+				continue
+			elif [ ! "${oldest}" ] || [ "${path}" -ot "${oldest}" ]; then
+				oldest=$path
+			fi
+		done
+		test "${oldest}" && printf '%s\n' "${oldest}"
+	else
+		# Support for read -d '' is not yet sufficiently widespread.
+		tr '\0' '\n' |
+		{
+		while IFS= read -r path; do
+			if [ ! -e "${path}" ]; then
+				continue
+			elif [ ! "${oldest}" ] || [ "${path}" -ot "${oldest}" ]; then
+				oldest=$path
+			fi
+		done
+		test "${oldest}" && printf '%s\n' "${oldest}"
+		}
+	fi
 }
 
 #
@@ -676,34 +752,6 @@ whenceforth()
 #------------------------------------------------------------------------------#
 
 #
-# See the definitions of _select_by_mtime() and is_older_than(). This function
-# requires that GNU findutils >=4.9 be installed.
-#
-_find0()
-{
-	# Store the name of the GNU find binary, which may be "gfind".
-	hash gfind 2>/dev/null && genfun_bin_find=gfind || genfun_bin_find=find
-
-	_find0()
-	{
-		local opt
-
-		case $1 in
-			-[HL])
-				opt=$1
-				shift
-				set -- "${opt}" -files0-from - "$@"
-				;;
-			*)
-				set -- -files0-from - "$@"
-		esac
-		"${genfun_bin_find}" "$@"
-	}
-
-	_find0 "$@"
-}
-
-#
 # Determines whether the terminal is a dumb one.
 #
 _has_dumb_terminal()
@@ -733,25 +781,6 @@ if [ "${BASH_VERSINFO-0}" -ge 5 ]; then
 		}
 	'
 fi
-
-#
-# See the definitions of oldest() and newest().
-#
-_select_by_mtime()
-{
-	local sort_opt
-
-	sort_opt=$1
-	shift
-	if [ "$#" -gt 0 ]; then
-		printf '%s\0' "$@"
-	else
-		cat
-	fi \
-	| _find0 -maxdepth 0 ! -path "*${genfun_newline}*" -printf '%T+ %p\n' \
-	| sort "${sort_opt}" \
-	| { IFS= read -r line && printf '%s\n' "${line#* }"; }
-}
 
 #
 # Considers the first parameter as a number of centiseconds and determines
