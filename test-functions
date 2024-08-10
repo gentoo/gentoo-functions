@@ -454,6 +454,44 @@ test_srandom() {
 	iterate_tests 2 "$@"
 }
 
+test_srandom_forked()
+{
+	set -- \
+		eq  0  unforked  \
+		eq  0  forking
+
+	callback() {
+		local mode number
+
+		shift
+		mode=$1
+		set --
+		test_description="srandom equality where $mode"
+		if [ "${mode}" = "forking" ]; then
+			srandom
+			( srandom )
+			srandom
+			( srandom )
+		else
+			srandom
+			srandom
+			srandom
+			srandom
+		fi > random_numbers || return
+		while read -r number; do
+			set -- "$@" "${number}"
+		done < random_numbers
+		test_description="srandom equality where $mode ($*)"
+		if [ "${mode}" = "forking" ]; then
+			test "$#" -eq 4 && test "$1" -ne "$2" && test "$3" -ne "$4"
+		else
+			test "$#" -eq 4 && ! trueof_all test "$1" -eq -- "$@"
+		fi
+	}
+
+	iterate_tests 3 "$@"
+}
+
 test_newest() {
 	set -- \
 		ge  1  non-existent  non-existent  \
@@ -1212,7 +1250,11 @@ else
 	test_yesno || rc=1
 	test_die || rc=1
 	test_edo || rc=1
-	test_srandom || rc=1
+	if ! test_srandom; then
+		rc=1
+	else
+		test_srandom_forked || rc=1
+	fi
 	test_newest || rc=1
 	test_oldest || rc=1
 	test_trim || rc=1

@@ -18,7 +18,7 @@
 
 # BASH             : whether bash-specific features may be employed
 # BASH_VERSINFO    : whether bash-specific features may be employed
-# BASHPID          : may be used by _update_columns() to detect subshells
+# BASHPID          : may be used by _update_columns() and _update_pid()
 # COLUMNS          : may be used by _update_columns() to get the column count
 # EPOCHREALTIME    : potentially used by _update_time() to get the time
 # GENFUN_MODULES   : which of the optional function collections must be sourced
@@ -587,12 +587,35 @@ srandom()
 			printf '%d\n' "0x${hex}"
 		}
 	elif [ -c /dev/urandom ]; then
+		unset -v genfun_entropy
+
 		srandom()
 		{
 			local hex
 
-			hex=$(LC_ALL=C od -vAn -N4 -tx1 /dev/urandom | tr -d '[:space:]')
-			[ "${hex}" ] && printf '%d\n' "$(( 0x${hex} >> 1 ))"
+			# If the shell has forked itself, collect 4 bytes worth
+			# of entropy.
+			if ! _update_pid || [ "$$" != "${genfun_pid}" ]; then
+				hex=$(LC_ALL=C od -vAn -N4 -tx1 /dev/urandom | tr -d '[:space:]')
+				test "${#hex}" -eq 8 && printf '%d\n' "$(( 0x${hex} >> 1 ))"
+				return
+			fi
+
+			# Otherwise, employ a faster method whereby the shell
+			# maintains an entropy pool of up to 512 hex digits in
+			# size.
+			if [ "${#genfun_entropy}" -lt 8 ]; then
+				genfun_entropy=$(
+					LC_ALL=C od -vAn -N256 -tx1 /dev/urandom | tr -d '[:space:]'
+				)
+			fi
+			if [ "${#genfun_entropy}" -lt 8 ]; then
+				false
+			else
+				hex=${genfun_entropy}
+				genfun_entropy=${genfun_entropy%????????}
+				printf '%d\n' "$(( 0x${hex#"$genfun_entropy"} >> 1 ))"
+			fi
 		}
 	else
 		warn "srandom: /dev/urandom doesn't exist as a character device"
@@ -846,6 +869,46 @@ _update_columns()
 	}
 
 	_update_columns
+}
+
+#
+# Determines the PID of the current shell process. Upon success, the PID shall
+# be assigned to genfun_pid. Otherwise, the return value shall be greater than
+# 0. The obtained PID value will differ from the value of $$ under certain
+# circumstances, such as where a shell forks itself to create a subshell.
+#
+_update_pid()
+{
+	if [ "${BASH}" ]; then
+		_update_pid()
+		{
+			# shellcheck disable=3028
+			genfun_pid=${BASHPID}
+		}
+	elif [ -d /proc/self/task ]; then
+		# This method relies on the proc_pid_task(5) interface of Linux.
+		_update_pid()
+		{
+			local dir tid
+
+			for dir in /proc/self/task/*/; do
+				if [ "${tid}" ] || [ ! -e "${dir}" ]; then
+					return 1
+				else
+					dir=${dir%/}
+					tid=${dir##*/}
+				fi
+			done
+			genfun_pid=${tid}
+		}
+	else
+		_update_pid()
+		{
+			false
+		}
+	fi
+
+	_update_pid
 }
 
 #
