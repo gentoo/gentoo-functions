@@ -109,14 +109,16 @@ test_die() {
 test_ebegin() {
 	set -- eq 0
 
-	callback() (
+	callback() {
 		test_description="ebegin message (expecting terminating newline)"
-		_eprint() {
-			shift
-			_ends_with_newline "$*"
-		}
-		ebegin "message"
-	)
+		(
+			_eprint() {
+				shift
+				_ends_with_newline "$*"
+			}
+			ebegin "message"
+		)
+	}
 
 	iterate_tests 2 "$@"
 }
@@ -1200,7 +1202,7 @@ elif ! GENFUN_MODULES="portage rc" . ./functions.sh; then
 else
 	assign_tmpdir
 	test_chdir || rc=1
-	test_ebegin || rc=1; testnum=$((testnum + 1))
+	test_ebegin || rc=1
 	test_is_older_than || rc=1
 	test_get_bootparam || rc=1
 	test_esyslog || rc=1
