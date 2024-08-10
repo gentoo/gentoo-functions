@@ -787,6 +787,7 @@ fi
 # whether fewer have elapsed since the last occasion on which the function was
 # called, or whether the last genfun_time update resulted in integer overflow.
 #
+# shellcheck disable=2317
 _should_throttle()
 {
 	_update_time || return
