@@ -590,8 +590,7 @@ srandom()
 			local hex
 
 			hex=$(
-				LC_ALL=
-				LC_CTYPE=C
+				export LC_ALL=C
 				od -vAn -N256 -tx1 /dev/urandom | awk '
 					{
 						gsub(/[[:space:]]/, "")
