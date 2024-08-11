@@ -905,6 +905,7 @@ _update_pid()
 		{
 			local dir tid
 
+			tid=
 			for dir in /proc/self/task/*/; do
 				if [ "${tid}" ] || [ ! -e "${dir}" ]; then
 					return 1
