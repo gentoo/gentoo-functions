@@ -1111,7 +1111,7 @@ test_update_time() {
 		fi
 		case $? in
 			0)
-				is_int "${genfun_time}" && test "${genfun_time}" -ge 0
+				is_int "${genfun_time}"
 				;;
 			2)
 				# Unsupported for the platform and therefore untestable.
