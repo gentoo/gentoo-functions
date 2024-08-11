@@ -24,6 +24,7 @@
 # GENFUN_MODULES   : which of the optional function collections must be sourced
 # IFS              : warn() operands are joined by its first character
 # INVOCATION_ID    : used by from_unit()
+# KSH_VERSION      : used to detect ksh93, which is currently unsupported
 # PORTAGE_BIN_PATH : used by from_portage()
 # POSIXLY_CORRECT  : if unset/empty, quote_args() may emit dollar-single-quotes
 # RC_OPENRC_PID    : used by from_runscript()
@@ -41,6 +42,12 @@ warn()
 {
 	printf '%s: %s\n' "${0##*/}" "$*" >&2
 }
+
+case ${KSH_VERSION} in 'Version AJM 93'*)
+	# The ksh93 shell has a typeset builtin but no local builtin.
+	warn "gentoo-functions does not currently support ksh93"
+	return 1
+esac
 
 if [ "${YASH_VERSION}" ] && set +o | grep -qxF 'set -o posixlycorrect'; then
 	# The yash shell disables the local builtin in its POSIXly-correct mode.
