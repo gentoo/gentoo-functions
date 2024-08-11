@@ -30,8 +30,23 @@
 # SENTINEL         : can define a value separating two distinct argument lists
 # SYSTEMD_EXEC_PID : used by from_unit()
 # TERM             : used to detect dumb terminals
+# YASH_VERSION     : for detecting yash before checking for incompatible options
 
 #------------------------------------------------------------------------------#
+
+#
+# Prints a diagnostic message prefixed with the basename of the running script.
+#
+warn()
+{
+	printf '%s: %s\n' "${0##*/}" "$*" >&2
+}
+
+if [ "${YASH_VERSION}" ] && set +o | grep -qxF 'set -o posixlycorrect'; then
+	# The yash shell disables the local builtin in its POSIXly-correct mode.
+	warn "gentoo-functions does not support yash in posixlycorrect mode"
+	return 1
+fi
 
 #
 # Considers the first parameter as a reference to a variable by name and
@@ -703,14 +718,6 @@ trueof_any()
 		fi
 	done
 	false
-}
-
-#
-# Prints a diagnostic message prefixed with the basename of the running script.
-#
-warn()
-{
-	printf '%s: %s\n' "${0##*/}" "$*" >&2
 }
 
 #
