@@ -593,11 +593,15 @@ srandom()
 		{
 			local hex i slice
 
-			# If the shell is understood to have potentially forked
-			# itself then collect fresh entropy from the outset.
-			if ! _update_pid || [ "$$" != "${genfun_pid}" ]; then
+			# If the shell has forked, or if it cannot be determined
+			# whether it has done so, repopulate the pool with 256
+			# bytes worth of fresh entropy.
+			if ! _update_pid; then
 				_collect_entropy
-			fi
+			elif ! eval "test \"\${genfun_pool_${genfun_pid}+set}\""; then
+				_collect_entropy &&
+				eval "genfun_pool_${genfun_pid}=1"
+			fi || return
 
 			for i in 1 2; do
 				# shellcheck disable=2295
@@ -627,27 +631,23 @@ srandom()
 		{
 			local hex
 
-			# If the shell is understood to have potentially forked
-			# itself then collect 4 bytes worth of entropy.
-			if ! _update_pid || [ "$$" != "${genfun_pid}" ]; then
+			if ! _update_pid; then
+				# It cannot be determined whether the shell has
+				# forked. Generate a number from 4 bytes worth
+				# of fresh entropy.
 				hex=$(LC_ALL=C od -vAn -N4 -tx1 /dev/urandom | tr -d '[:space:]')
 				test "${#hex}" -eq 8 && printf '%d\n' "$(( 0x${hex} >> 1 ))"
 				return
+			elif [ "${#genfun_entropy}" -lt 8 ] || ! eval "test \"\${genfun_pool_${genfun_pid}+set}\""; then
+				# Either the pool is too small or the shell has
+				# forked. Repopulate the pool with 256 bytes
+				# worth of fresh entropy.
+				_collect_entropy || return
+				eval "genfun_pool_${genfun_pid}=1"
 			fi
-
-			# Otherwise, employ a faster method whereby the shell
-			# maintains an entropy pool of up to 512 hex digits in
-			# size.
-			if [ "${#genfun_entropy}" -lt 8 ]; then
-				_collect_entropy
-			fi
-			if [ "${#genfun_entropy}" -lt 8 ]; then
-				false
-			else
-				hex=${genfun_entropy}
-				genfun_entropy=${genfun_entropy%????????}
-				printf '%d\n' "$(( 0x${hex#"$genfun_entropy"} >> 1 ))"
-			fi
+			hex=${genfun_entropy}
+			genfun_entropy=${genfun_entropy%????????}
+			printf '%d\n' "$(( 0x${hex#"$genfun_entropy"} >> 1 ))"
 		}
 	else
 		warn "srandom: /dev/urandom doesn't exist as a character device"
@@ -804,6 +804,7 @@ whenceforth()
 #
 _collect_entropy() {
 	genfun_entropy=$(LC_ALL=C od -vAn -N256 -tx1 /dev/urandom | tr -d '[:space:]')
+	test "${#genfun_entropy}" -eq 512
 }
 
 #
