@@ -581,30 +581,43 @@ srandom()
 			printf '%d\n' "$(( SRANDOM >> 1 ))"
 		}
 	elif [ -c /dev/urandom ] && [ "$(( 1 << 31 == -2147483648 ))" -eq 1 ]; then
-		# The shell implements integers as signed int rather than signed
-		# long, contrary to the specification. Therefore, bit shifting
-		# cannot be a viable strategy. Instead, use awk to generate a
-		# number that is immediately within range.
+		# The shell implements integers as signed int rather than
+		# signed long, contrary to the specification. Therefore, bit
+		# shifting cannot be a viable strategy. Instead, try to discern
+		# a suitably constrained sequence of 8 hex digits.
+
+		genfun_int32_pat='[0-7][[:xdigit:]][[:xdigit:]][[:xdigit:]][[:xdigit:]][[:xdigit:]][[:xdigit:]][[:xdigit:]]'
+		unset -v genfun_entropy
+
 		srandom()
 		{
-			local hex
+			local hex i slice
 
-			hex=$(
-				export LC_ALL=C
-				od -vAn -N256 -tx1 /dev/urandom | awk '
-					{
-						gsub(/[[:space:]]/, "")
-						hex = hex $0
-					}
-					END {
-						if (match(hex, /[0-7][[:xdigit:]]{7}/)) {
-							print substr(hex, RSTART, RLENGTH)
-						} else {
-							exit 1
-						}
-					}
-				'
-			) &&
+			# If the shell is understood to have potentially forked
+			# itself then collect fresh entropy from the outset.
+			if ! _update_pid || [ "$$" != "${genfun_pid}" ]; then
+				_collect_entropy
+			fi
+
+			for i in 1 2; do
+				# shellcheck disable=2295
+				slice=${genfun_entropy%${genfun_int32_pat}*}
+				if [ "${#slice}" -ne "${#genfun_entropy}" ]; then
+					hex=${genfun_entropy#"$slice"}
+					genfun_entropy=${genfun_entropy%"$hex"}
+					while [ "${#hex}" -gt 8 ]; do
+						hex=${hex%?}
+					done
+					break
+				elif [ "$i" -eq 1 ]; then
+					# The pool is too small to contain a
+					# suitable sequence. Refill then try
+					# again.
+					_collect_entropy
+				else
+					false
+				fi
+			done &&
 			printf '%d\n' "0x${hex}"
 		}
 	elif [ -c /dev/urandom ]; then
@@ -614,8 +627,8 @@ srandom()
 		{
 			local hex
 
-			# If the shell has forked itself, collect 4 bytes worth
-			# of entropy.
+			# If the shell is understood to have potentially forked
+			# itself then collect 4 bytes worth of entropy.
 			if ! _update_pid || [ "$$" != "${genfun_pid}" ]; then
 				hex=$(LC_ALL=C od -vAn -N4 -tx1 /dev/urandom | tr -d '[:space:]')
 				test "${#hex}" -eq 8 && printf '%d\n' "$(( 0x${hex} >> 1 ))"
@@ -626,9 +639,7 @@ srandom()
 			# maintains an entropy pool of up to 512 hex digits in
 			# size.
 			if [ "${#genfun_entropy}" -lt 8 ]; then
-				genfun_entropy=$(
-					LC_ALL=C od -vAn -N256 -tx1 /dev/urandom | tr -d '[:space:]'
-				)
+				_collect_entropy
 			fi
 			if [ "${#genfun_entropy}" -lt 8 ]; then
 				false
@@ -786,6 +797,14 @@ whenceforth()
 )
 
 #------------------------------------------------------------------------------#
+
+#
+# Collects 256 bytes worth of entropy from /dev/urandom and assigns it to the
+# genfun_entropy variable in the form of 512 hex digits.
+#
+_collect_entropy() {
+	genfun_entropy=$(LC_ALL=C od -vAn -N256 -tx1 /dev/urandom | tr -d '[:space:]')
+}
 
 #
 # Determines whether the terminal is a dumb one.
