@@ -575,7 +575,20 @@ quote_args()
 srandom()
 {
 	# shellcheck disable=3028
-	if [ "${BASH_VERSINFO:-0}" -ge 5 ]; then
+	_has_srandom()
+	{
+		# The SRANDOM variable was introduced by bash 5.1. Check for at
+		# least 5.0, letting the alternate branch confirm its efficacy.
+		if [ "${BASH_VERSINFO-0}" -lt 5 ]; then
+			false
+		else
+			for _ in 1 2 3; do
+				test "${SRANDOM}" != "${SRANDOM}" && break
+			done
+		fi
+	}
+
+	if _has_srandom; then
 		srandom()
 		{
 			printf '%d\n' "$(( SRANDOM >> 1 ))"
@@ -625,6 +638,7 @@ srandom()
 		return 1
 	fi
 
+	unset -f _has_srandom
 	srandom
 }
 
