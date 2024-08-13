@@ -580,12 +580,9 @@ srandom()
 		{
 			printf '%d\n' "$(( SRANDOM >> 1 ))"
 		}
-	elif [ -c /dev/urandom ] && [ "$(( 1 << 31 == -2147483648 ))" -eq 1 ]; then
-		# The shell implements integers as signed int rather than
-		# signed long, contrary to the specification. Therefore, bit
-		# shifting cannot be a viable strategy. Instead, try to discern
-		# a suitably constrained sequence of 8 hex digits.
-
+	elif [ -c /dev/urandom ]; then
+		# Employ a method which entails searching for 8 consecutive hex
+		# digits, where the first is between 0 and 7.
 		genfun_int32_pat='[0-7][[:xdigit:]][[:xdigit:]][[:xdigit:]][[:xdigit:]][[:xdigit:]][[:xdigit:]][[:xdigit:]]'
 		unset -v genfun_entropy
 
@@ -594,7 +591,7 @@ srandom()
 			local hex i slice
 
 			# If the shell has forked, or if it cannot be determined
-			# whether it has done so, repopulate the pool with 256
+			# whether it has done so, populate the pool with 64
 			# bytes worth of fresh entropy.
 			if ! _update_pid; then
 				_collect_entropy
@@ -603,7 +600,7 @@ srandom()
 				eval "genfun_pool_${genfun_pid}=1"
 			fi || return
 
-			for i in 1 2; do
+			for i in 1 2 3; do
 				# shellcheck disable=2295
 				slice=${genfun_entropy%${genfun_int32_pat}*}
 				if [ "${#slice}" -ne "${#genfun_entropy}" ]; then
@@ -613,41 +610,15 @@ srandom()
 						hex=${hex%?}
 					done
 					break
-				elif [ "$i" -eq 1 ]; then
-					# The pool is too small to contain a
-					# suitable sequence. Refill then try
-					# again.
+				elif [ "$i" -lt 3 ]; then
+					# The pool does not contain a suitable
+					# sequence. Refill it then try again.
 					_collect_entropy
 				else
 					false
 				fi
 			done &&
 			printf '%d\n' "0x${hex}"
-		}
-	elif [ -c /dev/urandom ]; then
-		unset -v genfun_entropy
-
-		srandom()
-		{
-			local hex
-
-			if ! _update_pid; then
-				# It cannot be determined whether the shell has
-				# forked. Generate a number from 4 bytes worth
-				# of fresh entropy.
-				hex=$(LC_ALL=C od -vAn -N4 -tx1 /dev/urandom | tr -d '[:space:]')
-				test "${#hex}" -eq 8 && printf '%d\n' "$(( 0x${hex} >> 1 ))"
-				return
-			elif [ "${#genfun_entropy}" -lt 8 ] || ! eval "test \"\${genfun_pool_${genfun_pid}+set}\""; then
-				# Either the pool is too small or the shell has
-				# forked. Repopulate the pool with 256 bytes
-				# worth of fresh entropy.
-				_collect_entropy || return
-				eval "genfun_pool_${genfun_pid}=1"
-			fi
-			hex=${genfun_entropy}
-			genfun_entropy=${genfun_entropy%????????}
-			printf '%d\n' "$(( 0x${hex#"$genfun_entropy"} >> 1 ))"
 		}
 	else
 		warn "srandom: /dev/urandom doesn't exist as a character device"
@@ -799,12 +770,12 @@ whenceforth()
 #------------------------------------------------------------------------------#
 
 #
-# Collects 256 bytes worth of entropy from /dev/urandom and assigns it to the
-# genfun_entropy variable in the form of 512 hex digits.
+# Collects 64 bytes worth of entropy from /dev/urandom and assigns it to the
+# genfun_entropy variable in the form of 128 hex digits.
 #
 _collect_entropy() {
-	genfun_entropy=$(LC_ALL=C od -vAn -N256 -tx1 /dev/urandom | tr -d '[:space:]')
-	test "${#genfun_entropy}" -eq 512
+	genfun_entropy=$(LC_ALL=C od -vAn -N64 -tx1 /dev/urandom | tr -d '[:space:]')
+	test "${#genfun_entropy}" -eq 128
 }
 
 #
