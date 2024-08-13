@@ -1060,7 +1060,10 @@ fi
 
 # Source any modules that have been selected by the GENFUN_MODULES variable.
 for _ in "${genfun_basedir}/functions"/*.sh; do
-	if _want_module "$_"; then
+	if ! test -e "$_"; then
+		warn "no gentoo-functions modules were found (genfun_basedir might be set incorrectly)"
+		! break
+	elif _want_module "$_"; then
 		. "$_" || return
 	fi
 done
