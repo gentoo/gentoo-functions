@@ -1,6 +1,6 @@
 # Copyright 1999-2024 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
-# shellcheck shell=sh disable=2209,3013,3043
+# shellcheck shell=sh disable=2153,2209,3013,3043
 
 # This file contains a series of function declarations followed by some
 # initialisation code. Functions intended for internal use shall be prefixed
