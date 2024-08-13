@@ -940,7 +940,7 @@ _update_pid()
 _update_time()
 {
 	# shellcheck disable=3028
-	if [ "${BASH_VERSINFO:-0}" -ge 5 ]; then
+	if [ "${EPOCHREALTIME}" != "${EPOCHREALTIME}" ]; then
 		# shellcheck disable=2034,3045
 		_update_time()
 		{
