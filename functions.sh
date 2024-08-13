@@ -349,7 +349,7 @@ newest()
 			# dash, FreeBSD sh and NetBSD sh are known to be
 			# non-conforming in this respect.
 			if { [ ! "${newest}" ] && [ -e "${path}" ]; } || [ "${path}" -nt "${newest}" ]; then
-				newest=$path
+				newest=${path}
 			fi
 		done
 		test "${newest}" && printf '%s\n' "${newest}"
@@ -359,7 +359,7 @@ newest()
 		{
 		while IFS= read -r path; do
 			if { [ ! "${newest}" ] && [ -e "${path}" ]; } || [ "${path}" -nt "${newest}" ]; then
-				newest=$path
+				newest=${path}
 			fi
 		done
 		test "${newest}" && printf '%s\n' "${newest}"
@@ -421,7 +421,7 @@ oldest()
 			if [ ! -e "${path}" ]; then
 				continue
 			elif [ ! "${oldest}" ] || [ "${path}" -ot "${oldest}" ]; then
-				oldest=$path
+				oldest=${path}
 			fi
 		done
 		test "${oldest}" && printf '%s\n' "${oldest}"
@@ -433,7 +433,7 @@ oldest()
 			if [ ! -e "${path}" ]; then
 				continue
 			elif [ ! "${oldest}" ] || [ "${path}" -ot "${oldest}" ]; then
-				oldest=$path
+				oldest=${path}
 			fi
 		done
 		test "${oldest}" && printf '%s\n' "${oldest}"
