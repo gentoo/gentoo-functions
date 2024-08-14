@@ -759,7 +759,15 @@ whenceforth()
 			# Relative command paths must be searched for in PATH.
 			# https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap08.html#tag_08_03
 			case ${PATH} in
-				''|*:)
+				''|:)
+					# Work around a bug in OpenBSD sh and
+					# its ports. Where IFS has a value of
+					# ":", splitting a word having the same
+					# value produces no words at all. Handle
+					# it by repeating the field terminator.
+					path=::
+					;;
+				*:)
 					path=${PATH}:
 					;;
 				*)
