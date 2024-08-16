@@ -10,9 +10,11 @@
 # and to reduce the probability of name space conflicts.
 
 # The functions shall be compatible with the POSIX-1.2018 Shell and Utilities
-# (XCU), except where otherwise noted, and with the additional exception that
-# the use of the local utility is permitted, despite the results of its
-# invocation being formally unspecified.
+# (XCU), except where otherwise noted and with the exception that the use of
+# the local utility is permitted, despite the results of its invocation being
+# formally unspecified. Should either of the errexit and nounset options be
+# enabled in the shell, the behaviour of gentoo-functions as a whole shall be
+# unspecified.
 
 # The following variables affect initialisation and/or function behaviour.
 
@@ -42,6 +44,16 @@ warn()
 {
 	printf '%s: %s\n' "${0##*/}" "$*" >&2
 }
+
+case $- in *e*)
+	# https://lists.gnu.org/archive/html/help-bash/2020-04/msg00049.html
+	warn "gentoo-functions does not support the errexit option; unexpected behaviour may ensue"
+esac
+
+case $- in *u*)
+	# https://lists.gnu.org/archive/html/help-bash/2020-04/msg00049.html
+	warn "gentoo-functions does not support the nounset option; unexpected behaviour may ensue"
+esac
 
 case ${KSH_VERSION} in 'Version AJM 93'*)
 	# The ksh93 shell has a typeset builtin but no local builtin.
