@@ -175,7 +175,7 @@ deref()
 	elif ! trueof_all is_identifier -- "$@"; then
 		_warn_for_args deref "$@"
 		false
-	elif ! eval "test \${$1+set}"; then
+	elif ! eval "test \"\${$1+set}\""; then
 		false
 	elif [ "$#" -eq 1 ]; then
 		eval "printf '%s\\n' \"\$$1\""
