@@ -650,12 +650,21 @@ srandom()
 #
 trim()
 {
-	if [ "$#" -gt 0 ]; then
-		printf '%s\n' "$@"
+	local arg
+
+	if [ "$#" -gt 0 ] && [ "${BASH}" ]; then
+		for arg; do
+			eval '[[ ${arg} =~ ^[[:space:]]+ ]] && arg=${arg:${#BASH_REMATCH}}'
+			eval '[[ ${arg} =~ [[:space:]]+$ ]] && arg=${arg:0:${#arg} - ${#BASH_REMATCH}}'
+			printf '%s\n' "${arg}"
+		done
 	else
-		cat
-	fi |
-	sed -e 's/^[[:space:]]\{1,\}//' -e 's/[[:space:]]\{1,\}$//'
+		if [ "$#" -gt 0 ]; then
+			printf '%s\n' "$@"
+		else
+			cat
+		fi | sed -e 's/^[[:space:]]\{1,\}//' -e 's/[[:space:]]\{1,\}$//'
+	fi
 }
 
 #
