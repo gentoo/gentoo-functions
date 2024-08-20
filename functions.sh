@@ -12,9 +12,9 @@
 # The functions shall be compatible with the POSIX-1.2018 Shell and Utilities
 # (XCU), except where otherwise noted and with the exception that the use of
 # the local utility is permitted, despite the results of its invocation being
-# formally unspecified. Should either of the errexit and nounset options be
-# enabled in the shell, the behaviour of gentoo-functions as a whole shall be
-# unspecified.
+# formally unspecified. Should any of the errexit, pipefail or nounset options
+# be enabled in the shell, the behaviour of gentoo-functions as a whole shall
+# be unspecified.
 
 # The following variables affect initialisation and/or function behaviour.
 
