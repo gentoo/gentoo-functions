@@ -136,8 +136,7 @@ esyslog()
 		shift 2
 		msg=$*
 		if _is_visible "${msg}"; then
-			# This is not strictly portable because POSIX defines
-			# no options whatsoever for logger(1).
+			# The -p and -t options are standard as of POSIX-1.2024.
 			logger -p "${pri}" -t "${tag}" -- "${msg}"
 		fi
 	fi
