@@ -586,21 +586,12 @@ quote_args()
 #
 srandom()
 {
+	# The SRANDOM variable was introduced by bash 5.1. Check for at least
+	# 5.0 before comparing two expansions thereof. Doing so is safe because
+	# bash discards numbers that are equal to whicever was last generated.
+	#
 	# shellcheck disable=3028
-	_has_srandom()
-	{
-		# The SRANDOM variable was introduced by bash 5.1. Check for at
-		# least 5.0, letting the alternate branch confirm its efficacy.
-		if [ "${BASH_VERSINFO-0}" -lt 5 ]; then
-			false
-		else
-			for _ in 1 2 3; do
-				test "${SRANDOM}" != "${SRANDOM}" && break
-			done
-		fi
-	}
-
-	if _has_srandom; then
+	if [ "${BASH_VERSINFO-0}" -ge 5 ] && [ "${SRANDOM}" != "${SRANDOM}" ]; then
 		srandom()
 		{
 			printf '%d\n' "$(( SRANDOM >> 1 ))"
@@ -650,7 +641,6 @@ srandom()
 		return 1
 	fi
 
-	unset -f _has_srandom
 	srandom
 }
 
