@@ -583,7 +583,7 @@ srandom()
 {
 	# The SRANDOM variable was introduced by bash 5.1. Check for at least
 	# 5.0 before comparing two expansions thereof. Doing so is safe because
-	# bash discards numbers that are equal to whicever was last generated.
+	# bash discards numbers that are equal to whichever was last generated.
 	#
 	# shellcheck disable=3028
 	if [ "${BASH_VERSINFO-0}" -ge 5 ] && [ "${SRANDOM}" != "${SRANDOM}" ]; then
