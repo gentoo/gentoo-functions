@@ -45,11 +45,6 @@ warn()
 	printf '%s: %s\n' "${0##*/}" "$*" >&2
 }
 
-case $- in *[eu]*)
-	# https://lists.gnu.org/archive/html/help-bash/2020-04/msg00049.html
-	warn "gentoo-functions supports neither the errexit option nor the nounset option; unexpected behaviour may ensue"
-esac
-
 case ${KSH_VERSION} in 'Version AJM 93'*)
 	# The ksh93 shell has a typeset builtin but no local builtin.
 	warn "gentoo-functions does not currently support ksh93"
@@ -61,6 +56,11 @@ if [ "${YASH_VERSION}" ] && [ -o posixlycorrect ]; then
 	warn "gentoo-functions does not support yash in posixlycorrect mode"
 	return 1
 fi
+
+case $- in *[eu]*)
+	# https://lists.gnu.org/archive/html/help-bash/2020-04/msg00049.html
+	warn "gentoo-functions supports neither the errexit option nor the nounset option; unexpected behaviour may ensue"
+esac
 
 #
 # Considers the first parameter as a reference to a variable by name and
