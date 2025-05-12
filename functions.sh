@@ -45,14 +45,9 @@ warn()
 	printf '%s: %s\n' "${0##*/}" "$*" >&2
 }
 
-case $- in *e*)
+case $- in *[eu]*)
 	# https://lists.gnu.org/archive/html/help-bash/2020-04/msg00049.html
-	warn "gentoo-functions does not support the errexit option; unexpected behaviour may ensue"
-esac
-
-case $- in *u*)
-	# https://lists.gnu.org/archive/html/help-bash/2020-04/msg00049.html
-	warn "gentoo-functions does not support the nounset option; unexpected behaviour may ensue"
+	warn "gentoo-functions supports neither the errexit option nor the nounset option; unexpected behaviour may ensue"
 esac
 
 case ${KSH_VERSION} in 'Version AJM 93'*)
