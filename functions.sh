@@ -61,7 +61,7 @@ case ${KSH_VERSION} in 'Version AJM 93'*)
 	return 1
 esac
 
-if [ "${YASH_VERSION}" ] && set +o | grep -qxF 'set -o posixlycorrect'; then
+if [ "${YASH_VERSION}" ] && [ -o posixlycorrect ]; then
 	# The yash shell disables the local builtin in its POSIXly-correct mode.
 	warn "gentoo-functions does not support yash in posixlycorrect mode"
 	return 1
