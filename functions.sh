@@ -579,65 +579,59 @@ quote_args()
 # the standard output along with a trailing <newline>. Otherwise, the return
 # value shall be greater than 0.
 #
-srandom()
-{
-	# The SRANDOM variable was introduced by bash 5.1. Check for at least
-	# 5.0 before comparing two expansions thereof. Doing so is safe because
-	# bash discards numbers that are equal to whichever was last generated.
-	#
-	# shellcheck disable=3028
-	if [ "${BASH_VERSINFO-0}" -ge 5 ] && [ "${SRANDOM}" != "${SRANDOM}" ]; then
-		srandom()
-		{
-			printf '%d\n' "$(( SRANDOM >> 1 ))"
-		}
-	elif [ -c /dev/urandom ]; then
-		# Employ a method which entails searching for 8 consecutive hex
-		# digits, where the first is between 0 and 7.
-		genfun_int32_pat='[0-7][[:xdigit:]][[:xdigit:]][[:xdigit:]][[:xdigit:]][[:xdigit:]][[:xdigit:]][[:xdigit:]]'
-		unset -v genfun_entropy
+# shellcheck disable=3028
+if [ "${BASH_VERSINFO-0}" -ge 5 ] && [ "${SRANDOM}" != "${SRANDOM}" ]; then
+	# Take advantage of the SRANDOM variable, as introduced by bash 5.1.
+	srandom()
+	{
+		printf '%d\n' "$(( SRANDOM >> 1 ))"
+	}
+elif [ -c /dev/urandom ]; then
+	# Employ a method which entails searching for 8 consecutive hex digits,
+	# where the first is between 0 and 7.
+	genfun_int32_pat='[0-7][[:xdigit:]][[:xdigit:]][[:xdigit:]][[:xdigit:]][[:xdigit:]][[:xdigit:]][[:xdigit:]]'
+	unset -v genfun_entropy
 
-		srandom()
-		{
-			local hex i slice
+	srandom()
+	{
+		local hex i slice
 
-			# If the shell has forked, or if it cannot be determined
-			# whether it has done so, populate the pool with 64
-			# bytes worth of fresh entropy.
-			if ! _update_pid; then
+		# If the shell has forked, or if it cannot be determined
+		# whether it has done so, populate the pool with 64 bytes worth
+		# of fresh entropy.
+		if ! _update_pid; then
+			_collect_entropy
+		elif ! eval "test \"\${genfun_pool_${genfun_pid}+set}\""; then
+			_collect_entropy &&
+			eval "genfun_pool_${genfun_pid}=1"
+		fi || return
+
+		for i in 1 2 3; do
+			# shellcheck disable=2295
+			slice=${genfun_entropy%${genfun_int32_pat}*}
+			if [ "${#slice}" -ne "${#genfun_entropy}" ]; then
+				hex=${genfun_entropy#"$slice"}
+				genfun_entropy=${genfun_entropy%"$hex"}
+				while [ "${#hex}" -gt 8 ]; do
+					hex=${hex%?}
+				done
+				break
+			elif [ "$i" -lt 3 ]; then
+				# The pool does not contain a suitable
+				# sequence. Refill it then try again.
 				_collect_entropy
-			elif ! eval "test \"\${genfun_pool_${genfun_pid}+set}\""; then
-				_collect_entropy &&
-				eval "genfun_pool_${genfun_pid}=1"
-			fi || return
-
-			for i in 1 2 3; do
-				# shellcheck disable=2295
-				slice=${genfun_entropy%${genfun_int32_pat}*}
-				if [ "${#slice}" -ne "${#genfun_entropy}" ]; then
-					hex=${genfun_entropy#"$slice"}
-					genfun_entropy=${genfun_entropy%"$hex"}
-					while [ "${#hex}" -gt 8 ]; do
-						hex=${hex%?}
-					done
-					break
-				elif [ "$i" -lt 3 ]; then
-					# The pool does not contain a suitable
-					# sequence. Refill it then try again.
-					_collect_entropy
-				else
-					false
-				fi
-			done &&
-			printf '%d\n' "0x${hex}"
-		}
-	else
+			else
+				false
+			fi
+		done &&
+		printf '%d\n' "0x${hex}"
+	}
+else
+	srandom() {
 		warn "srandom: /dev/urandom doesn't exist as a character device"
 		return 1
-	fi
-
-	srandom
-}
+	}
+fi
 
 #
 # Trims leading and trailing whitespace from one or more lines. If at least one
