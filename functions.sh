@@ -91,22 +91,22 @@ assign()
 #
 chdir()
 {
-	if [ "$#" -eq 1 ]; then
-		case $1 in
-			'')
-				_warn_for_args chdir "$1"
-				return 1
-				;;
-			-)
-				set -- ./-
-		esac
-	fi
 	if [ "${BASH}" ]; then
 		# shellcheck disable=3044
 		shopt -u cdable_vars
 	fi
 	# shellcheck disable=1007,2164
-	CDPATH= cd -- "$@"
+	case $1 in
+		'')
+			printf >&2 'chdir: null directory\n'
+			false
+			;;
+		/*)
+			cd -P "$1"
+			;;
+		*)
+			CDPATH= cd -P "./$1"
+	esac
 }
 
 #
@@ -1035,7 +1035,7 @@ _warn_for_args()
 # This shall be incremented by one upon any change being made to the public API.
 # It was introduced by gentoo-functions-1.7 with an initial value of 1.
 # shellcheck disable=2034
-GENFUN_API_LEVEL=1
+GENFUN_API_LEVEL=2
 
 # If genfun_basedir is unset, set genfun_prefix to the value of EPREFIX, as it
 # was at the time of installing gentoo-functions, before setting genfun_basedir

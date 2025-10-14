@@ -50,6 +50,7 @@ test_local() {
 test_chdir() {
 	set -- \
 		ge  1          ''  \
+		ge  1         N/A  \
 		ge  1  grandchild  \
 		ge  1         var  \
 		eq  0          -L  \
