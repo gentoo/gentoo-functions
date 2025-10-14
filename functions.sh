@@ -871,14 +871,13 @@ _update_columns()
 		# updates can be performed is throttled to intervals of half a
 		# second. Secondly, if running on bash then the COLUMNS variable
 		# may be gauged, albeit only in situations where doing so can be
-		# expected to work reliably; it is an unreliable method where
-		# operating from a subshell. Note that executing true(1) is
-		# faster than executing stty(1) within a comsub.
+		# expected to work reliably.
 		# shellcheck disable=3028
 		if _should_throttle 50; then
 			test "${genfun_cols}"
 			return
 		elif [ "${genfun_bin_true}" ] && [ "$$" = "${BASHPID}" ]; then
+			# To execute the true binary is faster than stty(1).
 			"${genfun_bin_true}"
 			set -- 0 "${COLUMNS}"
 		else
