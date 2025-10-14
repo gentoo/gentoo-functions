@@ -672,6 +672,7 @@ test_hr() {
 		expected=$1
 		shift
 		test_description="hr $(quote_args "$@")"
+		hr="leakage"
 		test "$(hr "$@")" = "${expected}"
 	}
 
