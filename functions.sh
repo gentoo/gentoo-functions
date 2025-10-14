@@ -873,7 +873,11 @@ _update_columns()
 		# may be gauged, albeit only in situations where doing so can be
 		# expected to work reliably.
 		# shellcheck disable=3028
-		if _should_throttle 50; then
+		if from_portage; then
+			# Python's pty module is broken. For now, expect for
+			# portage to have exported COLUMNS to the environment.
+			set -- 0 "${COLUMNS}"
+		elif _should_throttle 50; then
 			test "${genfun_cols}"
 			return
 		elif [ "${genfun_bin_true}" ] && [ "$$" = "${BASHPID}" ]; then
