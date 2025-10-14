@@ -1068,8 +1068,8 @@ fi
 for _ in "${genfun_basedir}/functions"/*.sh; do
 	if ! test -e "$_"; then
 		warn "no gentoo-functions modules were found (genfun_basedir might be set incorrectly)"
-		! break
+		false
 	elif _want_module "$_"; then
-		. "$_" || return
-	fi
+		. "$_"
+	fi || return
 done
