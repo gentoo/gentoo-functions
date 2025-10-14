@@ -51,6 +51,7 @@ case ${KSH_VERSION} in 'Version AJM 93'*)
 	return 1
 esac
 
+# shellcheck disable=3062
 if [ "${YASH_VERSION}" ] && [ -o posixlycorrect ]; then
 	# The yash shell disables the local builtin in its POSIXly-correct mode.
 	warn "gentoo-functions does not support yash in posixlycorrect mode"
@@ -839,7 +840,7 @@ _should_throttle()
 {
 	_update_time || return
 
-	# shellcheck disable=2317
+	# shellcheck disable=2329
 	_should_throttle()
 	{
 		_update_time || return
