@@ -951,7 +951,7 @@ _update_pid()
 _update_time()
 {
 	# shellcheck disable=3028
-	if [ "${EPOCHREALTIME}" != "${EPOCHREALTIME}" ]; then
+	if [ "${BASH}" ] && [ "${EPOCHREALTIME}" != "${EPOCHREALTIME}" ]; then
 		# shellcheck disable=2034,3045
 		_update_time()
 		{
