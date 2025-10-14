@@ -581,49 +581,47 @@ quote_args()
 #
 # shellcheck disable=3028
 if [ "${BASH_VERSINFO-0}" -ge 5 ] && [ "${SRANDOM}" != "${SRANDOM}" ]; then
-	# Take advantage of the SRANDOM variable, as introduced by bash 5.1.
 	srandom()
 	{
 		printf '%d\n' "$(( SRANDOM >> 1 ))"
 	}
 elif [ -c /dev/urandom ]; then
-	# Employ a method which entails searching for 8 consecutive hex digits,
-	# where the first is between 0 and 7.
-	genfun_int32_pat='[0-7][[:xdigit:]][[:xdigit:]][[:xdigit:]][[:xdigit:]][[:xdigit:]][[:xdigit:]][[:xdigit:]]'
 	unset -v genfun_entropy
 
 	srandom()
 	{
-		local hex i slice
+		local hex slice
 
-		# If the shell has forked, or if it cannot be determined
-		# whether it has done so, populate the pool with 64 bytes worth
-		# of fresh entropy.
-		if ! _update_pid; then
+		if [ "${#genfun_entropy}" -lt 8 ]; then
+			# Not enough entropy is left in the pool.
+			_collect_entropy
+		elif ! _update_pid; then
+			# Fork detection is unavailable.
 			_collect_entropy
 		elif ! eval "test \"\${genfun_pool_${genfun_pid}+set}\""; then
+			# A newly forked shell has been detected.
 			_collect_entropy &&
 			eval "genfun_pool_${genfun_pid}=1"
 		fi || return
 
-		for i in 1 2 3; do
-			# shellcheck disable=2295
-			slice=${genfun_entropy%${genfun_int32_pat}*}
-			if [ "${#slice}" -ne "${#genfun_entropy}" ]; then
-				hex=${genfun_entropy#"$slice"}
-				genfun_entropy=${genfun_entropy%"$hex"}
-				while [ "${#hex}" -gt 8 ]; do
-					hex=${hex%?}
-				done
-				break
-			elif [ "$i" -lt 3 ]; then
-				# The pool does not contain a suitable
-				# sequence. Refill it then try again.
-				_collect_entropy
-			else
-				false
-			fi
-		done &&
+		# Consume 8 hex digits (32 bits) from the pool.
+		slice=${genfun_entropy%????????}
+		hex=${genfun_entropy#"$slice"}
+		genfun_entropy=${slice}
+
+		# Clamp to the desired range (0x7FFFFFFF at most).
+		case ${hex} in
+			8*) hex=0${hex#?} ;;
+			9*) hex=1${hex#?} ;;
+			a*) hex=2${hex#?} ;;
+			b*) hex=3${hex#?} ;;
+			c*) hex=4${hex#?} ;;
+			d*) hex=5${hex#?} ;;
+			e*) hex=6${hex#?} ;;
+			f*) hex=7${hex#?}
+		esac
+
+		# Print as decimal.
 		printf '%d\n' "0x${hex}"
 	}
 else
