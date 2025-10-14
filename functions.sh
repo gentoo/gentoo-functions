@@ -868,6 +868,8 @@ _update_columns()
 
 	_update_columns()
 	{
+		local IFS
+
 		# Two optimisations are applied. Firstly, the rate at which
 		# updates can be performed is throttled to intervals of half a
 		# second. Secondly, if running on bash then the COLUMNS variable
@@ -887,11 +889,9 @@ _update_columns()
 			set -- 0 "${COLUMNS}"
 		else
 			# This use of stty(1) is portable as of POSIX-1.2024.
-			genfun_ifs=${IFS}
 			IFS=' '
 			# shellcheck disable=2046
 			set -- $(stty size 2>/dev/null)
-			IFS=${genfun_ifs}
 		fi
 		[ "$#" -eq 2 ] && is_int "$2" && [ "$2" -gt 0 ] && genfun_cols=$2
 	}
