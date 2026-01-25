@@ -1,5 +1,5 @@
 #!/bin/sh
-# shellcheck disable=1007,2015,2031,2164,2317,3043
+# shellcheck disable=1007,2015,2031,2164,2329,3043
 
 # Requires mktemp(1), which is not a standard utility, but is commonly
 # available. The implementations provided by GNU coreutils, busybox and toybox
@@ -672,6 +672,7 @@ test_hr() {
 		expected=$1
 		shift
 		test_description="hr $(quote_args "$@")"
+		# shellcheck disable=2034
 		hr="leakage"
 		test "$(hr "$@")" = "${expected}"
 	}

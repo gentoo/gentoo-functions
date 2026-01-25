@@ -1,6 +1,6 @@
 # Copyright 1999-2024 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
-# shellcheck shell=sh disable=3013,3043
+# shellcheck shell=sh disable=3043
 
 # This file contains alternative implementations for some of the functions and
 # utilities provided by OpenRC. Please refer to ../functions.sh for coding
@@ -356,7 +356,6 @@ _eend()
 		return "${retval}"
 	else
 		# Generate an indicator for ebegin's successful conclusion.
-		# shellcheck disable=2154
 		if _update_tty_level <&1; [ "${genfun_tty}" -eq 0 ]; then
 			msg="[ ok ]"
 		else
