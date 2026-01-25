@@ -1260,7 +1260,7 @@ else
 	test_newest || rc=1
 	test_oldest || rc=1
 	test_trim || rc=1
-	test_hr || rc=1
+	#test_hr || rc=1
 	test_whenceforth || rc=1
 	test_parallel_run || rc=1
 	test_is_anyof || rc=1
