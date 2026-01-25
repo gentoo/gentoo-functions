@@ -16,7 +16,7 @@
 # INSIDE_EMACS  : whether to work around an emacs-specific bug in _eend()
 # NO_COLOR      : whether colored output should be suppressed
 # RC_NOCOLOR    : like NO_COLOR but deprecated
-# TERM          : whether to work around an emacs-specific bug in _eend()
+# TERM          : for dumb tty detection and to mitigate an emacs bug in _eend()
 # TEST_GENFUNCS : used for testing the behaviour of get_bootparam()
 
 #------------------------------------------------------------------------------#
@@ -427,11 +427,13 @@ _has_color_terminal()
 {
 	local colors
 
+	case ${TERM} in
+		*dumb*) return 1
+	esac
+
 	# The tput(1) invocation is not portable, though ncurses suffices. In
 	# this day and age, it is exceedingly unlikely that it will be needed.
-	if _has_dumb_terminal; then
-		false
-	elif colors=$(tput colors 2>/dev/null) && is_int "${colors}"; then
+	if colors=$(tput colors 2>/dev/null) && is_int "${colors}"; then
 		test "${colors}" -gt 0
 	else
 		true

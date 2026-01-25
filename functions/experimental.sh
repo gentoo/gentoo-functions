@@ -66,6 +66,7 @@ hr()
 {
 	local c hr i length
 
+	# shellcheck disable=2154
 	if [ "$#" -ge 2 ] && is_int "$2"; then
 		length=$2
 	elif _update_tty_level <&1; [ "${genfun_tty}" -eq 2 ]; then
