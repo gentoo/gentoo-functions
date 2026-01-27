@@ -483,7 +483,7 @@ quote_args()
 	if [ ! "${POSIXLY_CORRECT}" ] && [ "${BASH_VERSINFO-0}" -ge 5 ]; then
 		_quote_args_bash "$@"
 	else
-		shquote "$@"
+		POSIXLY_CORRECT=${POSIXLY_CORRECT} shquote "$@"
 	fi
 }
 
