@@ -996,9 +996,15 @@ test_quote_args() {
 	set -- eq 0
 
 	callback() {
-		local POSIXLY_CORRECT cksum fmt i str
+		local expected_cksum cksum fmt i str
 
-		test_description="quote_args output test (expecting cksum 380900690)"
+		if [ "${BASH}" ]; then
+			expected_cksum=380900690
+		else
+			expected_cksum=1492849101
+		fi
+
+		test_description="quote_args output test (expecting cksum ${expected_cksum})"
 		i=0
 		# The generator fails to produce the correct ouput in yash
 		# unless the effective character type is C/POSIX. However, once
@@ -1006,14 +1012,17 @@ test_quote_args() {
 		# if in its posix mode. As things stand, there is little point
 		# in fixing it because yash also disables the local builtin in
 		# its posix mode, causing test-functions to bail out sooner.
-		while [ "$((i += 1))" -le 255 ]; do
-			fmt=$(printf '\\%o' "$i")
-			# shellcheck disable=2059
-			str=$(printf "$fmt.")
-			quote_args "${str%.}" || break
-		done \
+		{
+			POSIXLY_CORRECT=
+			while [ "$((i += 1))" -le 255 ]; do
+				fmt=$(printf '\\%o' "$i")
+				# shellcheck disable=2059
+				str=$(printf "${fmt}.")
+				quote_args "${str%.}" || break
+			done
+		} \
 		| cksum \
-		| { read -r cksum _ && test "${cksum}" = "380900690"; }
+		| { read -r cksum _ && test "${cksum}" = "${expected_cksum}"; }
 	}
 
 	iterate_tests 2 "$@"
@@ -1242,6 +1251,15 @@ elif ! GENFUN_MODULES="portage rc" . ./functions.sh; then
 	bailout "Couldn't source ./functions.sh"
 else
 	assign_tmpdir
+
+	# Since the test suite is normally executed during the src_test phase,
+	# the shquote utility will not yet have been installed. Account for
+	# that by redefining the quote_args() function.
+	# shellcheck disable=3028
+	if [ "${EBUILD_PHASE}" = test ] && [ "${BASH_VERSINFO-0}" -lt 5 ]; then
+		quote_args() { "${BUILD_DIR:?}"/shquote "$@"; }
+	fi
+
 	test_chdir || rc=1
 	test_ebegin || rc=1
 	test_is_older_than || rc=1

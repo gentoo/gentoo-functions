@@ -482,61 +482,9 @@ quote_args()
 	# shellcheck disable=3028
 	if [ ! "${POSIXLY_CORRECT}" ] && [ "${BASH_VERSINFO-0}" -ge 5 ]; then
 		_quote_args_bash "$@"
-		return
+	else
+		shquote "$@"
 	fi
-	LC_ALL=C awk -v q=\' -f - -- "$@" <<-'EOF'
-	function init_table() {
-		# Iterate over ranges \001-\037 and \177-\377.
-		for (i = 1; i <= 255; i += (i == 31 ? 96 : 1)) {
-			char = sprintf("%c", i)
-			seq_by[char] = sprintf("%03o", i)
-		}
-		seq_by["\007"] = "a"
-		seq_by["\010"] = "b"
-		seq_by["\011"] = "t"
-		seq_by["\012"] = "n"
-		seq_by["\013"] = "v"
-		seq_by["\014"] = "f"
-		seq_by["\015"] = "r"
-		seq_by["\033"] = "e"
-		seq_by["\047"] = "'"
-		seq_by["\134"] = "\\"
-	}
-	BEGIN {
-		issue = length(ENVIRON["POSIXLY_CORRECT"]) ? 7 : 8;
-		argc = ARGC
-		ARGC = 1
-		for (arg_idx = 1; arg_idx < argc; arg_idx++) {
-			arg = ARGV[arg_idx]
-			if (arg == q) {
-				word = "\\" q
-			} else if (issue < 8 || arg !~ /[\001-\037\177-\377]/) {
-				gsub(q, q "\\" q q, arg)
-				word = q arg q
-			} else {
-				# Use $'' quoting per POSIX-1.2024.
-				if (! ("\001" in seq_by)) {
-					init_table()
-				}
-				word = "$'"
-				for (i = 1; i <= length(arg); i++) {
-					char = substr(arg, i, 1)
-					if (char in seq_by) {
-						word = word "\\" seq_by[char]
-					} else {
-						word = word char
-					}
-				}
-				word = word q
-			}
-			line = line word
-			if (arg_idx < argc - 1) {
-				line = line " "
-			}
-		}
-		print line
-	}
-	EOF
 }
 
 #

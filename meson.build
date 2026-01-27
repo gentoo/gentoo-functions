@@ -1,7 +1,10 @@
 project(
   'gentoo-functions', 'c',
   version: '1.7.3',
-  license: 'GPL-2.0-only',
+  license: [
+    'GPL-2.0-only',
+    'MIT'
+  ],
   default_options : [
     'warning_level=2',
     'c_std=gnu11',
@@ -26,6 +29,12 @@ executable(
   install: true
 )
 
+executable(
+  'shquote',
+  'shquote.c',
+  install: true
+)
+
 install_man(
   'consoletype.1',
 )
@@ -36,6 +45,7 @@ if do_tests
     'test-functions', files('test-functions'),
     workdir : meson.current_source_dir(),
     protocol : 'tap',
-    verbose : true
+    verbose : true,
+    env : { 'BUILD_DIR' : meson.current_build_dir() }
   )
 endif
