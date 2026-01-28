@@ -64,7 +64,7 @@ _update_columns()
 		local IFS
 
 		# Two optimisations are applied. Firstly, the rate at which
-		# updates can be performed is throttled to intervals of half a
+		# updates can be performed is throttled to intervals of one
 		# second. Secondly, if running on bash then the COLUMNS variable
 		# may be gauged, albeit only in situations where doing so can be
 		# expected to work reliably.
@@ -73,7 +73,7 @@ _update_columns()
 			# Python's pty module is broken. For now, expect for
 			# portage to have exported COLUMNS to the environment.
 			set -- 0 "${COLUMNS}"
-		elif _should_throttle 50; then
+		elif _should_throttle 100; then
 			test "${genfun_cols}"
 			return
 		elif [ "${genfun_bin_true}" ] && [ "$$" = "${BASHPID}" ]; then
