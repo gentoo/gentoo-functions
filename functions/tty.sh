@@ -8,7 +8,6 @@
 # The following variables affect initialisation and/or function behaviour.
 
 # BASH             : whether bash-specific features may be employed
-# BASHPID          : may be used by _update_columns() and _update_pid()
 # COLUMNS          : may be used by _update_columns() to get the column count
 # EPOCHREALTIME    : potentially used by _update_time() to get the time
 # TERM             : used to detect dumb terminals
@@ -54,42 +53,22 @@ _should_throttle()
 #
 _update_columns()
 {
-	# shellcheck disable=3044
-	if [ "${BASH}" ] && shopt -q checkwinsize; then
-		genfun_bin_true=$(whenceforth -x true)
+	local IFS
+
+	if from_portage; then
+		# Python's pty module is broken. For now, expect for portage to
+		# have exported COLUMNS to the environment.
+		set -- 0 "${COLUMNS}"
+	elif _should_throttle 100 && [ "${genfun_cols}" ]; then
+		# Preserve the cached number of columns for up to 1 second.
+		return
+	else
+		# This use of stty(1) is portable as of POSIX-1.2024.
+		IFS=' '
+		# shellcheck disable=2046
+		set -- $(stty size 2>/dev/null)
 	fi
-
-	_update_columns()
-	{
-		local IFS
-
-		# Two optimisations are applied. Firstly, the rate at which
-		# updates can be performed is throttled to intervals of one
-		# second. Secondly, if running on bash then the COLUMNS variable
-		# may be gauged, albeit only in situations where doing so can be
-		# expected to work reliably.
-		# shellcheck disable=3028
-		if from_portage; then
-			# Python's pty module is broken. For now, expect for
-			# portage to have exported COLUMNS to the environment.
-			set -- 0 "${COLUMNS}"
-		elif _should_throttle 100; then
-			test "${genfun_cols}"
-			return
-		elif [ "${genfun_bin_true}" ] && [ "$$" = "${BASHPID}" ]; then
-			# To execute the true binary is faster than stty(1).
-			"${genfun_bin_true}"
-			set -- 0 "${COLUMNS}"
-		else
-			# This use of stty(1) is portable as of POSIX-1.2024.
-			IFS=' '
-			# shellcheck disable=2046
-			set -- $(stty size 2>/dev/null)
-		fi
-		[ "$#" -eq 2 ] && is_int "$2" && [ "$2" -gt 0 ] && genfun_cols=$2
-	}
-
-	_update_columns
+	[ "$#" -eq 2 ] && is_int "$2" && [ "$2" -gt 0 ] && genfun_cols=$2
 }
 
 #
