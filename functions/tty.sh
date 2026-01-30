@@ -63,7 +63,6 @@ _update_columns()
 		# Preserve the cached number of columns for up to 1 second.
 		return
 	else
-		# This use of stty(1) is portable as of POSIX-1.2024.
 		IFS=' '
 		# shellcheck disable=2046
 		set -- $(stty size 2>/dev/null)

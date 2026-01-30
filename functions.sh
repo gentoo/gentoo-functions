@@ -9,7 +9,7 @@
 # intended for internal use shall be prefixed with "genfun_" to indicate so,
 # and to reduce the probability of name space conflicts.
 
-# The functions shall be compatible with the POSIX-1.2018 Shell and Utilities
+# The functions shall be compatible with the POSIX-1.2024 Shell and Utilities
 # (XCU), except where otherwise noted and with the exception that the use of
 # the local utility is permitted, despite the results of its invocation being
 # formally unspecified. Should any of the errexit, pipefail or nounset options
@@ -305,10 +305,6 @@ is_anyof()
 # This constraint is expected to be eliminated by a future amendment to the
 # function, once support for read -d becomes sufficiently widespread.
 #
-# The test utility is required to support the -nt primary, per POSIX-1.2024.
-# However, measures are in place to to achieve compatibility with shells that
-# implement the primary without yet fully adhering to the specification.
-#
 newest()
 {
 	local path newest
@@ -351,9 +347,6 @@ get_nprocs()
 		# advantage of acknowledging the effect of sched_setaffinity(2).
 		true
 	elif getconf _NPROCESSORS_ONLN 2>/dev/null; then
-		# This constant is standard as of POSIX-1.2024 and was already
-		# supported by glibc, musl-utils, macOS, FreeBSD, NetBSD and
-		# OpenBSD.
 		true
 	else
 		warn "get_nprocs: failed to determine the number of processors"
@@ -378,8 +371,6 @@ get_nprocs()
 # example, by specifying a predicate of ! -path $'*\n*' to the find utility.
 # This constraint is expected to be eliminated by a future amendment to the
 # function, once support for read -d becomes sufficiently widespread.
-#
-# The test utility is required to support the -ot primary, per POSIX-1.2024.
 #
 oldest()
 {
@@ -470,11 +461,10 @@ parallel_run()
 #
 # If any such bytes are found, the value shall instead be requoted in a manner
 # that conforms with section 2.2.4 of the Shell Command Language, wherein the
-# the use of dollar-single-quotes sequences is described. Such sequences are
-# standard as of POSIX-1.2024. However, as of August 2024, many implementations
-# lack support for this feature. So as to mitigate this state of affairs, the
-# use of dollar-single-quotes may be suppressed by setting POSIXLY_CORRECT as a
-# non-empty string.
+# the use of dollar-single-quotes sequences is described. As of August 2024,
+# many implementations lack support for this feature. So as to mitigate this
+# state of affairs, the use of dollar-single-quotes may be suppressed by
+# setting POSIXLY_CORRECT as a non-empty string.
 #
 quote_args()
 {

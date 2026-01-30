@@ -136,7 +136,6 @@ esyslog()
 		shift 2
 		msg=$*
 		if _is_visible "${msg}"; then
-			# The -p and -t options are standard as of POSIX-1.2024.
 			logger -p "${pri}" -t "${tag}" -- "${msg}"
 		fi
 	fi
@@ -203,10 +202,6 @@ get_bootparam()
 #
 # Takes the first parameter as a reference file/directory then determines
 # whether any of the following parameters refer to newer files/directories.
-#
-# The test utility is required to support the -nt primary, per POSIX-1.2024.
-# However, measures are in place to to achieve compatibility with shells that
-# implement the primary without yet fully adhering to the specification.
 #
 is_older_than()
 {
