@@ -416,7 +416,7 @@ oldest()
 #
 parallel_run()
 {
-	local arg cmd i statedir w workers
+	local arg cmd i retval statedir w workers
 
 	if [ "$#" -lt 3 ]; then
 		warn "parallel_run: too few arguments (got $#, expected at least 3)"
@@ -446,7 +446,11 @@ parallel_run()
 		done
 		wait
 	)
-	! rmdir -- "${statedir}" 2>/dev/null
+	retval=$?
+	if rmdir -- "${statedir}" 2>/dev/null && [ "${retval}" -eq 0 ]; then
+		retval=1
+	fi
+	return "${retval}"
 }
 
 #
