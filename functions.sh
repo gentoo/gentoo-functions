@@ -437,7 +437,7 @@ parallel_run()
 		while [ "$(( w += 1 ))" -le "${workers}" ]; do
 			i=$w
 			while [ "$i" -le "$#" ]; do
-				eval "arg=\$${i}"
+				eval "arg=\${$i}"
 				if ! "${cmd}" "${arg}"; then
 					mkdir -p -- "${statedir}"
 				fi

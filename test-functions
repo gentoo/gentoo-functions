@@ -786,6 +786,18 @@ test_parallel_run() {
 	iterate_tests 4 "$@"
 }
 
+test_parallel_run_deref() {
+	set -- eq 0
+
+	callback() {
+		test_description="quote_args parameter derefencing test (expecting cksum 3992977419)"
+		set -- a b c d e f g h i j k l m n o p q r s t u v w x y z
+		test "$(parallel_run 1 echo "$@" | cksum)" = "3992977419 52"
+	}
+
+	iterate_tests 2 "$@"
+}
+
 test_is_anyof() {
 	set -- \
 		ge  1  N/A  N/A  N/A  \
@@ -1282,6 +1294,7 @@ else
 	#test_hr || rc=1
 	test_whenceforth || rc=1
 	test_parallel_run || rc=1
+	test_parallel_run_deref || rc=1
 	test_is_anyof || rc=1
 	#test_is_subset || rc=1
 	test_trueof_all || rc=1
