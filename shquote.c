@@ -48,7 +48,7 @@ int
 main(int argc, char *argv[])
 {
 	char *var = getenv("POSIXLY_CORRECT");
-	if (var != NULL && strlen(var))
+	if (var && *var)
 		/* Disallow dollar-single quoting. */
 		esc_mode = 1;
 
