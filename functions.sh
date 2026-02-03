@@ -20,7 +20,7 @@
 
 # BASH             : whether bash-specific features may be employed
 # BASH_VERSINFO    : whether bash-specific features may be employed
-# BASHPID          : may be used by _update_columns() and _update_pid()
+# BASHPID          : may be used by _update_pid()
 # GENFUN_MODULES   : which of the optional function collections must be sourced
 # IFS              : warn() operands are joined by its first character
 # INVOCATION_ID    : used by from_unit()
