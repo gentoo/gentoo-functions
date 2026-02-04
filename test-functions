@@ -1213,10 +1213,10 @@ iterate_tests() {
 		code="callback"
 		j=1
 		while [ "$((j += 1))" -le "${slice_width}" ]; do
-			if eval "[ \"\$${j}\" = N/A ]"; then
+			if eval "[ \"\${$j}\" = N/A ]"; then
 				break
 			else
-				code="${code} \"\$${j}\""
+				code="${code} \"\${$j}\""
 			fi
 		done
 		eval "${code}"
