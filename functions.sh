@@ -715,16 +715,17 @@ _collect_entropy() {
 if [ "${BASH_VERSINFO-0}" -ge 5 ]; then
 	eval '
 		_quote_args_bash() {
-			local IFS=" " args i
+			local IFS=" " args word
 
 			(( $# > 0 )) || return 0
-			args=("${@@Q}")
-			for i in "${!args[@]}"; do
-				if [[ ${args[i]} == \$* ]]; then
-					args[i]=${args[i]//\\E/\\e}
+			for word in "${@@Q}"; do
+				if [[ ${word} == \$* ]]; then
+					args+=("${word//\\E/\\e}")
+				else
+					args+=("${word}")
 				fi
 			done
-			printf "%s\\n" "${args[*]}"
+			printf %s\\n "${args[*]}"
 		}
 	'
 fi
