@@ -717,7 +717,6 @@ if [ "${BASH_VERSINFO-0}" -ge 5 ]; then
 		_quote_args_bash() {
 			local IFS=" " args word
 
-			(( $# > 0 )) || return 0
 			for word in "${@@Q}"; do
 				if [[ ${word} == \$* ]]; then
 					args+=("${word//\\E/\\e}")
