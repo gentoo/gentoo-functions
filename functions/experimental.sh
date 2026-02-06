@@ -187,31 +187,6 @@ prepend_ts()
 }
 
 #
-# Expects three parameters and determines whether the first is lexicographically
-# greater than or equal to the second, and lexicographically lower than or equal
-# to the third. The effective system collation shall affect the results, given
-# the involvement of the sort(1) utility.
-#
-str_between()
-{
-	local i
-
-	if [ "$#" -ne 3 ]; then
-		warn "str_between: wrong number of arguments (got $#, expected 3)"
-		false
-	else
-		set -- "$2" "$1" "$3"
-		i=0
-		# shellcheck disable=2034
-		printf '%s\n' "$@" |
-		sort |
-		while IFS= read -r line; do
-			eval "[ \"\${line}\" = \"\${$(( i += 1 ))}\" ]" || return
-		done
-	fi
-}
-
-#
 # Takes the first parameter as a string (s), the second parameter as a numerical
 # position (m) and, optionally, the third parameter as a numerical length (n).
 # It shall then print a <newline> terminated substring of s that is at most, n
