@@ -183,9 +183,9 @@ deref()
 	elif ! eval "test \"\${$1+set}\""; then
 		false
 	elif [ "$#" -eq 1 ]; then
-		eval "printf '%s\\n' \"\$$1\""
+		eval "printf '%s\\n' \"\${$1}\""
 	else
-		eval "$2=\$$1"
+		eval "$2=\${$1}"
 	fi
 }
 

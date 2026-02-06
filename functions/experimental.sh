@@ -206,7 +206,7 @@ str_between()
 		printf '%s\n' "$@" |
 		sort |
 		while IFS= read -r line; do
-			eval "[ \"\${line}\" = \"\$$(( i += 1 ))\" ]" || return
+			eval "[ \"\${line}\" = \"\${$(( i += 1 ))}\" ]" || return
 		done
 	fi
 }

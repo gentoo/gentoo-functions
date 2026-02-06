@@ -302,7 +302,7 @@ yesno()
 		else
 			# The value appears to be a legal variable name. Treat
 			# it as a name reference and try again, once only.
-			eval "arg=\$$1"
+			eval "arg=\${$1}"
 		fi
 	done
 	_warn_for_args yesno "$@"
