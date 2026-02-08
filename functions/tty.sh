@@ -23,7 +23,7 @@ _has_dumb_terminal()
 }
 
 #
-# Considers the first parameter as a number of centiseconds and determines
+# Considers the first parameter as a number of milliseconds and determines
 # whether fewer have elapsed since the last occasion on which the function was
 # called, or whether the last genfun_time update resulted in integer overflow.
 #
@@ -59,7 +59,7 @@ _update_columns()
 		# Python's pty module is broken. For now, expect for portage to
 		# have exported COLUMNS to the environment.
 		set -- 0 "${COLUMNS}"
-	elif _should_throttle 100 && [ "${genfun_cols}" ]; then
+	elif _should_throttle 1000 && [ "${genfun_cols}" ]; then
 		# Preserve the cached number of columns for up to 1 second.
 		return
 	else
@@ -71,33 +71,24 @@ _update_columns()
 }
 
 #
-# Determines either the number of centiseconds elapsed since the unix epoch or
-# the number of centiseconds that the operating system has been online,
-# depending on the capabilities of the shell and/or platform. Upon success, the
-# obtained value shall be assigned to genfun_time. Otherwise, the return value
-# shall be greater than 0.
+# Determines either the number of milliseconds elapsed since the unix epoch or
+# the approximate number of milliseconds that the operating system has been
+# online, depending on the capabilities of the shell and/or platform. Upon
+# success, the number shall be assigned to genfun_time. Otherwise, the return
+# value shall be greater than 0.
 #
 _update_time()
 {
 	# shellcheck disable=3028
 	if [ "${BASH}" ] && [ "${EPOCHREALTIME}" != "${EPOCHREALTIME}" ]; then
-		# shellcheck disable=2034,3045
-		_update_time()
-		{
-			# Setting LC_NUMERIC as C ensures a radix character of
-			# U+2E, duly affecting both EPOCHREALTIME and printf.
-			local LC_ALL LC_NUMERIC=C cs s timeval
+		eval '
+			_update_time() {
+				local s
 
-			timeval=${EPOCHREALTIME}
-			s=${timeval%.*}
-			printf -v cs '%.2f' ".${timeval#*.}"
-			if [ "${cs}" = "1.00" ]; then
-				cs=100
-			else
-				cs=${cs#0.} cs=${cs#0}
-			fi
-			genfun_time=$(( s * 100 + cs ))
-		}
+				s=${EPOCHREALTIME}
+				genfun_time=${s:0:-7}${s: -6:3}
+			}
+		'
 	elif [ -f /proc/uptime ] && [ ! "${YASH_VERSION}" ]; then
 		# Yash is blacklisted because it dies upon integer overflow.
 		_update_time()
@@ -105,7 +96,7 @@ _update_time()
 			local cs s
 
 			IFS='. ' read -r s cs _ < /proc/uptime \
-			&& genfun_time=$(( s * 100 + ${cs#0} ))
+			&& genfun_time=${s}${cs}0
 		}
 	else
 		_update_time()
