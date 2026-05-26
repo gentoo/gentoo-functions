@@ -713,18 +713,24 @@ _collect_entropy() {
 #
 # shellcheck disable=3028
 if [ "${BASH_VERSINFO-0}" -ge 5 ]; then
+	# shellcheck disable=1003
 	eval '
 		_quote_args_bash() {
-			local IFS=" " args word
+			local str= qw w
 
-			for word in "${@@Q}"; do
-				if [[ ${word} == \$* ]]; then
-					args+=("${word//\\E/\\e}")
+			for w; do
+				printf -v qw %q "$w"
+				if [[ ${qw} == "$w" ]]; then
+					str+=\ $w
 				else
-					args+=("${word}")
+					qw=${w@Q}
+					if [[ ${qw} == \$\'\''* ]]; then
+						qw=${qw//\\E/\\e}
+					fi
+					str+=\ ${qw}
 				fi
 			done
-			printf %s\\n "${args[*]}"
+			printf %s\\n "${str# }"
 		}
 	'
 fi
