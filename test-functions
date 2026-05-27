@@ -1333,7 +1333,9 @@ else
 	# that by redefining the quote_args() function.
 	# shellcheck disable=3028
 	if [ "${EBUILD_PHASE}" = test ] && [ "${BASH_VERSINFO-0}" -lt 5 ]; then
-		quote_args() { "${BUILD_DIR:?}"/shquote "$@"; }
+		quote_args() {
+			POSIXLY_CORRECT=${POSIXLY_CORRECT} "${BUILD_DIR:?}"/shquote "$@"
+		}
 	fi
 
 	test_chdir || rc=1
