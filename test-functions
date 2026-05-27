@@ -23,6 +23,14 @@ cleanup_tmpdir() {
 	fi
 }
 
+supports_dsq() {
+	local fmt
+
+	# Determine whether the shell supports dollar-single-quoting.
+	fmt=$(printf '\044\047\\041\047')
+	test "$(eval "printf %s ${fmt}" 2>/dev/null)" = '!'
+}
+
 test_local() {
 	set -- eq 0
 
@@ -1005,36 +1013,90 @@ test_contains_any() {
 }
 
 test_quote_args() {
+	local POSIXLY_CORRECT tag
+
+	POSIXLY_CORRECT=$1
+	tag=
+	if [ ! "${POSIXLY_CORRECT}" ]; then
+		tag=' (dollar-single-quotes)'
+	fi
+
+	# shellcheck disable=1003,2016
+	set -- \
+		eq  0  ''                    \
+		eq  0  foo                   \
+		eq  0  'a b'                 \
+		eq  0  "There's"             \
+		eq  0  "a'b'c"               \
+		eq  0  "'"                   \
+		eq  0  '$PATH'               \
+		eq  0  '`cmd`'               \
+		eq  0  '"a"'                 \
+		eq  0  'a\b'                 \
+		eq  0  '\\'                  \
+		eq  0  '\E'                  \
+		eq  0  -foo                  \
+		eq  0  =foo                  \
+		eq  0  '~user'               \
+		eq  0  '*'                   \
+		eq  0  '{a,b}'               \
+		eq  0  "$(printf 'a\tb')"    \
+		eq  0  "$(printf 'a\nb')"    \
+		eq  0  "$(printf '\33')"     \
+		eq  0  "$(printf '\\E\33')"  \
+		eq  0  "$(printf '\33\\E')"  \
+		eq  0  "$(printf '\\\33')"
+
+	callback() {
+		local word q_word
+
+		shift
+		word=$1
+		q_word=$(quote_args "${word}")
+		test_description="quote_args${tag} round-trip: $(printf %s "${q_word}" | tr '\n' ' ')"
+		eval "set -- ${q_word}" 2>/dev/null \
+		&& test "$#" -eq 1 \
+		&& test "$1" = "${word}"
+	}
+
+	iterate_tests 3 "$@"
+}
+
+test_quote_args_bytes() {
+	# Yash truncates read input and comsub output at the first invalid
+	# character sequence, irrespective of LC_CTYPE. Have it skip this test,
+	# since round-tripping arbitrary byte strings is impossible.
+	if [ "${YASH_VERSION}" ]; then
+		return
+	fi
+
+	local POSIXLY_CORRECT tag
+
+	POSIXLY_CORRECT=$1
+	tag=
+	if [ ! "${POSIXLY_CORRECT}" ]; then
+		tag=' (dollar-single-quotes)'
+	fi
+
 	set -- eq 0
 
 	callback() {
-		local expected_cksum cksum fmt i str
+		local i fmt word q_word
 
-		if [ "${BASH}" ]; then
-			expected_cksum=380900690
-		else
-			expected_cksum=1492849101
-		fi
-
-		test_description="quote_args output test (expecting cksum ${expected_cksum})"
 		i=0
-		# The generator fails to produce the correct ouput in yash
-		# unless the effective character type is C/POSIX. However, once
-		# launched, yash ignores assignments to the LC_CTYPE variable
-		# if in its posix mode. As things stand, there is little point
-		# in fixing it because yash also disables the local builtin in
-		# its posix mode, causing test-functions to bail out sooner.
-		{
-			POSIXLY_CORRECT=
-			while [ "$((i += 1))" -le 255 ]; do
-				fmt=$(printf '\\%o' "$i")
-				# shellcheck disable=2059
-				str=$(printf "${fmt}.")
-				quote_args "${str%.}" || break
-			done
-		} \
-		| cksum \
-		| { read -r cksum _ && test "${cksum}" = "${expected_cksum}"; }
+		while [ "$((i += 1))" -le 255 ]; do
+			fmt=$(printf '\\%o' "$i")
+			# shellcheck disable=2059
+			word=$(printf "${fmt}.") word=${word%.}
+			q_word=$(quote_args "${word}")
+			eval "set -- ${q_word}" 2>/dev/null \
+			&& test "$#" -eq 1 \
+			&& test "$1" = "${word}" \
+			&& continue
+			test_description="quote_args${tag} round-trip: failed at byte ${i}"
+			return 1
+		done
+		test_description="quote_args${tag} round-trip: bytes 1..255"
 	}
 
 	iterate_tests 2 "$@"
@@ -1243,6 +1305,8 @@ export TEST_GENFUNCS=1
 export TZ=UTC
 testnum=0
 rc=0
+has_dsq=
+supports_dsq && has_dsq=1
 
 if [ "${PORTAGE_BIN_PATH}" ] && [ "${S}" ]; then
 	# shellcheck disable=2034
@@ -1302,7 +1366,12 @@ else
 	#test_substr || rc=1
 	test_contains_all || rc=1
 	test_contains_any || rc=1
-	test_quote_args || rc=1
+	test_quote_args 1 || rc=1
+	test_quote_args_bytes 1 || rc=1
+	if [ "${has_dsq}" ]; then
+		test_quote_args || rc=1
+		test_quote_args_bytes || rc=1
+	fi
 	test_assign || rc=1
 	test_deref || rc=1
 	test_update_time || rc=1
