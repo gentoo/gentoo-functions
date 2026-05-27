@@ -64,6 +64,11 @@ main(int argc, char *argv[])
 static void
 print_shquoted(const char *s)
 {
+	if (!*s) {
+		printf("''");
+		return;
+	}
+
 	uint32_t ignored;
 	int l;
 
