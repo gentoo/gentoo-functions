@@ -1323,7 +1323,7 @@ if ! test_local; then
 	# stringent and simply disables its local builtin if in its posix mode.
 	# Running yash as "sh" would be one way of activating said mode.
 	rc=1
-elif ! GENFUN_MODULES="portage rc" . ./functions.sh; then
+elif ! GENFUN_MODULES="portage rc tty" . ./functions.sh; then
 	bailout "Couldn't source ./functions.sh"
 else
 	assign_tmpdir
@@ -1357,7 +1357,7 @@ else
 	test_newest || rc=1
 	test_oldest || rc=1
 	test_trim || rc=1
-	#test_hr || rc=1
+	test_hr || rc=1
 	test_whenceforth || rc=1
 	test_parallel_run || rc=1
 	test_parallel_run_deref || rc=1

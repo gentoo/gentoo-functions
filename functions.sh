@@ -811,7 +811,7 @@ _warn_for_args()
 # This shall be incremented by one upon any change being made to the public API.
 # It was introduced by gentoo-functions-1.7 with an initial value of 1.
 # shellcheck disable=2034
-GENFUN_API_LEVEL=2
+GENFUN_API_LEVEL=3
 
 # If genfun_basedir is unset, set genfun_prefix to the value of EPREFIX, as it
 # was at the time of installing gentoo-functions, before setting genfun_basedir

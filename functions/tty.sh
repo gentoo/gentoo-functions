@@ -2,8 +2,9 @@
 # Distributed under the terms of the GNU General Public License v2
 # shellcheck shell=sh disable=3043
 
-# This file contains several internal functions pertaining to TTY handling.
-# Please refer to ../functions.sh for coding conventions.
+# This file contains functions that pertain to TTY handling or that are useful
+# where reading from or writing to a TTY. Please refer to ../functions.sh for
+# coding conventions.
 
 # The following variables affect initialisation and/or function behaviour.
 
@@ -13,6 +14,40 @@
 # TERM             : used to detect dumb terminals
 
 #------------------------------------------------------------------------------#
+
+#
+# Prints a horizontal rule. If specified, the first parameter shall be taken as
+# a string whose first character is to be repeated in the course of composing
+# the rule. Otherwise, or if specified as the empty string, it shall default to
+# the <hyphen-minus>. If specified, the second parameter shall define the length
+# of the rule in characters. Otherwise, it shall default to the width of the
+# terminal if such can be determined, or 80 if it cannot be.
+#
+hr()
+{
+	local c hr i length
+
+	# shellcheck disable=2154
+	if [ "$#" -ge 2 ] && is_int "$2"; then
+		length=$2
+	elif _update_tty_level <&1; [ "${genfun_tty}" -eq 2 ]; then
+		length=${genfun_cols}
+	else
+		length=80
+	fi
+	c=${1--}
+	c=${c%"${c#?}"}
+	hr=
+	i=0
+	while [ "$(( i += 16 ))" -le "${length}" ]; do
+		hr=${hr}${c}${c}${c}${c}${c}${c}${c}${c}${c}${c}${c}${c}${c}${c}${c}${c}
+	done
+	i=${#hr}
+	while [ "$(( i += 1 ))" -le "${length}" ]; do
+		hr=${hr}${c}
+	done
+	printf '%s\n' "${hr}"
+}
 
 #
 # Determines whether the terminal is a dumb one.
