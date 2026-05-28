@@ -724,7 +724,7 @@ if [ "${BASH_VERSINFO-0}" -ge 5 ]; then
 					str+=\ $w
 				else
 					qw=${w@Q}
-					if [[ ${qw} == \$\'\''* ]]; then
+					if [[ ${qw} == \$\'\''*\\E* ]]; then
 						qw=${qw//\\\\/$'\''\1'\''}
 						qw=${qw//\\E/\\e}
 						qw=${qw//$'\''\1'\''/\\\\}
