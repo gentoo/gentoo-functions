@@ -1,6 +1,6 @@
 project(
   'gentoo-functions', 'c',
-  version: '1.7.6',
+  version: '1.7.7',
   license: [
     'GPL-2.0-only',
     'MIT'
