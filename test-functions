@@ -1308,9 +1308,17 @@ rc=0
 has_dsq=
 supports_dsq && has_dsq=1
 
-if [ "${PORTAGE_BIN_PATH}" ] && [ "${S}" ]; then
-	# shellcheck disable=2034
-	genfun_basedir=${S}
+if [ "${PORTAGE_BIN_PATH}" ]; then
+	if [ "${S}" ]; then
+		# shellcheck disable=2034
+		genfun_basedir=${S}
+	fi
+
+	# Since the test suite is normally executed during the src_test phase,
+	# the newly compiled shquote utility will not yet have been installed.
+	if [ "${EBUILD_PHASE}" = test ]; then
+		PATH=${BUILD_DIR:?}:${PATH}
+	fi
 fi
 
 if ! test_local; then
@@ -1327,16 +1335,6 @@ elif ! GENFUN_MODULES="portage rc tty" . ./functions.sh; then
 	bailout "Couldn't source ./functions.sh"
 else
 	assign_tmpdir
-
-	# Since the test suite is normally executed during the src_test phase,
-	# the shquote utility will not yet have been installed. Account for
-	# that by redefining the quote_args() function.
-	# shellcheck disable=3028
-	if [ "${EBUILD_PHASE}" = test ] && [ "${BASH_VERSINFO-0}" -lt 5 ]; then
-		quote_args() {
-			POSIXLY_CORRECT=${POSIXLY_CORRECT} "${BUILD_DIR:?}"/shquote "$@"
-		}
-	fi
 
 	test_chdir || rc=1
 	test_ebegin || rc=1
