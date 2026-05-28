@@ -798,7 +798,7 @@ test_parallel_run_deref() {
 	set -- eq 0
 
 	callback() {
-		test_description="quote_args parameter derefencing test (expecting cksum 3992977419)"
+		test_description="quote_args parameter dereferencing test (expecting cksum 3992977419)"
 		set -- a b c d e f g h i j k l m n o p q r s t u v w x y z
 		test "$(parallel_run 1 echo "$@" | cksum)" = "3992977419 52"
 	}
