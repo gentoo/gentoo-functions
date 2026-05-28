@@ -732,7 +732,7 @@ if [ "${BASH_VERSINFO-0}" -ge 5 ]; then
 					str+=\ ${qw}
 				fi
 			done
-			printf %s\\n "${str# }"
+			printf %s\\n "${str:1}"
 		}
 	'
 fi
